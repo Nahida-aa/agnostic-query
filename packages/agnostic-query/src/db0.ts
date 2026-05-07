@@ -1,4 +1,4 @@
-import type { QueryWhere } from './where.js';
+import type { QueryWhere, BaseWhere} from './where.ts';
 
 const opMap: Record<string, string> = {
 	eq: '=',
@@ -10,7 +10,7 @@ const opMap: Record<string, string> = {
 	ilike: 'ILIKE',
 };
 
-function build(where: QueryWhere): { sql: string; params: any[] } | null {
+const build = (where: QueryWhere): { sql: string; params: any[] } | null => {
 	if (!where) return null;
 
 	if (where.operator === 'not') {
@@ -32,7 +32,7 @@ function build(where: QueryWhere): { sql: string; params: any[] } | null {
 		};
 	}
 
-	const { field, operator, conditions } = where as any;
+	const { field, operator, conditions } = where as BaseWhere
 
 	if (operator === 'in') {
 		if (!Array.isArray(conditions)) return null;
@@ -54,5 +54,6 @@ export type Db0Where = {
 export const toDb0Where = (
 	where: QueryWhere | null,
 ): Db0Where | null => {
+	if (!where) return null;
 	return build(where);
 };

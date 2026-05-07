@@ -1,5 +1,5 @@
 import { parseWhereExpression } from '@tanstack/query-db-collection';
-import type { QueryWhere, SchemaShape } from './where.js';
+import type { QueryWhere, SchemaShape } from './where.ts';
 
 export const fromTanDbWhere = <TShape extends SchemaShape>(
 	where: Parameters<typeof parseWhereExpression>[0],

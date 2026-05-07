@@ -18,7 +18,7 @@ import type {
 	BaseWhereOp,
 	QueryWhere,
 	SchemaShape,
-} from './where.js';
+} from './where.ts';
 
 export const drizzleOps = {
 	eq,
