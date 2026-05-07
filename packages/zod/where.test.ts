@@ -9,10 +9,16 @@ type UserShape = {
 };
 
 describe('createWhereSchema', () => {
-	const schema = createWhereSchema<UserShape>()(['id', 'name', 'age', 'tags']);
+	const subsetSchema = createWhereSchema<UserShape>()(['name', 'age']);
+	const fullSchema = createWhereSchema<UserShape>()(['id', 'name', 'age', 'tags']);
+
+	it('should restrict to a subset of fields (TEnabled ≠ keyof TShape)', () => {
+		expect(subsetSchema.safeParse({ field: 'name', operator: 'eq', conditions: 'Alice' }).success).toBe(true);
+		expect(subsetSchema.safeParse({ field: 'id', operator: 'eq', conditions: '1' }).success).toBe(false);
+	});
 
 	it('should parse valid BaseWhere', () => {
-		const result = schema.safeParse({ field: 'name', operator: 'eq', conditions: 'Alice' });
+		const result = fullSchema.safeParse({ field: 'name', operator: 'eq', conditions: 'Alice' });
 		expect(result.success).toBe(true);
 		if (result.success) expect(result.data?.conditions).toBe('Alice');
 	});
@@ -25,7 +31,7 @@ describe('createWhereSchema', () => {
 				{ field: 'age', operator: 'gt', conditions: 18 },
 			],
 		};
-		const result = schema.safeParse(data);
+		const result = fullSchema.safeParse(data);
 		expect(result.success).toBe(true);
 	});
 
@@ -34,7 +40,7 @@ describe('createWhereSchema', () => {
 			operator: 'or' as const,
 			conditions: [{ field: 'id', operator: 'in', conditions: ['1', '2'] }],
 		};
-		const result = schema.safeParse(data);
+		const result = fullSchema.safeParse(data);
 		expect(result.success).toBe(true);
 	});
 
@@ -43,7 +49,7 @@ describe('createWhereSchema', () => {
 			operator: 'not' as const,
 			conditions: { field: 'age', operator: 'lt', conditions: 18 },
 		};
-		const result = schema.safeParse(data);
+		const result = fullSchema.safeParse(data);
 		expect(result.success).toBe(true);
 	});
 
@@ -61,27 +67,39 @@ describe('createWhereSchema', () => {
 				{ field: 'id', operator: 'in', conditions: ['a', 'b'] },
 			],
 		};
-		const result = schema.safeParse(data);
+		const result = fullSchema.safeParse(data);
 		expect(result.success).toBe(true);
 	});
 
+	it('should allow any field when columns is undefined', () => {
+		const loose = createWhereSchema<UserShape>()();
+		const result = loose.safeParse({ field: 'any_field', operator: 'eq', conditions: 'ok' });
+		expect(result.success).toBe(true);
+	});
+
+	it('should reject all queries when columns is empty', () => {
+		const blocked = createWhereSchema<UserShape>()([]);
+		expect(blocked.safeParse({ field: 'name', operator: 'eq', conditions: 'x' }).success).toBe(false);
+		expect(blocked.safeParse(null).success).toBe(true);
+	});
+
 	it('should reject invalid field', () => {
-		const result = schema.safeParse({ field: 'unknown', operator: 'eq', conditions: 'x' });
+		const result = fullSchema.safeParse({ field: 'unknown', operator: 'eq', conditions: 'x' });
 		expect(result.success).toBe(false);
 	});
 
 	it('should reject invalid operator', () => {
-		const result = schema.safeParse({ field: 'name', operator: 'ne', conditions: 'x' });
+		const result = fullSchema.safeParse({ field: 'name', operator: 'ne', conditions: 'x' });
 		expect(result.success).toBe(false);
 	});
 
 	it('should reject non-array conditions for MultiWhere', () => {
-		const result = schema.safeParse({ operator: 'and', conditions: {} });
+		const result = fullSchema.safeParse({ operator: 'and', conditions: {} });
 		expect(result.success).toBe(false);
 	});
 
 	it('should reject missing conditions for UnaryWhere', () => {
-		const result = schema.safeParse({ operator: 'not' });
+		const result = fullSchema.safeParse({ operator: 'not' });
 		expect(result.success).toBe(false);
 	});
 });
