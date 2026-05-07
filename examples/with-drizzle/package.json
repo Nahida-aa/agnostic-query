@@ -1,0 +1,14 @@
+{
+  "name": "example-with-drizzle",
+  "type": "module",
+  "scripts": {
+    "start": "bun run server.ts",
+    "typecheck": "tsgo --noEmit"
+  },
+  "dependencies": {
+    "@agnostic-query/core": "workspace:*",
+    "@agnostic-query/zod": "workspace:*",
+    "@agnostic-query/drizzle": "workspace:*",
+    "drizzle-orm": "^0.39.0"
+  }
+}
