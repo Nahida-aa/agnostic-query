@@ -37,7 +37,6 @@ export const createWhereSchema =
 	<TShape extends SchemaShape>() =>
 	<TEnabled extends Extract<keyof TShape, string>>(columns?: TEnabled[]) => {
 		if (columns !== undefined && columns.length === 0) return v.null();
-
 		// 定义基础过滤器的 schema
 		const baseFilterSchema = v.object({
 			field: columns ? v.picklist(columns) : v.custom<TEnabled>((input) => typeof input === 'string'),
@@ -45,17 +44,14 @@ export const createWhereSchema =
 			conditions: v.any(),
 		});
 		type Out = QueryWhere<TShape, TEnabled>;
-		// 使用 lazy 处理递归
 		// 注意：Valibot 的 lazy 需要显式声明返回类型以支持复杂的递归推断
 		const schema: v.GenericSchema<Out> = v.lazy(() =>
 			v.union([
 				baseFilterSchema,
-				// MultiFilter: and/or
 				v.object({
 					operator: v.picklist(multiWhereOps),
 					conditions: v.array(schema),
 				}),
-				// UnaryFilter: not
 				v.object({
 					operator: v.literal('not'),
 					conditions: schema,

@@ -17,8 +17,8 @@ graph TB
     end
 
     subgraph Adapters["适配器层"]
-        drizzle["packages/drizzle<br/>buildDrizzleWhere<br/>QueryWhere → SQL"]
-        tanstack["packages/tanstack-db<br/>parseWhere<br/>TanStack Expression → QueryWhere"]
+        drizzle["packages/drizzle<br/>toDrizzleWhere<br/>QueryWhere → SQL"]
+        tanstack["packages/tanstack-db<br/>fromTanDbWhere<br/>TanStack Expression → QueryWhere"]
     end
 
     zod --> where_types
@@ -35,12 +35,16 @@ graph TB
 
 ```mermaid
 flowchart LR
-    subgraph Input["输入"]
-        client[客户端查询对象]
-        tanstack_expr[TanStack Expression]
+    subgraph Input["不可信输入"]
+        client[客户端请求]
+        tanstack_expr[TanStackDB Expression]
     end
 
-    subgraph Validate["验证"]
+    subgraph Parse["解析"]
+        tanparse["fromTanDbWhere"]
+    end
+
+    subgraph Validate["可选验证"]
         zod[Zod Schema]
         valibot[Valibot Schema]
     end
@@ -50,18 +54,17 @@ flowchart LR
     end
 
     subgraph Output["输出"]
-        drizzle[Drizzle SQL]
+        drizzle[toDrizzleWhere → SQL]
     end
 
-    client --> zod
-    client --> valibot
-    zod --> qw
-    valibot --> qw
-    tanstack_expr --> tanstack_parse["parseWhere"]
-    tanstack_parse --> qw
+    client --> qw
+    qw --> zod
+    qw --> valibot
+    tanstack_expr --> tanparse --> qw
     qw --> drizzle
 
     style Input fill:#fff3e0
+    style Parse fill:#fff8e1
     style Validate fill:#f3e5f5
     style Core fill:#e1f5fe
     style Output fill:#e8f5e9
@@ -124,7 +127,7 @@ classDiagram
 
 - 包管理: **bun** (workspaces)
 - 类型检查: **tsgo** (TypeScript Go / TS 7.0 preview)
-- 验证库: **zod v4**
+- 验证库: **zod v4** / **valibot v1**
 
 ## 使用
 
