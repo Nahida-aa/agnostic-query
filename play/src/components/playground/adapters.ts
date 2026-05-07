@@ -1,0 +1,80 @@
+import { toSqlString } from 'agnostic-query/sql';
+import { toDb0Where } from 'agnostic-query/db0';
+import { createWhereSchema as createZodSchema } from 'agnostic-query/zod';
+import { createWhereSchema as createValibotSchema } from 'agnostic-query/valibot';
+import { safeParse } from 'valibot';
+import { toDrizzleWhere } from 'agnostic-query/drizzle';
+import { PGlite } from '@electric-sql/pglite';
+import { drizzle } from 'drizzle-orm/pglite';
+import { pgTable, text, integer } from 'drizzle-orm/pg-core';
+
+type AdapterResult =
+	| { status: 'ok'; value: string }
+	| { status: 'error'; message: string };
+
+const users = pgTable('users', {
+	id: text('id').primaryKey(),
+	name: text('name'),
+	age: integer('age'),
+	role: text('role'),
+});
+
+const pglite = new PGlite();
+const db = drizzle(pglite);
+
+export function runSqlString(input: unknown): AdapterResult {
+	try {
+		const result = toSqlString(input as any);
+		if (result === null) return { status: 'error', message: 'null input' };
+		return { status: 'ok', value: result };
+	} catch (e) {
+		return { status: 'error', message: String(e) };
+	}
+}
+
+export function runDb0(input: unknown): AdapterResult {
+	try {
+		const result = toDb0Where(input as any);
+		if (result === null) return { status: 'error', message: 'null input' };
+		return {
+			status: 'ok',
+			value: `SQL:  ${result.sql}\nParams: ${JSON.stringify(result.params)}`,
+		};
+	} catch (e) {
+		return { status: 'error', message: String(e) };
+	}
+}
+
+type UserShape = { id: string; name: string; age: number; role: string };
+const zodSchema = createZodSchema<UserShape>()(['name', 'age', 'role']);
+const valibotSchema = createValibotSchema<UserShape>()(['name', 'age', 'role']);
+
+export function runZod(input: unknown): AdapterResult {
+	const result = zodSchema.safeParse(input);
+	if (result.success) {
+		return { status: 'ok', value: JSON.stringify(result.data, null, 2) };
+	}
+	return { status: 'error', message: JSON.stringify(result.error.issues, null, 2) };
+}
+
+export function runValibot(input: unknown): AdapterResult {
+	const result = safeParse(valibotSchema, input);
+	if (result.success) {
+		return { status: 'ok', value: JSON.stringify(result.output, null, 2) };
+	}
+	return { status: 'error', message: JSON.stringify(result.issues, null, 2) };
+}
+
+export function runDrizzle(input: unknown): AdapterResult {
+	try {
+		const whereExpr = toDrizzleWhere(users, input as any);
+		if (!whereExpr) return { status: 'error', message: 'null input' };
+		const sql = db.select().from(users).where(whereExpr).toSQL();
+		return {
+			status: 'ok',
+			value: `SQL:  ${sql.sql}\nParams: ${JSON.stringify(sql.params)}`,
+		};
+	} catch (e) {
+		return { status: 'error', message: String(e) };
+	}
+}

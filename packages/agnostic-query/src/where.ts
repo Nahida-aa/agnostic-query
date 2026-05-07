@@ -51,6 +51,15 @@ export type QueryWhere<
 	| MultiWhere<TShape, TField>
 	| UnaryWhere<TShape, TField>;
 
+const isFieldNode = <
+	TShape extends SchemaShape,
+	TField extends keyof TShape,
+>(
+	node: QueryWhere<TShape, any>,
+	field: TField,
+): node is BaseWhere<TShape, TField> =>
+	'field' in node && node.field === field;
+
 export const findValueInWhere =
 	<TShape extends SchemaShape, TEnabled extends string>(
 		where: QueryWhere<TShape, TEnabled> | null,
@@ -62,8 +71,8 @@ export const findValueInWhere =
 			const search = (
 				node: QueryWhere<TShape, TEnabled>,
 			): TShape[TField] | undefined => {
-				if ('field' in node && node.field === field) {
-					return node.conditions as TShape[TField];
+				if (isFieldNode(node, field)) {
+					return node.conditions;
 				}
 				if ('conditions' in node) {
 					if (Array.isArray(node.conditions) && ('operator' in node && (node.operator === 'and' || node.operator === 'or'))) {

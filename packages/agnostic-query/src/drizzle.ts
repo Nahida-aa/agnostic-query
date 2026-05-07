@@ -1,5 +1,7 @@
 import {
 	and,
+	asc,
+	desc,
 	eq,
 	gt,
 	gte,
@@ -19,6 +21,7 @@ import type {
 	QueryWhere,
 	SchemaShape,
 } from './where.ts';
+import type { OrderBy } from './order-by.ts';
 
 export const drizzleOps = {
 	eq,
@@ -80,4 +83,17 @@ export const toDrizzleWhere = (
 	if (!extraConditions) return whereConditions;
 	if (!whereConditions) return extraConditions;
 	return and(extraConditions, whereConditions);
+};
+
+export const toDrizzleOrderBy = <TShape extends Record<string, any>>(
+	table: any,
+	orderBy: OrderBy<TShape> | null,
+): any[] | undefined => {
+	if (!orderBy) return undefined;
+	const clauses = Array.isArray(orderBy) ? orderBy : [orderBy];
+	return clauses.map((c) => {
+		const col = table[String(c.field)];
+		const fn = c.direction === 'desc' ? desc : asc;
+		return fn(col);
+	});
 };

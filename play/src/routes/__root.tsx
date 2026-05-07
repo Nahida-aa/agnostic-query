@@ -13,6 +13,7 @@ import { getLocale } from '#/paraglide/runtime'
 import appCss from '../styles.css?url'
 
 import type { QueryClient } from '@tanstack/react-query'
+import { ThemeProvider } from '#/components/app/theme-provider.tsx';
 
 interface MyRouterContext {
   queryClient: QueryClient
@@ -57,7 +58,10 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body>
+        <ThemeProvider>
+
         {children}
+        </ThemeProvider>
         <TanStackDevtools
           config={{
             position: 'bottom-right',

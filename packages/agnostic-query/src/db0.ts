@@ -1,5 +1,6 @@
 import type { QueryWhere, BaseWhere, } from './where.ts';
 import { sqlOpMap } from './sql.js';
+import type { OrderBy } from './order-by.ts';
 
 const build = (where: QueryWhere): { sql: string; params: any[] } | null => {
 	if (!where) return null;
@@ -47,4 +48,22 @@ export const toDb0Where = (
 ): Db0Where | null => {
 	if (!where) return null;
 	return build(where);
+};
+
+export type Db0OrderBy = {
+	sql: string;
+	params: any[];
+};
+
+export const toDb0OrderBy = <TShape extends Record<string, any>>(
+	orderBy: OrderBy<TShape> | null,
+): Db0OrderBy | null => {
+	if (!orderBy) return null;
+	const clauses = Array.isArray(orderBy) ? orderBy : [orderBy];
+	return {
+		sql: clauses
+			.map((c) => `"${String(c.field)}" ${c.direction.toUpperCase()}`)
+			.join(', '),
+		params: [],
+	};
 };

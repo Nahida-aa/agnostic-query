@@ -32,6 +32,10 @@
     "./sql": {
       "import": "./src/sql.ts",
       "types": "./src/sql.ts"
+    },
+    "./order-by": {
+      "import": "./src/order-by.ts",
+      "types": "./src/order-by.ts"
     }
   },
   "scripts": {
