@@ -1,0 +1,21 @@
+{
+  "name": "@agnostic-query/zod",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "./where.ts",
+  "types": "./where.ts",
+  "exports": {
+    ".": {
+      "import": "./where.ts",
+      "types": "./where.ts"
+    }
+  },
+  "scripts": {
+    "typecheck": "tsgo --noEmit",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "@agnostic-query/core": "workspace:*",
+    "zod": "^4.0.0"
+  }
+}

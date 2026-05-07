@@ -1,0 +1,21 @@
+{
+  "name": "@agnostic-query/drizzle",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "./where.ts",
+  "types": "./where.ts",
+  "exports": {
+    ".": {
+      "import": "./where.ts",
+      "types": "./where.ts"
+    }
+  },
+  "scripts": {
+    "typecheck": "tsgo --noEmit",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "@agnostic-query/core": "workspace:*",
+    "drizzle-orm": "^0.39.0"
+  }
+}

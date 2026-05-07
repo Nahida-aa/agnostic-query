@@ -1,0 +1,21 @@
+{
+  "name": "@agnostic-query/tanstack-db",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "./where.ts",
+  "types": "./where.ts",
+  "exports": {
+    ".": {
+      "import": "./where.ts",
+      "types": "./where.ts"
+    }
+  },
+  "scripts": {
+    "typecheck": "tsgo --noEmit",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "@agnostic-query/core": "workspace:*",
+    "@tanstack/query-db-collection": "^1.0.32"
+  }
+}
