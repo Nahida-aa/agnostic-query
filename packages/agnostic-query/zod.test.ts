@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import { createWhereSchema } from './where';
+import { createWhereSchema } from './src/zod.js';
 
 type UserShape = {
 	id: string;
@@ -12,7 +12,7 @@ describe('createWhereSchema', () => {
 	const subsetSchema = createWhereSchema<UserShape>()(['name', 'age']);
 	const fullSchema = createWhereSchema<UserShape>()(['id', 'name', 'age', 'tags']);
 
-	it('should restrict to a subset of fields (TEnabled ≠ keyof TShape)', () => {
+	it('should restrict to a subset of fields (TEnabled < keyof TShape)', () => {
 		expect(subsetSchema.safeParse({ field: 'name', operator: 'eq', conditions: 'Alice' }).success).toBe(true);
 		expect(subsetSchema.safeParse({ field: 'id', operator: 'eq', conditions: '1' }).success).toBe(false);
 	});

@@ -1,7 +1,7 @@
 import { Database } from 'bun:sqlite';
 import { drizzle } from 'drizzle-orm/bun-sqlite';
-import { toDrizzleWhere } from '@agnostic-query/drizzle';
-import { whereSchema, looseSchema, users } from './schema';
+import { toDrizzleWhere } from 'agnostic-query/drizzle';
+import { whereSchema, users } from './schema';
 
 const sqlite = new Database(':memory:');
 const db = drizzle(sqlite);

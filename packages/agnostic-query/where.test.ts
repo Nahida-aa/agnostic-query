@@ -1,5 +1,5 @@
 import { describe, expect, it, expectTypeOf } from 'bun:test';
-import { findValueInWhere, type QueryWhere } from './where';
+import { findValueInWhere, type QueryWhere } from './src/where.js';
 
 type UserShape = {
 	id: string;
@@ -59,7 +59,7 @@ describe('findValueInWhere', () => {
 	});
 
 	it('should return undefined if field not found', () => {
-		// @ts-expect-error - base 只有 name 字段，查询 id 在类型上不合法，但运行时测试"字段不存在"的行为
+		// @ts-expect-error - field 'id' is not in base's TEnabled
 		const result = findValueInWhere(base)('id');
 		expect(result).toBeUndefined();
 	});

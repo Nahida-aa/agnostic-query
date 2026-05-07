@@ -1,7 +1,5 @@
-// https://tanstack.com/db/latest/docs/guides/live-queries#available-operators
-
 import { parseWhereExpression } from '@tanstack/query-db-collection';
-import type { QueryWhere, SchemaShape } from '@agnostic-query/core';
+import type { QueryWhere, SchemaShape } from './where.js';
 
 export const fromTanDbWhere = <TShape extends SchemaShape>(
 	where: Parameters<typeof parseWhereExpression>[0],
@@ -33,7 +31,7 @@ export const fromTanDbWhere = <TShape extends SchemaShape>(
 			}),
 			not: (condition) => ({
 				operator: 'not',
-				conditions: condition, // not 只有一个子条件
+				conditions: condition,
 			}),
 		},
 	}) as unknown as QueryWhere<TShape, any> | null;

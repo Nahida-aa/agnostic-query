@@ -12,60 +12,34 @@
     "examples/with-drizzle": {
       "name": "example-with-drizzle",
       "dependencies": {
-        "@agnostic-query/core": "workspace:*",
-        "@agnostic-query/drizzle": "workspace:*",
-        "@agnostic-query/zod": "workspace:*",
+        "agnostic-query": "workspace:*",
         "drizzle-orm": "^0.39.0",
       },
     },
-    "packages/core": {
-      "name": "@agnostic-query/core",
+    "packages/agnostic-query": {
+      "name": "agnostic-query",
       "version": "0.0.1",
-    },
-    "packages/drizzle": {
-      "name": "@agnostic-query/drizzle",
-      "version": "0.0.1",
-      "dependencies": {
-        "@agnostic-query/core": "workspace:*",
-        "drizzle-orm": "^0.39.0",
-      },
-    },
-    "packages/tanstack-db": {
-      "name": "@agnostic-query/tanstack-db",
-      "version": "0.0.1",
-      "dependencies": {
-        "@agnostic-query/core": "workspace:*",
+      "devDependencies": {
         "@tanstack/query-db-collection": "^1.0.32",
-      },
-    },
-    "packages/valibot": {
-      "name": "@agnostic-query/valibot",
-      "version": "0.0.1",
-      "dependencies": {
-        "@agnostic-query/core": "workspace:*",
+        "drizzle-orm": "^0.39.0",
         "valibot": "^1.4.0",
-      },
-    },
-    "packages/zod": {
-      "name": "@agnostic-query/zod",
-      "version": "0.0.1",
-      "dependencies": {
-        "@agnostic-query/core": "workspace:*",
         "zod": "^4.0.0",
       },
+      "peerDependencies": {
+        "@tanstack/query-db-collection": "^1.0.32",
+        "drizzle-orm": "^0.39.0",
+        "valibot": "^1.4.0",
+        "zod": "^4.0.0",
+      },
+      "optionalPeers": [
+        "@tanstack/query-db-collection",
+        "drizzle-orm",
+        "valibot",
+        "zod",
+      ],
     },
   },
   "packages": {
-    "@agnostic-query/core": ["@agnostic-query/core@workspace:packages/core"],
-
-    "@agnostic-query/drizzle": ["@agnostic-query/drizzle@workspace:packages/drizzle"],
-
-    "@agnostic-query/tanstack-db": ["@agnostic-query/tanstack-db@workspace:packages/tanstack-db"],
-
-    "@agnostic-query/valibot": ["@agnostic-query/valibot@workspace:packages/valibot"],
-
-    "@agnostic-query/zod": ["@agnostic-query/zod@workspace:packages/zod"],
-
     "@standard-schema/spec": ["@standard-schema/spec@1.1.0", "", {}, "sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w=="],
 
     "@tanstack/db": ["@tanstack/db@0.6.5", "", { "dependencies": { "@standard-schema/spec": "^1.1.0", "@tanstack/db-ivm": "0.1.18", "@tanstack/pacer-lite": "^0.2.1" }, "peerDependencies": { "typescript": ">=4.7" } }, "sha512-gtCuAo4UtC9SR/kTMu5fVEff6qZ2R1FZi9X7MybtHKA6wve7RePifGG6qBI4OmMB+7juT5/+glNbnqZOrG0/pg=="],
@@ -97,6 +71,8 @@
     "@typescript/native-preview-win32-arm64": ["@typescript/native-preview-win32-arm64@7.0.0-dev.20260507.1", "", { "os": "win32", "cpu": "arm64" }, "sha512-21rGqCoY2FgnbY2YQFGoAnaHFs5kagwdCmGdn7GmsdNF7P3zvS1ag56BFRYITZ2xw02xYa0fvbXcIIycysBS1A=="],
 
     "@typescript/native-preview-win32-x64": ["@typescript/native-preview-win32-x64@7.0.0-dev.20260507.1", "", { "os": "win32", "cpu": "x64" }, "sha512-PORjTM6k/7ySuN7qbKKLKPJ5AlSQuZbaDkLsdQglapQySeHcrdjOhFl172U+V954sR+KhrE3ckhuinEH+Vjkug=="],
+
+    "agnostic-query": ["agnostic-query@workspace:packages/agnostic-query"],
 
     "bun-types": ["bun-types@1.3.13", "", { "dependencies": { "@types/node": "*" } }, "sha512-QXKeHLlOLqQX9LgYaHJfzdBaV21T63HhFJnvuRCcjZiaUDpbs5ED1MgxbMra71CsryN/1dAoXuJJJwIv/2drVA=="],
 

@@ -1,5 +1,5 @@
 import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
-import { createWhereSchema } from '@agnostic-query/zod';
+import { createWhereSchema } from 'agnostic-query/zod';
 
 export const users = sqliteTable('users', {
 	id: text('id').primaryKey(),

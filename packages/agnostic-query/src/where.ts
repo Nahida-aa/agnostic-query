@@ -1,5 +1,5 @@
 export const baseWhereOps = [
-	'eq', // 没有提供 <> (ne, !=) 操作符 虽然 sql 中存在, 但是 sql 也会将 <> 解析为 not + eq 这样的基础算子来执行
+	'eq',
 	'gt',
 	'gte',
 	'lt',
@@ -21,13 +21,12 @@ export type BaseWhere<
 	TField extends keyof TShape = keyof TShape,
 > = {
 	[K in TField]: {
-		// 利用映射类型，确保每个 field 对应的 conditions 必须符合 TShape[field]
 		field: K;
 		operator: BaseWhereOp;
-		conditions: TShape[K]; // 基础值或数组(用于 in)
+		conditions: TShape[K];
 	};
 }[TField];
-// 2. 递归类型携带 TShape
+
 export type UnaryWhere<
 	TShape extends SchemaShape,
 	TField extends keyof TShape = keyof TShape,
@@ -52,16 +51,14 @@ export type QueryWhere<
 	| MultiWhere<TShape, TField>
 	| UnaryWhere<TShape, TField>;
 
-// 助手函数: 提取器：从复杂查询条件中 找出 指定字段的值
 export const findValueInWhere =
 	<TShape extends SchemaShape, TEnabled extends string>(
-		where: QueryWhere<TShape, TEnabled> | null, // 接收携带 Shape 的对象
+		where: QueryWhere<TShape, TEnabled> | null,
 	) =>
 		<TField extends TEnabled>(
 			field: TField,
 		): TShape[TField] | undefined => {
 			if (!where) return;
-			// 内部递归逻辑
 			const search = (
 				node: QueryWhere<TShape, TEnabled>,
 			): TShape[TField] | undefined => {

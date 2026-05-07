@@ -1,0 +1,55 @@
+{
+  "name": "agnostic-query",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "./src/where.ts",
+  "types": "./src/where.ts",
+  "exports": {
+    ".": {
+      "import": "./src/where.ts",
+      "types": "./src/where.ts"
+    },
+    "./zod": {
+      "import": "./src/zod.ts",
+      "types": "./src/zod.ts"
+    },
+    "./valibot": {
+      "import": "./src/valibot.ts",
+      "types": "./src/valibot.ts"
+    },
+    "./drizzle": {
+      "import": "./src/drizzle.ts",
+      "types": "./src/drizzle.ts"
+    },
+    "./tanstack-db": {
+      "import": "./src/tanstack-db.ts",
+      "types": "./src/tanstack-db.ts"
+    },
+    "./db0": {
+      "import": "./src/db0.ts",
+      "types": "./src/db0.ts"
+    }
+  },
+  "scripts": {
+    "typecheck": "tsgo --noEmit",
+    "test": "bun test"
+  },
+  "peerDependencies": {
+    "zod": "^4.0.0",
+    "valibot": "^1.4.0",
+    "drizzle-orm": "^0.39.0",
+    "@tanstack/query-db-collection": "^1.0.32"
+  },
+  "peerDependenciesMeta": {
+    "zod": { "optional": true },
+    "valibot": { "optional": true },
+    "drizzle-orm": { "optional": true },
+    "@tanstack/query-db-collection": { "optional": true }
+  },
+  "devDependencies": {
+    "zod": "^4.0.0",
+    "valibot": "^1.4.0",
+    "drizzle-orm": "^0.39.0",
+    "@tanstack/query-db-collection": "^1.0.32"
+  }
+}

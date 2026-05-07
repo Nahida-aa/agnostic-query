@@ -3,12 +3,10 @@
   "private": true,
   "type": "module",
   "workspaces": [
-    "packages/*",
+    "packages/agnostic-query",
     "examples/with-drizzle"
   ],
   "scripts": {
-    "build": "bun run --filter '*' build",
-    "typecheck": "bun run --filter '*' typecheck",
     "test": "bun run --filter '*' test"
   },
   "devDependencies": {

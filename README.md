@@ -1,60 +1,51 @@
 # Agnostic Query
 
-数据库无关的查询条件库，提供类型安全的 WHERE 条件定义，可在不同 ORM/框架间通用。
+Database-agnostic query condition library with type-safe WHERE clause definitions.
 
-## 架构
+## Architecture
 
 ```mermaid
 graph TB
-    subgraph Core["packages/core"]
-        where_types["where.ts<br/>QueryWhere 类型定义<br/>BaseWhere / MultiWhere / UnaryWhere"]
-        find_helper["findValueInWhere<br/>值提取助手函数"]
+    subgraph Package["agnostic-query"]
+        core["src/where.ts<br/>QueryWhere types<br/>BaseWhere / MultiWhere / UnaryWhere<br/>findValueInWhere helper"]
+        zod["src/zod.ts<br/>createWhereSchema<br/>Zod validation"]
+        valibot["src/valibot.ts<br/>createWhereSchema<br/>Valibot validation"]
+        drizzle["src/drizzle.ts<br/>toDrizzleWhere<br/>QueryWhere → SQL"]
+        tanstack["src/tanstack-db.ts<br/>fromTanDbWhere<br/>TanStack Expression → QueryWhere"]
     end
 
-    subgraph Validation["验证层"]
-        zod["packages/zod<br/>createWhereSchema<br/>Zod 验证"]
-        valibot["packages/valibot<br/>createWhereSchema<br/>Valibot 验证"]
-    end
+    zod --> core
+    valibot --> core
+    drizzle --> core
+    tanstack --> core
 
-    subgraph Adapters["适配器层"]
-        drizzle["packages/drizzle<br/>toDrizzleWhere<br/>QueryWhere → SQL"]
-        tanstack["packages/tanstack-db<br/>fromTanDbWhere<br/>TanStack Expression → QueryWhere"]
-    end
-
-    zod --> where_types
-    valibot --> where_types
-    drizzle --> where_types
-    tanstack --> where_types
-
-    style Core fill:#e1f5fe
-    style Validation fill:#f3e5f5
-    style Adapters fill:#e8f5e9
+    style Package fill:#e1f5fe
 ```
 
-## 数据流
+## Data Flow
 
 ```mermaid
 flowchart LR
-    subgraph Input["不可信输入"]
-        client[客户端请求]
-        tanstack_expr[TanStackDB Expression]
+    subgraph Input["Untrusted Input"]
+        client[Client Request]
+        tanstack_expr[TanStack Expression]
     end
 
-    subgraph Parse["解析"]
+    subgraph Parse["Parse"]
         tanparse["fromTanDbWhere"]
     end
 
-    subgraph Validate["可选验证"]
+    subgraph Validate["Optional Validation"]
         zod[Zod Schema]
         valibot[Valibot Schema]
     end
 
-    subgraph Core["核心"]
+    subgraph Core["Core"]
         qw[QueryWhere]
     end
 
-    subgraph Output["输出"]
-        drizzle[toDrizzleWhere → SQL]
+    subgraph Output["Output"]
+        drizzle["toDrizzleWhere → SQL"]
     end
 
     client --> qw
@@ -70,7 +61,7 @@ flowchart LR
     style Output fill:#e8f5e9
 ```
 
-## WHERE 条件结构
+## WHERE Condition Structure
 
 ```mermaid
 classDiagram
@@ -113,24 +104,52 @@ classDiagram
     BaseWhere --> BaseWhereOp
 ```
 
-## 包说明
-
-| 包 | 描述 |
-|---|---|
-| `@agnostic-query/core` | 核心类型和操作符定义 |
-| `@agnostic-query/zod` | Zod v4 运行时验证 Schema |
-| `@agnostic-query/valibot` | Valibot 运行时验证 Schema |
-| `@agnostic-query/drizzle` | Drizzle ORM 适配器：`QueryWhere → SQL` |
-| `@agnostic-query/tanstack-db` | TanStack DB 适配器：`TanStack Expression → QueryWhere` |
-
-## 工具链
-
-- 包管理: **bun** (workspaces)
-- 类型检查: **tsgo** (TypeScript Go / TS 7.0 preview)
-- 验证库: **zod v4** / **valibot v1**
-
-## 使用
+## Usage
 
 ```bash
-bun install
+bun add agnostic-query
+```
+
+Then install only the adapters you need:
+
+```bash
+# For runtime validation
+bun add zod          # optional
+bun add valibot      # optional
+
+# For ORM adapters
+bun add drizzle-orm  # optional
+bun add @tanstack/query-db-collection  # optional
+```
+
+### Import paths
+
+```ts
+// Core types
+import { QueryWhere, findValueInWhere } from 'agnostic-query'
+
+// Zod validation
+import { createWhereSchema } from 'agnostic-query/zod'
+
+// Valibot validation
+import { createWhereSchema } from 'agnostic-query/valibot'
+
+// Drizzle adapter
+import { toDrizzleWhere } from 'agnostic-query/drizzle'
+
+// TanStack DB adapter
+import { fromTanDbWhere } from 'agnostic-query/tanstack-db'
+```
+
+## Toolchain
+
+- Package manager: **bun** (workspaces)
+- Type checking: **tsgo** (TypeScript Go / TS 7.0 preview)
+- Validation: **zod v4** / **valibot v1**
+
+## Examples
+
+```bash
+cd examples/with-drizzle
+bun start
 ```
