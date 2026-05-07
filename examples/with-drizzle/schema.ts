@@ -1,11 +1,11 @@
-import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
+import { pgTable, text, integer } from 'drizzle-orm/pg-core';
 import { createWhereSchema } from 'agnostic-query/zod';
 
-export const users = sqliteTable('users', {
+export const users = pgTable('users', {
 	id: text('id').primaryKey(),
 	name: text('name'),
 	age: integer('age'),
-	tags: text('tags'),
+	tags: text('tags').array(),
 });
 
 export type User = typeof users.$inferSelect;

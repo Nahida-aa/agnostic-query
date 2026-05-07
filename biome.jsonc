@@ -1,0 +1,98 @@
+{
+	"$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+	"vcs": {
+		"enabled": false,
+		"clientKind": "git",
+		"useIgnoreFile": false
+	},
+	"files": {
+		"ignoreUnknown": false,
+		"includes": [
+			"**/src/**/*",
+			"**/convex/**/*",
+			"**/.vscode/**/*",
+			"**/index.html",
+			"**/vite.config.ts",
+			"!**/src/routeTree.gen.ts",
+			// "!**/src/styles.css",
+			"!**/convex/_generated",
+			"!**/paraglide",
+			"!**/project.inlang",
+			"!**/data",
+			"!**/.content-collections",
+			"!!**/messages",
+			"!!**/content",
+			"!!**/dist"
+		]
+	},
+
+	"formatter": {
+		"enabled": true,
+		"indentStyle": "tab"
+	},
+	"javascript": {
+		"formatter": {
+			"quoteStyle": "single"
+		}
+	},
+	"css": {
+		"formatter": {
+			"enabled": true,
+			"quoteStyle": "single"
+		},
+		"linter": {
+			"enabled": true
+		},
+		"parser": {
+			"tailwindDirectives": true
+		}
+	},
+	"assist": { "actions": { "source": { "organizeImports": "on" } } },
+	"linter": {
+		"enabled": true,
+
+		"rules": {
+			"recommended": true,
+			"security": {
+				"noDangerouslySetInnerHtml": "info",
+        "noBlankTarget": "info"
+			},
+
+			"correctness": {
+				"noUnusedFunctionParameters": {
+					"options": {
+						"ignoreRestSiblings": false
+					},
+					"level": "off"
+				},
+        "noInvalidPositionAtImportRule": "info",
+				"noUnusedImports": "off",
+				"noChildrenProp": "info",
+				"noUnusedVariables": "off"
+			},
+			"suspicious": {
+				"noExplicitAny": "warn",
+				"noArrayIndexKey": "info",
+				"noNonNullAssertedOptionalChain": "info",
+				 "noDoubleEquals": "info"
+			},
+			"a11y": {
+				"useButtonType": "off",
+				"useAriaPropsSupportedByRole": "off",
+				"useKeyWithClickEvents": "off",
+				"noStaticElementInteractions": "off",
+				"useSemanticElements": "info",
+				"noSvgWithoutTitle": "off",
+				"useAltText": "off",
+				"noLabelWithoutControl": "off"
+			},
+			"style": {
+				"noNonNullAssertion": "info"
+			}
+		},
+		"domains": {
+			// 用于对特定领域的规则进行配置, 来覆盖通用配置
+			"drizzle": "all"
+		}
+	}
+}

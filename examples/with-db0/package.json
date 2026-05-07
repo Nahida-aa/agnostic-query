@@ -1,5 +1,5 @@
 {
-  "name": "example-with-drizzle",
+  "name": "example-with-db0",
   "type": "module",
   "private": true,
   "scripts": {
@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "agnostic-query": "workspace:*",
-    "drizzle-orm": "^0.39.0",
+    "db0": "^0.3.0",
     "@electric-sql/pglite": "^0.4.5"
   }
 }

@@ -1,14 +1,5 @@
-import type { QueryWhere, BaseWhere} from './where.ts';
-
-const opMap: Record<string, string> = {
-	eq: '=',
-	gt: '>',
-	gte: '>=',
-	lt: '<',
-	lte: '<=',
-	like: 'LIKE',
-	ilike: 'ILIKE',
-};
+import type { QueryWhere, BaseWhere, } from './where.ts';
+import { sqlOpMap } from './sql.js';
 
 const build = (where: QueryWhere): { sql: string; params: any[] } | null => {
 	if (!where) return null;
@@ -40,7 +31,7 @@ const build = (where: QueryWhere): { sql: string; params: any[] } | null => {
 		return { sql: `"${field}" IN (${placeholders})`, params: conditions };
 	}
 
-	const op = opMap[operator];
+	const op = sqlOpMap[operator];
 	if (!op) return null;
 
 	return { sql: `"${field}" ${op} ?`, params: [conditions] };

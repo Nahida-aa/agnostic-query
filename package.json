@@ -4,7 +4,8 @@
   "type": "module",
   "workspaces": [
     "packages/agnostic-query",
-    "examples/with-drizzle"
+    "examples/with-drizzle",
+    "examples/with-db0"
   ],
   "scripts": {
     "test": "bun run --filter '*' test"

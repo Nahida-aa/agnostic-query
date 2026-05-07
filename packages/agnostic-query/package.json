@@ -28,6 +28,10 @@
     "./db0": {
       "import": "./src/db0.ts",
       "types": "./src/db0.ts"
+    },
+    "./sql": {
+      "import": "./src/sql.ts",
+      "types": "./src/sql.ts"
     }
   },
   "scripts": {
@@ -41,15 +45,24 @@
     "@tanstack/query-db-collection": "^1.0.32"
   },
   "peerDependenciesMeta": {
-    "zod": { "optional": true },
-    "valibot": { "optional": true },
-    "drizzle-orm": { "optional": true },
-    "@tanstack/query-db-collection": { "optional": true }
+    "zod": {
+      "optional": true
+    },
+    "valibot": {
+      "optional": true
+    },
+    "drizzle-orm": {
+      "optional": true
+    },
+    "@tanstack/query-db-collection": {
+      "optional": true
+    }
   },
   "devDependencies": {
-    "zod": "^4.0.0",
-    "valibot": "^1.4.0",
+    "@electric-sql/pglite": "^0.4.5",
+    "@tanstack/query-db-collection": "^1.0.32",
     "drizzle-orm": "^0.39.0",
-    "@tanstack/query-db-collection": "^1.0.32"
+    "valibot": "^1.4.0",
+    "zod": "^4.0.0"
   }
 }
