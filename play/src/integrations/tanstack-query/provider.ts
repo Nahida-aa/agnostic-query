@@ -1,5 +1,4 @@
 import { environmentManager, QueryClient } from '@tanstack/query-core';
-import { getRouter } from '#/router.tsx';
 
 function makeQueryClient() {
 	return new QueryClient({
@@ -21,5 +20,3 @@ export const getQueryClient = () => {
 		return browserQueryClient;
 	}
 };
-
-export const getContextQC = () => getRouter().options.context.queryClient;

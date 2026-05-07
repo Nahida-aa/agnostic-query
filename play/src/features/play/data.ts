@@ -25,6 +25,7 @@ import {
 
 import { getQueryClient } from '#/integrations/tanstack-query/provider.ts';
 import { z } from 'zod';
+import { fromTanDbWhere } from 'agnostic-query/tanstack-db';
 
 const playSchema = z.object({
   id: z.string(),
