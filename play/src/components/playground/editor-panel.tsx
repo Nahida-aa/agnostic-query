@@ -17,10 +17,6 @@ export function EditorPanel({ value, onChange, className }: EditorPanelProps) {
 
 	return (
 		<div className={cn('flex flex-col', className)}>
-			<div className="flex items-center justify-between border-b border-border px-4 py-2">
-				<span className="text-sm font-semibold text-foreground">QueryWhere</span>
-				<span className="text-xs text-muted-foreground">JSON</span>
-			</div>
 			<Editor
 				height="100%"
 				defaultLanguage="json"

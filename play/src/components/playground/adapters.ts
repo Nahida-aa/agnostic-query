@@ -2,13 +2,15 @@ import { toSqlString } from 'agnostic-query/sql';
 import { toDb0Where } from 'agnostic-query/db0';
 import { createWhereSchema as createZodSchema } from 'agnostic-query/zod';
 import { createWhereSchema as createValibotSchema } from 'agnostic-query/valibot';
+import { fromTanDbWhere } from 'agnostic-query/tanstack-db';
 import { safeParse } from 'valibot';
 import { toDrizzleWhere } from 'agnostic-query/drizzle';
 import { PGlite } from '@electric-sql/pglite';
 import { drizzle } from 'drizzle-orm/pglite';
 import { pgTable, text, integer } from 'drizzle-orm/pg-core';
+import type { QueryWhere } from 'agnostic-query';
 
-type AdapterResult =
+export type AdapterResult =
 	| { status: 'ok'; value: string }
 	| { status: 'error'; message: string };
 
@@ -20,7 +22,7 @@ const users = pgTable('users', {
 });
 
 const pglite = new PGlite();
-const db = drizzle(pglite);
+const db = drizzle(pglite, { schema: { users } });
 
 export function runSqlString(input: unknown): AdapterResult {
 	try {
@@ -45,7 +47,7 @@ export function runDb0(input: unknown): AdapterResult {
 	}
 }
 
-type UserShape = { id: string; name: string; age: number; role: string };
+export type UserShape = { id: string; name: string; age: number; role: string };
 const zodSchema = createZodSchema<UserShape>()(['name', 'age', 'role']);
 const valibotSchema = createValibotSchema<UserShape>()(['name', 'age', 'role']);
 
@@ -65,9 +67,24 @@ export function runValibot(input: unknown): AdapterResult {
 	return { status: 'error', message: JSON.stringify(result.issues, null, 2) };
 }
 
-export function runDrizzle(input: unknown): AdapterResult {
+export function runFromTanDbWhere(input: unknown): AdapterResult {
 	try {
-		const whereExpr = toDrizzleWhere(users, input as any);
+		const result = fromTanDbWhere(input as any);
+		if (result === null) return { status: 'error', message: 'null input' };
+		return { status: 'ok', value: JSON.stringify(result, null, 2) };
+	} catch (e) {
+		return { status: 'error', message: String(e) };
+	}
+}
+
+export function runQueryWhereJson(input: unknown): AdapterResult {
+	if (input === null) return { status: 'error', message: 'null input' };
+	return { status: 'ok', value: JSON.stringify(input, null, 2) };
+}
+
+export function runDrizzle(input: QueryWhere<UserShape>): AdapterResult {
+	try {
+		const whereExpr = toDrizzleWhere(users, input);
 		if (!whereExpr) return { status: 'error', message: 'null input' };
 		const sql = db.select().from(users).where(whereExpr).toSQL();
 		return {

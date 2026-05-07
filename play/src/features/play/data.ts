@@ -31,7 +31,7 @@ const playSchema = z.object({
   id: z.string(),
 });
 export type Play = z.output<typeof playSchema>;
-export const playlCollect = createCollection(
+export const playCollect = createCollection(
 	queryCollectionOptions({
 		queryKey: ['play'],
 		queryClient: getQueryClient(),
@@ -63,16 +63,16 @@ export const playlCollect = createCollection(
 	}),
 );
 
-export type PlayRow = InferCollectionType<typeof playlCollect>;
+export type PlayRow = InferCollectionType<typeof playCollect>;
 
 export const getPlayQ =
 	(id: string) => (q: InitialQueryBuilder) =>
 		q
-			.from({ play: playlCollect })
+			.from({ play: playCollect })
 			.where(({ play }) =>
 				eq(play.id, id),
 			);
 
-export type ListChannel = InferResultType<
-	ExtractContext<ReturnType<ReturnType<typeof listChannelQ>>>
+export type ListPlay = InferResultType<
+	ExtractContext<ReturnType<ReturnType<typeof getPlayQ>>>
 >;

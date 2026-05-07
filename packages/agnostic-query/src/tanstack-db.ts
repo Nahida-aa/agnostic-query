@@ -17,6 +17,11 @@ export const fromTanDbWhere = <TShape extends SchemaShape>(
 				operator: 'lt',
 				conditions,
 			}),
+			gt: (field, conditions) => ({
+				field: field.join('.'),
+				operator: 'gt',
+				conditions,
+			}),
 			in: (field, conditions) => ({
 				field: field.join('.'),
 				operator: 'in',

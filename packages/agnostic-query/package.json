@@ -64,9 +64,9 @@
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.4.5",
-    "@tanstack/query-db-collection": "^1.0.32",
-    "drizzle-orm": "^0.39.0",
+    "@tanstack/query-db-collection": "latest",
+    "drizzle-orm": "^0.45.2",
     "valibot": "^1.4.0",
-    "zod": "^4.0.0"
+    "zod": "^4.4.3"
   }
 }
