@@ -5,6 +5,7 @@ import type {
 	QueryWhere,
 	UnaryComparisonOp,
 } from './core/where.ts';
+import { isComparisonWhere } from './core/where.ts';
 
 export const sqlOpMap: Record<UnaryComparisonOp, string> = {
 	eq: '=',
@@ -33,28 +34,26 @@ const build = (where: QueryWhere): string | undefined => {
 		if (!inner) return;
 		return `NOT (${inner})`;
 	}
-
 	if (where.op === 'and' || where.op === 'or') {
 		const parts = where.conditions
 			.map((c) => build(c))
-			.filter((c): c is string => c !== null);
+			.filter((c): c is string => c !== undefined);
 		if (parts.length === 0) return;
 		const joiner = ` ${where.op.toUpperCase()} `;
 		const sql = parts.join(joiner);
 		return parts.length > 1 ? `(${sql})` : sql;
 	}
+	if (!isComparisonWhere(where)) return; // TS 无法消除 MultiLogicalWhere（op 是 'and'|'or' union），需要 cast 或其他方法
+	const fieldStr = fieldToStr(where.field);
 
-	const node = where as ComparisonWhere; // 这里不知道为何依旧携带 MultiComparisonWhere 类型
-	const fieldStr = fieldToStr(node.field);
-
-	if (node.op === 'in') {
-		const values = node.values.map(escapeVal).join(', ');
+	if (where.op === 'in') {
+		const values = where.values.map(escapeVal).join(', ');
 		return `"${fieldStr}" IN (${values})`;
 	}
 
-	const sqlOp = sqlOpMap[node.op];
+	const sqlOp = sqlOpMap[where.op];
 	if (!sqlOp) return;
-	return `"${fieldStr}" ${sqlOp} ${escapeVal(node.value)}`;
+	return `"${fieldStr}" ${sqlOp} ${escapeVal(where.value)}`;
 };
 
 export const toSqlString = (where: QueryWhere | null): string | undefined => {

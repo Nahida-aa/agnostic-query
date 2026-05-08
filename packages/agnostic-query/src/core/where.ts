@@ -40,6 +40,10 @@ export type ComparisonWhere<
 	TShape extends SchemaShape = SchemaShape,
 	TField extends FieldPathByShape<TShape> = FieldPathByShape<TShape>,
 > = UnaryComparisonWhere<TShape, TField> | MultiComparisonWhere<TShape, TField>;
+export const isComparisonWhere = (
+	where: QueryWhere,
+): where is ComparisonWhere =>
+	where.op !== 'not' && where.op !== 'and' && where.op !== 'or';
 
 export type UnaryLogicalWhere<
 	TShape extends SchemaShape = SchemaShape,
@@ -75,7 +79,7 @@ const isComparisonNode = <TField extends readonly any[]>(
 ): node is ComparisonWhere =>
 	'field' in node && fieldEqual(node.field as any, field);
 
-export const findWhereByField = <TShape extends SchemaShape>(
+export const findWhere = <TShape extends SchemaShape>(
 	where: QueryWhere<TShape> | null,
 ) => {
 	const search = <TField extends FieldPathByShape<TShape>>(
