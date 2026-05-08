@@ -80,7 +80,7 @@ export const toDrizzleWhere = (
 	return and(extraConditions, whereConditions);
 };
 
-export const toDrizzleOrderBy = <TShape extends Record<string, any>>(
+export const toDrizzleOrderBy = <TShape>(
 	table: any,
 	orderBy: QueryOrderBy<TShape>[] | null,
 ): any[] | undefined => {
