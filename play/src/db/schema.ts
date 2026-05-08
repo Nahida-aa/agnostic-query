@@ -5,3 +5,10 @@ export const todos = pgTable('todos', {
   title: text().notNull(),
   createdAt: timestamp('created_at').defaultNow(),
 })
+
+export const posts = pgTable('posts', {
+  id: text('id').primaryKey(),
+  title: text('title').notNull(),
+  body: text('body').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+})

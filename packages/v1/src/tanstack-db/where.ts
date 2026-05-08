@@ -1,8 +1,9 @@
 import { parseWhereExpression } from '@tanstack/query-db-collection';
 import type { SchemaShape } from '../core/schema.ts';
 import type { QueryWhere } from '../core/where.ts';
-// Comparison
+
 export type FromTanDbWhereParam = Parameters<typeof parseWhereExpression>[0];
+
 export const fromTanDbWhere = <TShape extends SchemaShape>(
 	where: FromTanDbWhereParam,
 ) =>
@@ -41,4 +42,4 @@ export const fromTanDbWhere = <TShape extends SchemaShape>(
 				condition,
 			}),
 		},
-	}) as unknown as QueryWhere<TShape, any> | null;
+	});
