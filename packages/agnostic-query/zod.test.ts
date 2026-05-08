@@ -17,7 +17,7 @@ describe('createWhereSchema', () => {
 		expect(subsetSchema.safeParse({ field: 'id', operator: 'eq', conditions: '1' }).success).toBe(false);
 	});
 
-	it('should parse valid BaseWhere', () => {
+	it('should parse valid UnaryComparisonWhere', () => {
 		const result = fullSchema.safeParse({ field: 'name', operator: 'eq', conditions: 'Alice' });
 		expect(result.success).toBe(true);
 		if (result.success) expect(result.data?.conditions).toBe('Alice');

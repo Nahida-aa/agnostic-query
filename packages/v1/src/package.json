@@ -1,0 +1,12 @@
+{
+  "name": "agnostic-query-v1",
+  "type": "module",
+
+  "scripts": {
+    "test": "bun run --filter '*' test"
+  },
+  "devDependencies": {
+    "zod": "^4.4.3"
+  }
+
+}

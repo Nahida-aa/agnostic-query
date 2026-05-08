@@ -1,24 +1,31 @@
 import z from 'zod';
+import type { SchemaShape } from './core/schema.ts';
 import {
-	baseWhereOps,
+	multiComparisonOp,
 	multiWhereOps,
 	type QueryWhere,
-	type SchemaShape,
-} from './where.js';
+	unaryComparisonOps,
+} from './core/where.ts';
 
 export const createWhereSchema =
 	<TShape extends SchemaShape>() =>
 	<TEnabled extends Extract<keyof TShape, string>>(columns?: TEnabled[]) => {
 		if (columns !== undefined && columns.length === 0) return z.null();
-		const baseFilterSchema = z.object({
+		const unaryComparisonSchema = z.object({
 			field: columns ? z.enum(columns) : z.string<TEnabled>(),
-			operator: z.enum(baseWhereOps),
+			operator: z.enum(unaryComparisonOps),
+			conditions: z.any(),
+		});
+		const multiComparisonSchema = z.object({
+			field: columns ? z.enum(columns) : z.string<TEnabled>(),
+			operator: z.literal(multiComparisonOp),
 			conditions: z.any(),
 		});
 		type Out = QueryWhere<TShape, TEnabled>;
 		const schema: z.ZodType<Out, Out> = z.lazy(() =>
 			z.union([
-				baseFilterSchema,
+				unaryComparisonSchema,
+				multiComparisonSchema,
 				z.object({
 					operator: z.enum(multiWhereOps),
 					conditions: z.array(schema),

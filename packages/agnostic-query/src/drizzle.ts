@@ -14,13 +14,12 @@ import {
 	or,
 	type SQL,
 } from 'drizzle-orm';
-
 import type {
-	BaseWhere,
-	BaseWhereOp,
+	ComparisonWhere,
 	QueryWhere,
-	SchemaShape,
-} from './where.ts';
+	UnaryComparisonOp,
+	UnaryComparisonWhere,
+} from './core/where.ts';
 import type { OrderBy } from './order-by.ts';
 
 export const drizzleOps = {
@@ -31,7 +30,7 @@ export const drizzleOps = {
 	lte,
 	like,
 	ilike,
-};
+} satisfies Record<UnaryComparisonOp, (column: any, value: any) => SQL>;
 
 const _toDrizzleWhere = (
 	table: any,
@@ -49,17 +48,17 @@ const _toDrizzleWhere = (
 			.map((c) => _toDrizzleWhere(table, c))
 			.filter((c): c is SQL => !!c);
 
-		if (conditions.length === 0) return undefined;
+		if (conditions.length === 0) return;
 
 		return where.operator === 'and' ? and(...conditions) : or(...conditions);
 	}
 
-	const { field, operator, conditions } = where as BaseWhere;
+	const { field, operator, conditions } = where as ComparisonWhere;
 	const column = table[field];
 
 	if (!column) {
 		console.warn(`Field ${field} does not exist on table`);
-		return undefined;
+		return;
 	}
 
 	if (operator === 'in') {

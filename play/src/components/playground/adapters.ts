@@ -1,14 +1,14 @@
-import { toSqlString } from 'agnostic-query/sql';
-import { toDb0Where } from 'agnostic-query/db0';
-import { createWhereSchema as createZodSchema } from 'agnostic-query/zod';
-import { createWhereSchema as createValibotSchema } from 'agnostic-query/valibot';
-import { fromTanDbWhere } from 'agnostic-query/tanstack-db';
-import { safeParse } from 'valibot';
-import { toDrizzleWhere } from 'agnostic-query/drizzle';
 import { PGlite } from '@electric-sql/pglite';
+import { toDb0Where } from 'agnostic-query/db0';
+import { toDrizzleWhere } from 'agnostic-query/drizzle';
+import { toSqlString } from 'agnostic-query/sql';
+import { fromTanDbWhere } from 'agnostic-query/tanstack-db';
+import { createWhereSchema as createValibotSchema } from 'agnostic-query/valibot';
+import { createWhereSchema as createZodSchema } from 'agnostic-query/zod';
+import { integer, pgTable, text } from 'drizzle-orm/pg-core';
 import { drizzle } from 'drizzle-orm/pglite';
-import { pgTable, text, integer } from 'drizzle-orm/pg-core';
-import type { QueryWhere } from 'agnostic-query';
+import { safeParse } from 'valibot';
+import type { QueryWhere } from '../../../../packages/agnostic-query/src/core/where';
 
 export type AdapterResult =
 	| { status: 'ok'; value: string }
@@ -56,7 +56,10 @@ export function runZod(input: unknown): AdapterResult {
 	if (result.success) {
 		return { status: 'ok', value: JSON.stringify(result.data, null, 2) };
 	}
-	return { status: 'error', message: JSON.stringify(result.error.issues, null, 2) };
+	return {
+		status: 'error',
+		message: JSON.stringify(result.error.issues, null, 2),
+	};
 }
 
 export function runValibot(input: unknown): AdapterResult {
@@ -82,7 +85,7 @@ export function runQueryWhereJson(input: unknown): AdapterResult {
 	return { status: 'ok', value: JSON.stringify(input, null, 2) };
 }
 
-export function runDrizzle(input: QueryWhere<UserShape>): AdapterResult {
+export function runDrizzle(input: QueryWhere<UserShape> | null): AdapterResult {
 	try {
 		const whereExpr = toDrizzleWhere(users, input);
 		if (!whereExpr) return { status: 'error', message: 'null input' };

@@ -1,4 +1,4 @@
-import type { QueryWhere, BaseWhere} from './where.ts';
+import type { QueryWhere, UnaryComparisonWhere } from './core/where.ts';
 import type { OrderBy } from './order-by.ts';
 export const sqlOpMap: Record<string, string> = {
 	eq: '=',
@@ -15,7 +15,7 @@ const escape = (value: unknown): string => {
 	if (typeof value === 'boolean') return String(value);
 	const s = String(value);
 	return `'${s.replace(/'/g, "''")}'`;
-}
+};
 
 const build = (where: QueryWhere): string | null => {
 	if (where.operator === 'not') {
@@ -34,7 +34,7 @@ const build = (where: QueryWhere): string | null => {
 		return parts.length > 1 ? `(${sql})` : sql;
 	}
 
-	const { field, operator, conditions } = where as BaseWhere;
+	const { field, operator, conditions } = where as UnaryComparisonWhere;
 
 	if (operator === 'in') {
 		if (!Array.isArray(conditions)) return null;
@@ -46,7 +46,7 @@ const build = (where: QueryWhere): string | null => {
 	if (!op) return null;
 
 	return `"${field}" ${op} ${escape(conditions)}`;
-}
+};
 
 export const toSqlString = (where: QueryWhere | null): string | null => {
 	if (!where) return null;

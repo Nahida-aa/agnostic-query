@@ -1,5 +1,5 @@
 import { describe, expect, it, expectTypeOf } from 'bun:test';
-import { findValueInWhere, type QueryWhere } from './src/where.js';
+import { findValueInWhere, type QueryWhere } from './src/core/where.js';
 
 type UserShape = {
 	id: string;
@@ -28,7 +28,7 @@ const unary: QueryWhere<UserShape, keyof UserShape> = {
 };
 
 describe('findValueInWhere', () => {
-	it('should find value in BaseWhere', () => {
+	it('should find value in UnaryComparisonWhere', () => {
 		const result = findValueInWhere(base)('name');
 		expect(result).toBe('Alice');
 		expectTypeOf(result).toExtend<string | undefined>();

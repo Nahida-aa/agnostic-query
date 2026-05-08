@@ -1,17 +1,17 @@
 import { useState } from 'react';
 import { cn } from '#/lib/utils.ts';
+import type { QueryWhere } from '../../../../packages/agnostic-query/src/core/where.ts';
 import type { AdapterResult, UserShape } from './adapters.ts';
-import type { QueryWhere } from 'agnostic-query';
 
 type Tab = {
 	id: string;
 	label: string;
-	run: (input: QueryWhere<UserShape>) => AdapterResult;
+	run: (input: any) => AdapterResult;
 };
 
 type PreviewPanelProps = {
 	tabs: Tab[];
-	input: QueryWhere<UserShape>;
+	input: any;
 	className?: string;
 };
 

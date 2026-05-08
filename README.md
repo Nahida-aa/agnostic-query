@@ -7,7 +7,7 @@ Database-agnostic query condition library with type-safe WHERE clause definition
 ```mermaid
 graph TB
     subgraph Package["agnostic-query"]
-        core["src/where.ts<br/>QueryWhere types<br/>BaseWhere / MultiWhere / UnaryWhere<br/>findValueInWhere helper"]
+        core["src/where.ts<br/>QueryWhere types<br/>UnaryComparisonWhere / MultiWhere / UnaryWhere<br/>findValueInWhere helper"]
         zod["src/zod.ts<br/>createWhereSchema<br/>Zod validation"]
         valibot["src/valibot.ts<br/>createWhereSchema<br/>Valibot validation"]
         drizzle["src/drizzle.ts<br/>toDrizzleWhere<br/>QueryWhere → SQL"]
@@ -69,9 +69,9 @@ classDiagram
         <<union>>
     }
 
-    class BaseWhere {
+    class UnaryComparisonWhere {
         +field: K
-        +operator: BaseWhereOp
+        +operator: UnaryComparisonOp
         +conditions: TShape[K]
     }
 
@@ -85,11 +85,11 @@ classDiagram
         +conditions: QueryWhere
     }
 
-    QueryWhere <|-- BaseWhere
+    QueryWhere <|-- UnaryComparisonWhere
     QueryWhere <|-- MultiWhere
     QueryWhere <|-- UnaryWhere
 
-    class BaseWhereOp {
+    class UnaryComparisonOp {
         <<enumeration>>
         eq
         gt
@@ -101,7 +101,7 @@ classDiagram
         in
     }
 
-    BaseWhere --> BaseWhereOp
+    UnaryComparisonWhere --> UnaryComparisonOp
 ```
 
 ## Usage

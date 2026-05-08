@@ -1,9 +1,11 @@
 import { parseWhereExpression } from '@tanstack/query-db-collection';
-import type { QueryWhere, SchemaShape } from './where.ts';
+import type { SchemaShape } from './core/schema.ts';
+import type { QueryWhere } from './core/where.ts';
 import type { OrderBy, OrderByClause } from './order-by.ts';
-
+// Comparison
+export type FromTanDbWhereParam = Parameters<typeof parseWhereExpression>[0];
 export const fromTanDbWhere = <TShape extends SchemaShape>(
-	where: Parameters<typeof parseWhereExpression>[0],
+	where: FromTanDbWhereParam,
 ) =>
 	parseWhereExpression(where, {
 		handlers: {
@@ -55,5 +57,8 @@ export const fromTanDbOrderBy = <TShape extends SchemaShape>(
 			direction: o.dir,
 		})) as OrderBy<TShape>;
 	}
-	return { field: orderBy.field, direction: orderBy.dir } as OrderByClause<TShape>;
+	return {
+		field: orderBy.field,
+		direction: orderBy.dir,
+	} as OrderByClause<TShape>;
 };

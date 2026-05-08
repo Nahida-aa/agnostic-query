@@ -1,7 +1,7 @@
 import { createDatabase } from 'db0';
 import pgliteConnector from 'db0/connectors/pglite';
 import { toDb0Where } from 'agnostic-query/db0';
-import type { QueryWhere } from 'agnostic-query';
+import type { QueryWhere } from '../../packages/agnostic-query/src/core/where';
 
 const db = createDatabase(pgliteConnector());
 

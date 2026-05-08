@@ -1,6 +1,6 @@
-import type { QueryWhere, BaseWhere, } from './where.ts';
-import { sqlOpMap } from './sql.js';
+import type { QueryWhere, UnaryComparisonWhere } from './core/where.ts';
 import type { OrderBy } from './order-by.ts';
+import { sqlOpMap } from './sql.js';
 
 const build = (where: QueryWhere): { sql: string; params: any[] } | null => {
 	if (!where) return null;
@@ -24,7 +24,7 @@ const build = (where: QueryWhere): { sql: string; params: any[] } | null => {
 		};
 	}
 
-	const { field, operator, conditions } = where as BaseWhere
+	const { field, operator, conditions } = where as UnaryComparisonWhere;
 
 	if (operator === 'in') {
 		if (!Array.isArray(conditions)) return null;
@@ -36,16 +36,14 @@ const build = (where: QueryWhere): { sql: string; params: any[] } | null => {
 	if (!op) return null;
 
 	return { sql: `"${field}" ${op} ?`, params: [conditions] };
-}
+};
 
 export type Db0Where = {
 	sql: string;
 	params: any[];
 };
 
-export const toDb0Where = (
-	where: QueryWhere | null,
-): Db0Where | null => {
+export const toDb0Where = (where: QueryWhere | null): Db0Where | null => {
 	if (!where) return null;
 	return build(where);
 };

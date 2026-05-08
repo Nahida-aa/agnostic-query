@@ -10,33 +10,43 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DemoTanstackDbRouteImport } from './routes/demo/tanstack-db'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DemoTanstackDbRoute = DemoTanstackDbRouteImport.update({
+  id: '/demo/tanstack-db',
+  path: '/demo/tanstack-db',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/demo/tanstack-db': typeof DemoTanstackDbRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/demo/tanstack-db': typeof DemoTanstackDbRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/demo/tanstack-db': typeof DemoTanstackDbRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/demo/tanstack-db'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/demo/tanstack-db'
+  id: '__root__' | '/' | '/demo/tanstack-db'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DemoTanstackDbRoute: typeof DemoTanstackDbRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +58,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/demo/tanstack-db': {
+      id: '/demo/tanstack-db'
+      path: '/demo/tanstack-db'
+      fullPath: '/demo/tanstack-db'
+      preLoaderRoute: typeof DemoTanstackDbRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DemoTanstackDbRoute: DemoTanstackDbRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
