@@ -29,15 +29,20 @@ export type FieldPathByShape<TShape extends SchemaShape = SchemaShape> =
 			}[keyof TShape]
 		: never;
 
-export type GetPathType<T, P extends readonly any[]> =
-	P extends [infer F, ...infer R]
-		? F extends keyof T
-			? R extends []
-				? T[F]
-				: GetPathType<T[F], R>
-			: F extends number
-				? T extends (infer U)[]
-					? GetPathType<U, R>
-					: never
+// 1. 定义一个工具类型，根据路径获取深度属性的类型
+export type GetPathType<T, P extends readonly any[]> = P extends readonly [
+	infer First,
+	...infer Rest,
+]
+	? First extends keyof T
+		? Rest extends []
+			? T[First]
+			: GetPathType<T[First], Rest>
+		: First extends number // 处理数组索引
+			? T extends (infer R)[]
+				? Rest extends []
+					? R
+					: GetPathType<R, Rest>
 				: never
-		: T;
+			: never
+	: T;

@@ -1,7 +1,4 @@
-import {
-	parseOrderByExpression,
-	parseWhereExpression,
-} from '@tanstack/query-db-collection';
+import { parseWhereExpression } from '@tanstack/query-db-collection';
 import type { QueryOrderBy } from './core/order-by.ts';
 import type { SchemaShape } from './core/schema.ts';
 import type { QueryWhere } from './core/where.ts';
@@ -48,9 +45,16 @@ export const fromTanDbWhere = <TShape extends SchemaShape>(
 		},
 	});
 
-export type FromTanDbOrderByParam = Parameters<
-	typeof parseOrderByExpression
->[0];
 export const fromTanDbOrderBy = <TShape extends SchemaShape>(
-	orderBy: FromTanDbOrderByParam,
-) => parseOrderByExpression(orderBy) as unknown as QueryOrderBy<TShape>[];
+	orderBy:
+		| { field: keyof TShape; dir: 'asc' | 'desc' }
+		| { field: keyof TShape; dir: 'asc' | 'desc' }[]
+		| null,
+): QueryOrderBy<TShape>[] | null => {
+	if (!orderBy) return null;
+	const clauses = Array.isArray(orderBy) ? orderBy : [orderBy];
+	return clauses.map((o) => ({
+		field: [o.field],
+		direction: o.dir,
+	})) as QueryOrderBy<TShape>[];
+};

@@ -1,5 +1,7 @@
-import type { OrderBy } from './core/order-by.ts';
+import type { QueryOrderBy } from './core/order-by.ts';
 import type { QueryWhere } from './core/where.ts';
+
+type OrderBy<TShape extends import('./core/schema.ts').SchemaShape> = QueryOrderBy<TShape> | QueryOrderBy<TShape>[];
 import { sqlOpMap } from './sql.js';
 
 const fieldToStr = (field: readonly any[]): string =>

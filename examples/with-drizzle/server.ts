@@ -1,7 +1,8 @@
 import { PGlite } from '@electric-sql/pglite';
 import { drizzle } from 'drizzle-orm/pglite';
-import { toDrizzleWhere } from 'agnostic-query/drizzle';
-import { whereSchema, users } from './schema';
+import { sql } from 'drizzle-orm';
+import { toDrizzleOrderBy, toDrizzleWhere } from 'agnostic-query/drizzle';
+import { whereSchema, usersTable } from './schema';
 
 const client = new PGlite();
 const db = drizzle(client);
@@ -16,11 +17,12 @@ Bun.serve({
 		if (!parsed.success) {
 			return Response.json({ error: parsed.error.issues }, { status: 400 });
 		}
-
-		const whereExpr = toDrizzleWhere(users, parsed.data);
-		const sql = db.select().from(users).where(whereExpr).toSQL();
-
-		return Response.json({ sql: sql.sql, params: sql.params });
+	  const users0 =	await db.execute(sql`select * from ${usersTable} where ${usersTable.id} = ${'123'}`);
+		const whereExpr = toDrizzleWhere(usersTable, parsed.data);
+		const users1Q =  db.select().from(usersTable).where(whereExpr).orderBy(...toDrizzleOrderBy(usersTable));
+		const users1 = await users1Q
+		const user1Sql = users1Q.toSQL();
+		return Response.json({ sql: user1Sql.sql, params: user1Sql.params });
 	},
 });
 

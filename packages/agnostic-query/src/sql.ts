@@ -1,7 +1,12 @@
-import type { OrderBy } from './core/order-by.ts';
-import type { QueryWhere } from './core/where.ts';
+import type { QueryOrderBy } from './core/order-by.ts';
+import type { FieldPath, SchemaShape } from './core/schema.ts';
+import type {
+	ComparisonWhere,
+	QueryWhere,
+	UnaryComparisonOp,
+} from './core/where.ts';
 
-export const sqlOpMap: Record<string, string> = {
+export const sqlOpMap: Record<UnaryComparisonOp, string> = {
 	eq: '=',
 	gt: '>',
 	gte: '>=',
@@ -11,7 +16,7 @@ export const sqlOpMap: Record<string, string> = {
 	ilike: 'ILIKE',
 };
 
-const escape = (value: unknown): string => {
+const escapeVal = (value: unknown): string => {
 	if (value === null || value === undefined) return 'NULL';
 	if (typeof value === 'number') return String(value);
 	if (typeof value === 'boolean') return String(value);
@@ -19,15 +24,13 @@ const escape = (value: unknown): string => {
 	return `'${s.replace(/'/g, "''")}'`;
 };
 
-const fieldToStr = (field: readonly any[]): string =>
+const fieldToStr = (field: FieldPath): string =>
 	field.map((p) => (typeof p === 'number' ? `[${p}]` : p)).join('.');
 
-const isTuple = (v: any): v is any[] => Array.isArray(v);
-
-const build = (where: QueryWhere): string | null => {
+const build = (where: QueryWhere): string | undefined => {
 	if (where.op === 'not') {
 		const inner = build(where.condition);
-		if (!inner) return null;
+		if (!inner) return;
 		return `NOT (${inner})`;
 	}
 
@@ -35,42 +38,35 @@ const build = (where: QueryWhere): string | null => {
 		const parts = where.conditions
 			.map((c) => build(c))
 			.filter((c): c is string => c !== null);
-		if (parts.length === 0) return null;
+		if (parts.length === 0) return;
 		const joiner = ` ${where.op.toUpperCase()} `;
 		const sql = parts.join(joiner);
 		return parts.length > 1 ? `(${sql})` : sql;
 	}
 
-	const node = where as any;
-	if (!isTuple(node.field)) return `"${node.field}"`;
-
+	const node = where as ComparisonWhere; // 这里不知道为何依旧携带 MultiComparisonWhere 类型
 	const fieldStr = fieldToStr(node.field);
 
 	if (node.op === 'in') {
-		if (!Array.isArray(node.values)) return null;
-		const values = node.values.map(escape).join(', ');
+		const values = node.values.map(escapeVal).join(', ');
 		return `"${fieldStr}" IN (${values})`;
 	}
 
 	const sqlOp = sqlOpMap[node.op];
-	if (!sqlOp) return null;
-	return `"${fieldStr}" ${sqlOp} ${escape(node.value)}`;
+	if (!sqlOp) return;
+	return `"${fieldStr}" ${sqlOp} ${escapeVal(node.value)}`;
 };
 
-export const toSqlString = (where: QueryWhere | null): string | null => {
-	if (!where) return null;
+export const toSqlString = (where: QueryWhere | null): string | undefined => {
+	if (!where) return;
 	return build(where);
 };
 
-export const toSqlOrderBy = <TShape extends Record<string, any>>(
-	orderBy: OrderBy<TShape> | null,
-): string | null => {
-	if (!orderBy) return null;
-	const clauses = Array.isArray(orderBy) ? orderBy : [orderBy];
-	return clauses
-		.map(
-			(c) =>
-				`"${isTuple(c.field) ? fieldToStr(c.field) : String(c.field)}" ${c.direction.toUpperCase()}`,
-		)
+export const toSqlOrderBy = <TShape extends SchemaShape>(
+	orderBy?: QueryOrderBy<TShape>[],
+): string | undefined => {
+	if (!orderBy) return;
+	return orderBy
+		.map((c) => `"${fieldToStr(c.field)}" ${c.direction.toUpperCase()}`)
 		.join(', ');
 };

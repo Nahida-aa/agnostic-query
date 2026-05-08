@@ -3,7 +3,9 @@ import { toSqlOrderBy } from './src/sql.ts';
 import { toDb0OrderBy } from './src/db0.ts';
 import { toDrizzleOrderBy } from './src/drizzle.ts';
 import { fromTanDbOrderBy } from './src/tanstack-db.ts';
-import type { OrderBy } from './src/core/order-by.ts';
+import type { QueryOrderBy } from './src/core/order-by.ts';
+
+type OrderBy<TShape extends Record<string, any>> = QueryOrderBy<TShape> | QueryOrderBy<TShape>[];
 import { PGlite } from '@electric-sql/pglite';
 import { drizzle } from 'drizzle-orm/pglite';
 import { pgTable, text, integer } from 'drizzle-orm/pg-core';
@@ -68,19 +70,17 @@ describe('toDb0OrderBy', () => {
 
 describe('toDrizzleOrderBy', () => {
 	it('single asc', () => {
-		const result = toDrizzleOrderBy<UserShape>(users, {
-			field: ['name'],
-			direction: 'asc',
-		});
+		const result = toDrizzleOrderBy<UserShape>(users, [
+			{ field: ['name'], direction: 'asc' },
+		]);
 		const sql = db.select().from(users).orderBy(...result!).toSQL();
 		expect(sql.sql).toContain('order by "users"."name"');
 	});
 
 	it('single desc', () => {
-		const result = toDrizzleOrderBy<UserShape>(users, {
-			field: ['age'],
-			direction: 'desc',
-		});
+		const result = toDrizzleOrderBy<UserShape>(users, [
+			{ field: ['age'], direction: 'desc' },
+		]);
 		const sql = db.select().from(users).orderBy(...result!).toSQL();
 		expect(sql.sql).toContain('order by "users"."age" desc');
 	});
@@ -105,7 +105,7 @@ describe('fromTanDbOrderBy', () => {
 			field: 'name',
 			dir: 'asc',
 		});
-		expect(result).toEqual({ field: ['name'], direction: 'asc' });
+		expect(result).toEqual([{ field: ['name'], direction: 'asc' }]);
 	});
 
 	it('array of clauses', () => {
