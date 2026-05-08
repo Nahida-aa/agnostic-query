@@ -1,6 +1,6 @@
 import { useLiveInfiniteQuery } from '@tanstack/react-db';
 import { createFileRoute } from '@tanstack/react-router';
-import { postsInfiniteQuery } from '#/features/pglite-demo/data.ts';
+import { postsInfiniteCollection } from '#/features/pglite-demo/data.ts';
 import type { Post } from '#/features/pglite-demo/data.ts';
 
 export const Route = createFileRoute('/demo/tanstack-db')({
@@ -15,7 +15,7 @@ function RouteComponent() {
 		isFetchingNextPage,
 		isLoading,
 		isReady,
-	} = useLiveInfiniteQuery(postsInfiniteQuery, { pageSize: 10 });
+	} = useLiveInfiniteQuery(postsInfiniteCollection, { pageSize: 10 });
 
 	return (
 		<div className="max-w-2xl mx-auto p-4">
@@ -31,7 +31,7 @@ function RouteComponent() {
 			<div className="space-y-4">
 				{pages?.map((page, i) => (
 					<div key={i}>
-						{page.map((post: Post) => (
+						{(page as Post[]).map((post) => (
 							<div
 								key={post.id}
 								className="feature-card rounded-xl p-5 mb-3 border border-[var(--line)]"

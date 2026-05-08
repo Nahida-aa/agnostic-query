@@ -38,7 +38,6 @@ export const createWhereSchema = <TShape extends SchemaShape>() => {
 			}),
 		]),
 	);
-
 	return schema;
 };
 

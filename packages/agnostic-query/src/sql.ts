@@ -1,5 +1,6 @@
-import type { QueryWhere, UnaryComparisonWhere } from './core/where.ts';
-import type { OrderBy } from './order-by.ts';
+import type { OrderBy } from './core/order-by.ts';
+import type { QueryWhere } from './core/where.ts';
+
 export const sqlOpMap: Record<string, string> = {
 	eq: '=',
 	gt: '>',
@@ -9,6 +10,7 @@ export const sqlOpMap: Record<string, string> = {
 	like: 'LIKE',
 	ilike: 'ILIKE',
 };
+
 const escape = (value: unknown): string => {
 	if (value === null || value === undefined) return 'NULL';
 	if (typeof value === 'number') return String(value);
@@ -17,35 +19,42 @@ const escape = (value: unknown): string => {
 	return `'${s.replace(/'/g, "''")}'`;
 };
 
+const fieldToStr = (field: readonly any[]): string =>
+	field.map((p) => (typeof p === 'number' ? `[${p}]` : p)).join('.');
+
+const isTuple = (v: any): v is any[] => Array.isArray(v);
+
 const build = (where: QueryWhere): string | null => {
-	if (where.operator === 'not') {
-		const inner = build(where.conditions);
+	if (where.op === 'not') {
+		const inner = build(where.condition);
 		if (!inner) return null;
 		return `NOT (${inner})`;
 	}
 
-	if (where.operator === 'and' || where.operator === 'or') {
+	if (where.op === 'and' || where.op === 'or') {
 		const parts = where.conditions
 			.map((c) => build(c))
 			.filter((c): c is string => c !== null);
 		if (parts.length === 0) return null;
-		const joiner = ` ${where.operator.toUpperCase()} `;
+		const joiner = ` ${where.op.toUpperCase()} `;
 		const sql = parts.join(joiner);
 		return parts.length > 1 ? `(${sql})` : sql;
 	}
 
-	const { field, operator, conditions } = where as UnaryComparisonWhere;
+	const node = where as any;
+	if (!isTuple(node.field)) return `"${node.field}"`;
 
-	if (operator === 'in') {
-		if (!Array.isArray(conditions)) return null;
-		const values = conditions.map(escape).join(', ');
-		return `"${field}" IN (${values})`;
+	const fieldStr = fieldToStr(node.field);
+
+	if (node.op === 'in') {
+		if (!Array.isArray(node.values)) return null;
+		const values = node.values.map(escape).join(', ');
+		return `"${fieldStr}" IN (${values})`;
 	}
 
-	const op = sqlOpMap[operator];
-	if (!op) return null;
-
-	return `"${field}" ${op} ${escape(conditions)}`;
+	const sqlOp = sqlOpMap[node.op];
+	if (!sqlOp) return null;
+	return `"${fieldStr}" ${sqlOp} ${escape(node.value)}`;
 };
 
 export const toSqlString = (where: QueryWhere | null): string | null => {
@@ -59,6 +68,9 @@ export const toSqlOrderBy = <TShape extends Record<string, any>>(
 	if (!orderBy) return null;
 	const clauses = Array.isArray(orderBy) ? orderBy : [orderBy];
 	return clauses
-		.map((c) => `"${String(c.field)}" ${c.direction.toUpperCase()}`)
+		.map(
+			(c) =>
+				`"${isTuple(c.field) ? fieldToStr(c.field) : String(c.field)}" ${c.direction.toUpperCase()}`,
+		)
 		.join(', ');
 };

@@ -7,6 +7,7 @@ export type FieldPath = [string, ...(string | number)[]];
 // ];
 
 export type SchemaShape = Record<string, any>;
+
 /**
  * - ["name"] → table.name
  * - ["address", "city"] → table.address.city

@@ -1,5 +1,5 @@
-import { describe, expect, it, expectTypeOf } from 'bun:test';
-import { findValueInWhere, type QueryWhere } from './src/core/where.js';
+import { describe, expect, it } from 'bun:test';
+import { findWhereByField, type QueryWhere } from './src/core/where.js';
 
 type UserShape = {
 	id: string;
@@ -8,83 +8,82 @@ type UserShape = {
 	tags: string[];
 };
 
-const base: QueryWhere<UserShape, keyof UserShape> = {
-	field: 'name',
-	operator: 'eq',
-	conditions: 'Alice',
+const base: QueryWhere<UserShape> = {
+	field: ['name'],
+	op: 'eq',
+	value: 'Alice',
 };
 
-const multi: QueryWhere<UserShape, keyof UserShape> = {
-	operator: 'and',
+const multi: QueryWhere<UserShape> = {
+	op: 'and',
 	conditions: [
-		{ field: 'name', operator: 'eq', conditions: 'Alice' },
-		{ field: 'age', operator: 'gt', conditions: 18 },
+		{ field: ['name'], op: 'eq', value: 'Alice' },
+		{ field: ['age'], op: 'gt', value: 18 },
 	],
 };
 
-const unary: QueryWhere<UserShape, keyof UserShape> = {
-	operator: 'not',
-	conditions: { field: 'age', operator: 'lt', conditions: 18 },
+const unary: QueryWhere<UserShape> = {
+	op: 'not',
+	condition: { field: ['age'], op: 'lt', value: 18 },
 };
 
-describe('findValueInWhere', () => {
-	it('should find value in UnaryComparisonWhere', () => {
-		const result = findValueInWhere(base)('name');
-		expect(result).toBe('Alice');
-		expectTypeOf(result).toExtend<string | undefined>();
+describe('findWhereByField', () => {
+	it('should find comparison in UnaryComparisonWhere', () => {
+		const result = findWhereByField(base).eq(['name']);
+		expect((result as any)?.value).toBe('Alice');
 	});
 
-	it('should find value in MultiWhere (and)', () => {
-		const resultName = findValueInWhere(multi)('name');
-		const resultAge = findValueInWhere(multi)('age');
-		expect(resultName).toBe('Alice');
-		expect(resultAge).toBe(18);
+	it('should find comparison in MultiLogicalWhere (and)', () => {
+		const resultName = findWhereByField(multi).eq(['name']);
+		const resultAge = findWhereByField(multi).find(['age'], 'gt');
+		expect((resultName as any)?.value).toBe('Alice');
+		expect((resultAge as any)?.value).toBe(18);
 	});
 
-	it('should find value in MultiWhere (or)', () => {
-		const orWhere: QueryWhere<UserShape, keyof UserShape> = {
-			operator: 'or',
+	it('should find comparison in MultiLogicalWhere (or)', () => {
+		const orWhere: QueryWhere<UserShape> = {
+			op: 'or',
 			conditions: [
-				{ field: 'id', operator: 'eq', conditions: '1' },
-				{ field: 'name', operator: 'like', conditions: '%admin%' },
+				{ field: ['id'], op: 'eq', value: '1' },
+				{ field: ['name'], op: 'like', value: '%admin%' },
 			],
 		};
-		expect(findValueInWhere(orWhere)('id')).toBe('1');
-		expect(findValueInWhere(orWhere)('name')).toBe('%admin%');
+		expect((findWhereByField(orWhere).eq(['id']) as any)?.value).toBe('1');
+		expect((findWhereByField(orWhere).find(['name'], 'like') as any)?.value).toBe('%admin%');
 	});
 
-	it('should find value in UnaryWhere (not)', () => {
-		const result = findValueInWhere(unary)('age');
-		expect(result).toBe(18);
+	it('should find comparison in UnaryLogicalWhere (not)', () => {
+		const result = findWhereByField(unary).find(['age'], 'lt');
+		expect((result as any)?.value).toBe(18);
 	});
 
 	it('should return undefined if field not found', () => {
-		// @ts-expect-error - field 'id' is not in base's TEnabled
-		const result = findValueInWhere(base)('id');
+		const result = findWhereByField(base).find(['id']);
 		expect(result).toBeUndefined();
 	});
 
 	it('should return undefined if where is null', () => {
-		const result = findValueInWhere<UserShape, keyof UserShape>(null)('name');
+		const result = findWhereByField<UserShape>(null).eq(['name']);
 		expect(result).toBeUndefined();
 	});
 
 	it('should handle deeply nested structures', () => {
-		const deep: QueryWhere<UserShape, keyof UserShape> = {
-			operator: 'and',
+		const deep: QueryWhere<UserShape> = {
+			op: 'and',
 			conditions: [
 				{
-					operator: 'or',
+					op: 'or',
 					conditions: [
-						{ field: 'name', operator: 'eq', conditions: 'Deep' },
-						{ operator: 'not', conditions: { field: 'age', operator: 'lt', conditions: 0 } },
+						{ field: ['name'], op: 'eq', value: 'Deep' },
+						{ op: 'not', condition: { field: ['age'], op: 'lt', value: 0 } },
 					],
 				},
-				{ field: 'tags', operator: 'in', conditions: ['a', 'b'] },
+				{ field: ['tags'], op: 'in', values: ['a', 'b'] },
 			],
 		};
-		expect(findValueInWhere(deep)('name')).toBe('Deep');
-		expect(findValueInWhere(deep)('age')).toBe(0);
-		expect(findValueInWhere(deep)('tags')).toEqual(['a', 'b']);
+		expect((findWhereByField(deep).eq(['name']) as any)?.value).toBe('Deep');
+		expect((findWhereByField(deep).find(['age'], 'lt') as any)?.value).toBe(0);
+		const tagsNode = findWhereByField(deep).in(['tags']);
+		expect((tagsNode as any)?.values).toEqual(['a', 'b']);
 	});
 });

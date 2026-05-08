@@ -1,39 +1,50 @@
 import * as v from 'valibot';
+import type { SchemaShape } from './core/schema.js';
 import {
-	multiWhereOps,
-	type QueryWhere,
-	type SchemaShape,
+	multiLogicalWhereOps,
 	unaryComparisonOps,
 } from './core/where.js';
+import type { QueryWhere } from './core/where.js';
 
-export const createWhereSchema =
-	<TShape extends SchemaShape>() =>
-	<TEnabled extends Extract<keyof TShape, string>>(columns?: TEnabled[]) => {
-		if (columns !== undefined && columns.length === 0) return v.null();
-		const baseFilterSchema = v.object({
-			field: columns
-				? v.picklist(columns)
-				: v.custom<TEnabled>((input) => typeof input === 'string'),
-			operator: v.picklist(unaryComparisonOps),
-			conditions: v.any(),
-		});
-		type Out = QueryWhere<TShape, TEnabled>;
-		const schema: v.GenericSchema<Out> = v.lazy(() =>
-			v.union([
-				baseFilterSchema,
-				v.object({
-					operator: v.picklist(multiWhereOps),
-					conditions: v.array(schema),
-				}),
-				v.object({
-					operator: v.literal('not'),
-					conditions: schema,
-				}),
-			]),
-		);
-		return schema;
-	};
+export const createWhereSchema = <TShape extends SchemaShape>() => {
+	const fieldSchema = v.pipe(
+		v.any(),
+		v.transform((input) =>
+			typeof input === 'string' ? [input] : input,
+		),
+		v.array(v.union([v.string(), v.number()])),
+	);
+
+	const unaryComparisonSchema = v.object({
+		field: fieldSchema,
+		op: v.picklist(unaryComparisonOps),
+		value: v.any(),
+	});
+
+	const multiComparisonSchema = v.object({
+		field: fieldSchema,
+		op: v.literal('in'),
+		values: v.array(v.any()),
+	});
+
+	type Out = QueryWhere<TShape, any>;
+	const schema: v.GenericSchema<Out> = v.lazy(() =>
+		v.union([
+			unaryComparisonSchema,
+			multiComparisonSchema,
+			v.object({
+				op: v.picklist(multiLogicalWhereOps),
+				conditions: v.array(schema),
+			}),
+			v.object({
+				op: v.literal('not'),
+				condition: schema,
+			}),
+		]),
+	);
+	return schema;
+};
 
 export type CreateWhereSchemaOut<TShape extends SchemaShape> = v.InferOutput<
-	ReturnType<ReturnType<typeof createWhereSchema<TShape>>>
+	ReturnType<typeof createWhereSchema<TShape>>
 >;

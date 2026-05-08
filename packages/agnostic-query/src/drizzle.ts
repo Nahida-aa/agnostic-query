@@ -14,13 +14,7 @@ import {
 	or,
 	type SQL,
 } from 'drizzle-orm';
-import type {
-	ComparisonWhere,
-	QueryWhere,
-	UnaryComparisonOp,
-	UnaryComparisonWhere,
-} from './core/where.ts';
-import type { OrderBy } from './order-by.ts';
+import type { QueryWhere, UnaryComparisonOp } from './core/where.ts';
 
 export const drizzleOps = {
 	eq,
@@ -32,45 +26,47 @@ export const drizzleOps = {
 	ilike,
 } satisfies Record<UnaryComparisonOp, (column: any, value: any) => SQL>;
 
+const isTuple = (v: any): v is any[] => Array.isArray(v);
+
 const _toDrizzleWhere = (
 	table: any,
 	where: QueryWhere | null,
 ): SQL | undefined => {
 	if (!where) return undefined;
-	if (where.operator === 'not') {
-		where.conditions;
-		const subCondition = _toDrizzleWhere(table, where.conditions);
+	if (where.op === 'not') {
+		const subCondition = _toDrizzleWhere(table, where.condition);
 		return subCondition ? not(subCondition) : undefined;
 	}
 
-	if (where.operator === 'and' || where.operator === 'or') {
+	if (where.op === 'and' || where.op === 'or') {
 		const conditions = where.conditions
 			.map((c) => _toDrizzleWhere(table, c))
 			.filter((c): c is SQL => !!c);
 
 		if (conditions.length === 0) return;
 
-		return where.operator === 'and' ? and(...conditions) : or(...conditions);
+		return where.op === 'and' ? and(...conditions) : or(...conditions);
 	}
 
-	const { field, operator, conditions } = where as ComparisonWhere;
-	const column = table[field];
+	const node = where as any;
+	const fieldKey = isTuple(node.field) ? node.field[0] : node.field;
+	const column = table[fieldKey];
 
 	if (!column) {
-		console.warn(`Field ${field} does not exist on table`);
+		console.warn(`Field ${String(fieldKey)} does not exist on table`);
 		return;
 	}
 
-	if (operator === 'in') {
-		if (!Array.isArray(conditions)) {
+	if (node.op === 'in') {
+		if (!Array.isArray(node.values)) {
 			console.warn(`Operator 'in' requires an array value`);
 			return undefined;
 		}
-		return inArray(column, conditions);
+		return inArray(column, node.values);
 	}
-	const opFn = drizzleOps[operator];
+	const opFn = drizzleOps[node.op as UnaryComparisonOp];
 	if (!opFn) return undefined;
-	return opFn(column, conditions);
+	return opFn(column, node.value);
 };
 
 export const toDrizzleWhere = (
@@ -86,12 +82,13 @@ export const toDrizzleWhere = (
 
 export const toDrizzleOrderBy = <TShape extends Record<string, any>>(
 	table: any,
-	orderBy: OrderBy<TShape> | null,
+	orderBy: QueryOrderBy<TShape>[] | null,
 ): any[] | undefined => {
 	if (!orderBy) return undefined;
 	const clauses = Array.isArray(orderBy) ? orderBy : [orderBy];
 	return clauses.map((c) => {
-		const col = table[String(c.field)];
+		const fieldKey = isTuple(c.field) ? c.field[0] : c.field;
+		const col = table[String(fieldKey)];
 		const fn = c.direction === 'desc' ? desc : asc;
 		return fn(col);
 	});

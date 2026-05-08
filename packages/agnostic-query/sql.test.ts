@@ -3,43 +3,43 @@ import { toSqlString } from './src/sql.js';
 
 describe('toSqlString', () => {
 	it('eq', () => {
-		expect(toSqlString({ field: 'name', operator: 'eq', conditions: "Alice" })).toBe(`"name" = 'Alice'`);
+		expect(toSqlString({ field: ['name'], op: 'eq', value: 'Alice' })).toBe(`"name" = 'Alice'`);
 	});
 
 	it('gt', () => {
-		expect(toSqlString({ field: 'age', operator: 'gt', conditions: 18 })).toBe(`"age" > 18`);
+		expect(toSqlString({ field: ['age'], op: 'gt', value: 18 })).toBe(`"age" > 18`);
 	});
 
 	it('gte', () => {
-		expect(toSqlString({ field: 'age', operator: 'gte', conditions: 18 })).toBe(`"age" >= 18`);
+		expect(toSqlString({ field: ['age'], op: 'gte', value: 18 })).toBe(`"age" >= 18`);
 	});
 
 	it('lt', () => {
-		expect(toSqlString({ field: 'age', operator: 'lt', conditions: 18 })).toBe(`"age" < 18`);
+		expect(toSqlString({ field: ['age'], op: 'lt', value: 18 })).toBe(`"age" < 18`);
 	});
 
 	it('lte', () => {
-		expect(toSqlString({ field: 'age', operator: 'lte', conditions: 18 })).toBe(`"age" <= 18`);
+		expect(toSqlString({ field: ['age'], op: 'lte', value: 18 })).toBe(`"age" <= 18`);
 	});
 
 	it('like', () => {
-		expect(toSqlString({ field: 'name', operator: 'like', conditions: '%test%' })).toBe(`"name" LIKE '%test%'`);
+		expect(toSqlString({ field: ['name'], op: 'like', value: '%test%' })).toBe(`"name" LIKE '%test%'`);
 	});
 
 	it('ilike', () => {
-		expect(toSqlString({ field: 'name', operator: 'ilike', conditions: '%Test%' })).toBe(`"name" ILIKE '%Test%'`);
+		expect(toSqlString({ field: ['name'], op: 'ilike', value: '%Test%' })).toBe(`"name" ILIKE '%Test%'`);
 	});
 
 	it('in', () => {
-		expect(toSqlString({ field: 'id', operator: 'in', conditions: ["1", "2", "3"] })).toBe(`"id" IN ('1', '2', '3')`);
+		expect(toSqlString({ field: ['id'], op: 'in', values: ['1', '2', '3'] })).toBe(`"id" IN ('1', '2', '3')`);
 	});
 
 	it('and', () => {
 		const result = toSqlString({
-			operator: 'and',
+			op: 'and',
 			conditions: [
-				{ field: 'name', operator: 'eq', conditions: 'Alice' },
-				{ field: 'age', operator: 'gt', conditions: 18 },
+				{ field: ['name'], op: 'eq', value: 'Alice' },
+				{ field: ['age'], op: 'gt', value: 18 },
 			],
 		});
 		expect(result).toBe(`("name" = 'Alice' AND "age" > 18)`);
@@ -47,10 +47,10 @@ describe('toSqlString', () => {
 
 	it('or', () => {
 		const result = toSqlString({
-			operator: 'or',
+			op: 'or',
 			conditions: [
-				{ field: 'id', operator: 'eq', conditions: '1' },
-				{ field: 'id', operator: 'eq', conditions: '2' },
+				{ field: ['id'], op: 'eq', value: '1' },
+				{ field: ['id'], op: 'eq', value: '2' },
 			],
 		});
 		expect(result).toBe(`("id" = '1' OR "id" = '2')`);
@@ -58,35 +58,35 @@ describe('toSqlString', () => {
 
 	it('not', () => {
 		const result = toSqlString({
-			operator: 'not',
-			conditions: { field: 'age', operator: 'lt', conditions: 18 },
+			op: 'not',
+			condition: { field: ['age'], op: 'lt', value: 18 },
 		});
 		expect(result).toBe(`NOT ("age" < 18)`);
 	});
 
 	it('nested', () => {
 		const result = toSqlString({
-			operator: 'and',
+			op: 'and',
 			conditions: [
 				{
-					operator: 'or',
+					op: 'or',
 					conditions: [
-						{ field: 'name', operator: 'like', conditions: '%test%' },
-						{ operator: 'not', conditions: { field: 'age', operator: 'eq', conditions: 0 } },
+						{ field: ['name'], op: 'like', value: '%test%' },
+						{ op: 'not', condition: { field: ['age'], op: 'eq', value: 0 } },
 					],
 				},
-				{ field: 'id', operator: 'in', conditions: ['a', 'b'] },
+				{ field: ['id'], op: 'in', values: ['a', 'b'] },
 			],
 		});
 		expect(result).toBe(`(("name" LIKE '%test%' OR NOT ("age" = 0)) AND "id" IN ('a', 'b'))`);
 	});
 
 	it('handles special chars in strings', () => {
-		expect(toSqlString({ field: 'name', operator: 'eq', conditions: "O'Brien" })).toBe(`"name" = 'O''Brien'`);
+		expect(toSqlString({ field: ['name'], op: 'eq', value: "O'Brien" })).toBe(`"name" = 'O''Brien'`);
 	});
 
 	it('handles null values', () => {
-		expect(toSqlString({ field: 'name', operator: 'eq', conditions: null })).toBe(`"name" = NULL`);
+		expect(toSqlString({ field: ['name'], op: 'eq', value: null })).toBe(`"name" = NULL`);
 	});
 
 	it('returns null for null input', () => {

@@ -158,7 +158,7 @@ export const demoQuery = (q: InitialQueryBuilder) =>
 			and(
 				eq(add(user.age, 2), 18), // 这里演示一下表达式，虽然没有实际意义
 				// or(eq(play.id, 'some-id-3'), not(eq(play.id, 'some-id-3'))),
-				not(eq(play.filter.operator, 'some-id-1')),
+				not(eq(play.filter.op, 'some-id-1')),
 				not(inArray(play.id, ['some-id-1', 'some-id-2'])),
 			),
 		)

@@ -19,54 +19,54 @@ const toSql = (whereExpr: ReturnType<typeof toDrizzleWhere>) => {
 
 describe('toDrizzleWhere', () => {
 	it('eq', () => {
-		const sql = toSql(toDrizzleWhere(users, { field: 'name', operator: 'eq', conditions: 'Alice' }));
+		const sql = toSql(toDrizzleWhere(users, { field: ['name'], op: 'eq', value: 'Alice' }));
 		expect(sql.sql).toBe(`select "id", "name", "age", "tags" from "users" where "users"."name" = $1`);
 		expect(sql.params).toEqual(['Alice']);
 	});
 
 	it('gt', () => {
-		const sql = toSql(toDrizzleWhere(users, { field: 'age', operator: 'gt', conditions: 18 }));
+		const sql = toSql(toDrizzleWhere(users, { field: ['age'], op: 'gt', value: 18 }));
 		expect(sql.sql).toBe(`select "id", "name", "age", "tags" from "users" where "users"."age" > $1`);
 		expect(sql.params).toEqual([18]);
 	});
 
 	it('gte', () => {
-		const sql = toSql(toDrizzleWhere(users, { field: 'age', operator: 'gte', conditions: 18 }));
+		const sql = toSql(toDrizzleWhere(users, { field: ['age'], op: 'gte', value: 18 }));
 		expect(sql.sql).toBe(`select "id", "name", "age", "tags" from "users" where "users"."age" >= $1`);
 	});
 
 	it('lt', () => {
-		const sql = toSql(toDrizzleWhere(users, { field: 'age', operator: 'lt', conditions: 18 }));
+		const sql = toSql(toDrizzleWhere(users, { field: ['age'], op: 'lt', value: 18 }));
 		expect(sql.sql).toBe(`select "id", "name", "age", "tags" from "users" where "users"."age" < $1`);
 	});
 
 	it('lte', () => {
-		const sql = toSql(toDrizzleWhere(users, { field: 'age', operator: 'lte', conditions: 18 }));
+		const sql = toSql(toDrizzleWhere(users, { field: ['age'], op: 'lte', value: 18 }));
 		expect(sql.sql).toBe(`select "id", "name", "age", "tags" from "users" where "users"."age" <= $1`);
 	});
 
 	it('like', () => {
-		const sql = toSql(toDrizzleWhere(users, { field: 'name', operator: 'like', conditions: '%test%' }));
+		const sql = toSql(toDrizzleWhere(users, { field: ['name'], op: 'like', value: '%test%' }));
 		expect(sql.sql).toBe(`select "id", "name", "age", "tags" from "users" where "users"."name" like $1`);
 	});
 
 	it('ilike', () => {
-		const sql = toSql(toDrizzleWhere(users, { field: 'name', operator: 'ilike', conditions: '%Test%' }));
+		const sql = toSql(toDrizzleWhere(users, { field: ['name'], op: 'ilike', value: '%Test%' }));
 		expect(sql.sql).toBe(`select "id", "name", "age", "tags" from "users" where "users"."name" ilike $1`);
 	});
 
 	it('in', () => {
-		const sql = toSql(toDrizzleWhere(users, { field: 'id', operator: 'in', conditions: ['1', '2', '3'] }));
+		const sql = toSql(toDrizzleWhere(users, { field: ['id'], op: 'in', values: ['1', '2', '3'] }));
 		expect(sql.sql).toBe(`select "id", "name", "age", "tags" from "users" where "users"."id" in ($1, $2, $3)`);
 		expect(sql.params).toEqual(['1', '2', '3']);
 	});
 
 	it('and', () => {
 		const sql = toSql(toDrizzleWhere(users, {
-			operator: 'and',
+			op: 'and',
 			conditions: [
-				{ field: 'name', operator: 'eq', conditions: 'Alice' },
-				{ field: 'age', operator: 'gt', conditions: 18 },
+				{ field: ['name'], op: 'eq', value: 'Alice' },
+				{ field: ['age'], op: 'gt', value: 18 },
 			],
 		}));
 		expect(sql.sql).toBe(`select "id", "name", "age", "tags" from "users" where ("users"."name" = $1 and "users"."age" > $2)`);
@@ -75,10 +75,10 @@ describe('toDrizzleWhere', () => {
 
 	it('or', () => {
 		const sql = toSql(toDrizzleWhere(users, {
-			operator: 'or',
+			op: 'or',
 			conditions: [
-				{ field: 'name', operator: 'eq', conditions: 'Alice' },
-				{ field: 'name', operator: 'eq', conditions: 'Bob' },
+				{ field: ['name'], op: 'eq', value: 'Alice' },
+				{ field: ['name'], op: 'eq', value: 'Bob' },
 			],
 		}));
 		expect(sql.sql).toBe(`select "id", "name", "age", "tags" from "users" where ("users"."name" = $1 or "users"."name" = $2)`);
@@ -86,24 +86,24 @@ describe('toDrizzleWhere', () => {
 
 	it('not', () => {
 		const sql = toSql(toDrizzleWhere(users, {
-			operator: 'not',
-			conditions: { field: 'age', operator: 'lt', conditions: 18 },
+			op: 'not',
+			condition: { field: ['age'], op: 'lt', value: 18 },
 		}));
 		expect(sql.sql).toBe(`select "id", "name", "age", "tags" from "users" where not "users"."age" < $1`);
 	});
 
 	it('nested and/or/not', () => {
 		const sql = toSql(toDrizzleWhere(users, {
-			operator: 'and',
+			op: 'and',
 			conditions: [
 				{
-					operator: 'or',
+					op: 'or',
 					conditions: [
-						{ field: 'name', operator: 'like', conditions: '%test%' },
-						{ operator: 'not', conditions: { field: 'age', operator: 'eq', conditions: 0 } },
+						{ field: ['name'], op: 'like', value: '%test%' },
+						{ op: 'not', condition: { field: ['age'], op: 'eq', value: 0 } },
 					],
 				},
-				{ field: 'id', operator: 'in', conditions: ['a', 'b'] },
+				{ field: ['id'], op: 'in', values: ['a', 'b'] },
 			],
 		}));
 		expect(sql.sql).toBe(`select "id", "name", "age", "tags" from "users" where (("users"."name" like $1 or not "users"."age" = $2) and "users"."id" in ($3, $4))`);
@@ -114,6 +114,6 @@ describe('toDrizzleWhere', () => {
 	});
 
 	it('returns undefined for non-existent column', () => {
-		expect(toDrizzleWhere(users, { field: 'unknown', operator: 'eq', conditions: 'x' } as any)).toBeUndefined();
+		expect(toDrizzleWhere(users, { field: ['unknown'], op: 'eq', value: 'x' } as any)).toBeUndefined();
 	});
 });

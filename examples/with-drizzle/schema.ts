@@ -13,5 +13,5 @@ export type UserShape = {
 	[K in keyof User]: User[K];
 };
 
-export const whereSchema = createWhereSchema<UserShape>()(['name', 'age']);
-export const looseSchema = createWhereSchema<UserShape>()();
+export const whereSchema = createWhereSchema<UserShape>();
+export const looseSchema = createWhereSchema<UserShape>();

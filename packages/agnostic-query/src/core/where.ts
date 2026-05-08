@@ -1,8 +1,8 @@
-import { createWhereSchema } from '../zod.ts';
-import type { SchemaShape } from './schema.ts';
+import type { FieldPathByShape, GetPathType, SchemaShape } from './schema.ts';
+
 export const unaryComparisonOps = [
 	'eq',
-	'gt', // ge 是 greater than or equal 的缩写
+	'gt',
 	'gte',
 	'lt',
 	'lte',
@@ -13,120 +13,101 @@ export type UnaryComparisonOp = (typeof unaryComparisonOps)[number];
 
 export const multiComparisonOp = 'in';
 
-export const multiWhereOps = ['and', 'or'] as const;
-export type MultiWhereOp = (typeof multiWhereOps)[number];
-export const unaryWhereOp = 'not';
-export type UnaryWhereOp = typeof unaryWhereOp;
+export const multiLogicalWhereOps = ['and', 'or'] as const;
+export type MultiLogicalWhereOp = (typeof multiLogicalWhereOps)[number];
+export const unaryLogicalWhereOp = 'not';
+export type UnaryLogicalWhereOp = typeof unaryLogicalWhereOp;
 
 export type UnaryComparisonWhere<
 	TShape extends SchemaShape = SchemaShape,
-	TField extends keyof TShape = keyof TShape,
+	TField extends FieldPathByShape<TShape> = FieldPathByShape<TShape>,
 > = {
-	[K in TField]: {
-		field: K;
-		operator: UnaryComparisonOp;
-		conditions: TShape[K];
-	};
-}[TField];
+	field: TField;
+	op: UnaryComparisonOp;
+	value: GetPathType<TShape, TField>;
+};
+
 export type MultiComparisonWhere<
 	TShape extends SchemaShape = SchemaShape,
-	TField extends keyof TShape = keyof TShape,
+	TField extends FieldPathByShape<TShape> = FieldPathByShape<TShape>,
 > = {
-	[K in TField]: {
-		field: K;
-		operator: 'in';
-		conditions: TShape[K][];
-	};
-}[TField];
+	field: TField;
+	op: 'in';
+	values: GetPathType<TShape, TField>[];
+};
 
 export type ComparisonWhere<
 	TShape extends SchemaShape = SchemaShape,
-	TField extends keyof TShape = keyof TShape,
+	TField extends FieldPathByShape<TShape> = FieldPathByShape<TShape>,
 > = UnaryComparisonWhere<TShape, TField> | MultiComparisonWhere<TShape, TField>;
 
-export type UnaryWhere<
-	TShape extends SchemaShape,
-	TField extends keyof TShape = keyof TShape,
+export type UnaryLogicalWhere<
+	TShape extends SchemaShape = SchemaShape,
+	TField extends FieldPathByShape<TShape> = FieldPathByShape<TShape>,
 > = {
-	operator: 'not';
-	conditions: QueryWhere<TShape, TField>;
+	op: 'not';
+	condition: QueryWhere<TShape, TField>;
 };
 
-export type MultiWhere<
-	TShape extends SchemaShape,
-	TField extends keyof TShape = keyof TShape,
+export type MultiLogicalWhere<
+	TShape extends SchemaShape = SchemaShape,
+	TField extends FieldPathByShape<TShape> = FieldPathByShape<TShape>,
 > = {
-	operator: MultiWhereOp;
+	op: MultiLogicalWhereOp;
 	conditions: QueryWhere<TShape, TField>[];
 };
 
 export type QueryWhere<
 	TShape extends SchemaShape = SchemaShape,
-	TField extends keyof TShape = keyof TShape,
+	TField extends FieldPathByShape<TShape> = FieldPathByShape<TShape>,
 > =
 	| UnaryComparisonWhere<TShape, TField>
 	| MultiComparisonWhere<TShape, TField>
-	| MultiWhere<TShape, TField>
-	| UnaryWhere<TShape, TField>;
+	| MultiLogicalWhere<TShape, TField>
+	| UnaryLogicalWhere<TShape, TField>;
 
-const isFieldNode = <TShape extends SchemaShape, TField extends keyof TShape>(
-	node: QueryWhere<TShape, any>,
+const fieldEqual = (a: readonly any[], b: readonly any[]): boolean =>
+	a.length === b.length && a.every((v, i) => v === b[i]);
+
+const isComparisonNode = <TField extends readonly any[]>(
+	node: QueryWhere,
 	field: TField,
-): node is ComparisonWhere<TShape, TField> =>
-	'field' in node && node.field === field;
+): node is ComparisonWhere =>
+	'field' in node && fieldEqual(node.field as any, field);
 
-export const findWhereByField =
-	<TShape extends SchemaShape, TEnabled extends string>(
-		where: QueryWhere<TShape, TEnabled> | null,
-	) =>
-	<TField extends TEnabled>(
+export const findWhereByField = <TShape extends SchemaShape>(
+	where: QueryWhere<TShape> | null,
+) => {
+	const search = <TField extends FieldPathByShape<TShape>>(
 		field: TField,
+		op?: UnaryComparisonOp | 'in',
 	): ComparisonWhere<TShape, TField> | undefined => {
 		if (!where) return;
-		const search = (
-			node: QueryWhere<TShape, TEnabled>,
+		const walk = (
+			node: QueryWhere<TShape>,
 		): ComparisonWhere<TShape, TField> | undefined => {
-			if (isFieldNode(node, field)) {
-				return node;
+			if (isComparisonNode(node, field)) {
+				if (!op || node.op === op) return node as any;
 			}
-			if ('conditions' in node) {
-				if (
-					Array.isArray(node.conditions) &&
-					'operator' in node &&
-					(node.operator === 'and' || node.operator === 'or')
-				) {
-					for (const sub of node.conditions) {
-						const found = search(sub);
-						if (found !== undefined) return found;
-					}
-				} else if (node.operator === 'not') {
-					return search(node.conditions);
+			if (node.op === 'not') return walk(node.condition);
+			if (node.op === 'and' || node.op === 'or') {
+				for (const sub of node.conditions) {
+					const found = walk(sub);
+					if (found) return found;
 				}
 			}
 		};
-		return search(where);
+		return walk(where);
 	};
 
-// demo
-type UserShape = {
-	id: string;
-	name: string;
-	address: {
-		street: string;
-		zip: string;
-		country: string;
+	return {
+		eq: <TField extends FieldPathByShape<TShape>>(field: TField) =>
+			search(field, 'eq'),
+		in: <TField extends FieldPathByShape<TShape>>(field: TField) =>
+			search(field, 'in'),
+		find: <TField extends FieldPathByShape<TShape>>(
+			field: TField,
+			op?: UnaryComparisonOp | 'in',
+		) => search(field, op),
 	};
-	tags: {
-		name: string;
-	}[];
 };
-const demoIn = {
-	field: ['address', 'city'],
-	operator: 'in',
-	conditions: ['New York', 'Los Angeles'],
-};
-const userWhereSchema = createWhereSchema<UserShape>()(['address']);
-const demoOut = userWhereSchema.parse(demoIn);
-
-const address = findWhereByField(demoOut)('address');
-address?.conditions;

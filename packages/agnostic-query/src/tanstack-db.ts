@@ -1,64 +1,56 @@
-import { parseWhereExpression } from '@tanstack/query-db-collection';
+import {
+	parseOrderByExpression,
+	parseWhereExpression,
+} from '@tanstack/query-db-collection';
+import type { QueryOrderBy } from './core/order-by.ts';
 import type { SchemaShape } from './core/schema.ts';
 import type { QueryWhere } from './core/where.ts';
-import type { OrderBy, OrderByClause } from './order-by.ts';
-// Comparison
+
 export type FromTanDbWhereParam = Parameters<typeof parseWhereExpression>[0];
+
 export const fromTanDbWhere = <TShape extends SchemaShape>(
 	where: FromTanDbWhereParam,
 ) =>
-	parseWhereExpression(where, {
+	parseWhereExpression<QueryWhere<TShape>>(where, {
 		handlers: {
-			eq: (field, conditions) => ({
-				field: field.join('.'),
-				operator: 'eq',
-				conditions,
+			eq: (field, value) => ({
+				field,
+				op: 'eq',
+				value,
 			}),
-			lt: (field, conditions) => ({
-				field: field.join('.'),
-				operator: 'lt',
-				conditions,
+			lt: (field, value) => ({
+				field,
+				op: 'lt',
+				value,
 			}),
-			gt: (field, conditions) => ({
-				field: field.join('.'),
-				operator: 'gt',
-				conditions,
+			gt: (field, value) => ({
+				field,
+				op: 'gt',
+				value,
 			}),
-			in: (field, conditions) => ({
-				field: field.join('.'),
-				operator: 'in',
-				conditions,
+			in: (field, values) => ({
+				field,
+				op: 'in',
+				values,
 			}),
 			and: (...conditions) => ({
-				operator: 'and',
+				op: 'and',
 				conditions,
 			}),
 			or: (...conditions) => ({
-				operator: 'or',
+				op: 'or',
 				conditions,
 			}),
 			not: (condition) => ({
-				operator: 'not',
-				conditions: condition,
+				op: 'not',
+				condition,
 			}),
 		},
-	}) as unknown as QueryWhere<TShape, any> | null;
+	});
 
+export type FromTanDbOrderByParam = Parameters<
+	typeof parseOrderByExpression
+>[0];
 export const fromTanDbOrderBy = <TShape extends SchemaShape>(
-	orderBy:
-		| { field: keyof TShape; dir: 'asc' | 'desc' }
-		| { field: keyof TShape; dir: 'asc' | 'desc' }[]
-		| null,
-): OrderBy<TShape> | null => {
-	if (!orderBy) return null;
-	if (Array.isArray(orderBy)) {
-		return orderBy.map((o) => ({
-			field: o.field,
-			direction: o.dir,
-		})) as OrderBy<TShape>;
-	}
-	return {
-		field: orderBy.field,
-		direction: orderBy.dir,
-	} as OrderByClause<TShape>;
-};
+	orderBy: FromTanDbOrderByParam,
+) => parseOrderByExpression(orderBy) as unknown as QueryOrderBy<TShape>[];

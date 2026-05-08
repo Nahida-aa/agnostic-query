@@ -1,4 +1,5 @@
 import z from 'zod';
+import type { FieldPathByShape, SchemaShape } from '../core/schema';
 
 /**
  * 简化后的字段路径校验器
@@ -9,3 +10,9 @@ export const fieldPathSchema = z.preprocess(
 	(val) => (typeof val === 'string' ? [val] : val),
 	z.tuple([z.string()]).rest(z.union([z.string(), z.number()])),
 );
+
+export const createFieldPathSchema = <TShape extends SchemaShape>() =>
+	z.preprocess(
+		(val) => (typeof val === 'string' ? [val] : val),
+		z.tuple([z.string()]).rest(z.union([z.string(), z.number()])),
+	) as unknown as z.ZodType<FieldPathByShape<TShape>>;

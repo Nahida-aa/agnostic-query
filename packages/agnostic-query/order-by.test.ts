@@ -3,7 +3,7 @@ import { toSqlOrderBy } from './src/sql.ts';
 import { toDb0OrderBy } from './src/db0.ts';
 import { toDrizzleOrderBy } from './src/drizzle.ts';
 import { fromTanDbOrderBy } from './src/tanstack-db.ts';
-import type { OrderBy } from './src/order-by.ts';
+import type { OrderBy } from './src/core/order-by.ts';
 import { PGlite } from '@electric-sql/pglite';
 import { drizzle } from 'drizzle-orm/pglite';
 import { pgTable, text, integer } from 'drizzle-orm/pg-core';
@@ -22,7 +22,7 @@ const db = drizzle(new PGlite());
 describe('toSqlOrderBy', () => {
 	it('single clause', () => {
 		const result = toSqlOrderBy<UserShape>({
-			field: 'name',
+			field: ['name'],
 			direction: 'asc',
 		});
 		expect(result).toBe('"name" ASC');
@@ -30,8 +30,8 @@ describe('toSqlOrderBy', () => {
 
 	it('multiple clauses', () => {
 		const result = toSqlOrderBy<UserShape>([
-			{ field: 'name', direction: 'asc' },
-			{ field: 'age', direction: 'desc' },
+			{ field: ['name'], direction: 'asc' },
+			{ field: ['age'], direction: 'desc' },
 		]);
 		expect(result).toBe('"name" ASC, "age" DESC');
 	});
@@ -44,7 +44,7 @@ describe('toSqlOrderBy', () => {
 describe('toDb0OrderBy', () => {
 	it('single clause', () => {
 		const result = toDb0OrderBy<UserShape>({
-			field: 'name',
+			field: ['name'],
 			direction: 'asc',
 		});
 		expect(result).toEqual({ sql: '"name" ASC', params: [] });
@@ -52,8 +52,8 @@ describe('toDb0OrderBy', () => {
 
 	it('multiple clauses', () => {
 		const result = toDb0OrderBy<UserShape>([
-			{ field: 'name', direction: 'desc' },
-			{ field: 'age', direction: 'asc' },
+			{ field: ['name'], direction: 'desc' },
+			{ field: ['age'], direction: 'asc' },
 		]);
 		expect(result).toEqual({
 			sql: '"name" DESC, "age" ASC',
@@ -69,7 +69,7 @@ describe('toDb0OrderBy', () => {
 describe('toDrizzleOrderBy', () => {
 	it('single asc', () => {
 		const result = toDrizzleOrderBy<UserShape>(users, {
-			field: 'name',
+			field: ['name'],
 			direction: 'asc',
 		});
 		const sql = db.select().from(users).orderBy(...result!).toSQL();
@@ -78,7 +78,7 @@ describe('toDrizzleOrderBy', () => {
 
 	it('single desc', () => {
 		const result = toDrizzleOrderBy<UserShape>(users, {
-			field: 'age',
+			field: ['age'],
 			direction: 'desc',
 		});
 		const sql = db.select().from(users).orderBy(...result!).toSQL();
@@ -87,8 +87,8 @@ describe('toDrizzleOrderBy', () => {
 
 	it('multiple clauses', () => {
 		const result = toDrizzleOrderBy<UserShape>(users, [
-			{ field: 'name', direction: 'asc' },
-			{ field: 'age', direction: 'desc' },
+			{ field: ['name'], direction: 'asc' },
+			{ field: ['age'], direction: 'desc' },
 		]);
 		const sql = db.select().from(users).orderBy(...result!).toSQL();
 		expect(sql.sql).toContain('order by "users"."name" asc, "users"."age" desc');
@@ -105,7 +105,7 @@ describe('fromTanDbOrderBy', () => {
 			field: 'name',
 			dir: 'asc',
 		});
-		expect(result).toEqual({ field: 'name', direction: 'asc' });
+		expect(result).toEqual({ field: ['name'], direction: 'asc' });
 	});
 
 	it('array of clauses', () => {
@@ -114,8 +114,8 @@ describe('fromTanDbOrderBy', () => {
 			{ field: 'age', dir: 'desc' },
 		]);
 		expect(result).toEqual([
-			{ field: 'name', direction: 'asc' },
-			{ field: 'age', direction: 'desc' },
+			{ field: ['name'], direction: 'asc' },
+			{ field: ['age'], direction: 'desc' },
 		]);
 	});
 
@@ -127,14 +127,14 @@ describe('fromTanDbOrderBy', () => {
 describe('type-level OrderBy', () => {
 	it('accepts valid order by', () => {
 		const ob: OrderBy<UserShape> = [
-			{ field: 'name', direction: 'asc' },
-			{ field: 'age', direction: 'desc' },
+			{ field: ['name'], direction: 'asc' },
+			{ field: ['age'], direction: 'desc' },
 		];
 		expect(Array.isArray(ob)).toBe(true);
 	});
 
 	it('accepts single clause', () => {
-		const ob: OrderBy<UserShape> = { field: 'name', direction: 'desc' };
-		expect(ob.field).toBe('name');
+		const ob: OrderBy<UserShape> = { field: ['name'], direction: 'desc' };
+		expect(ob.field).toEqual(['name']);
 	});
 });

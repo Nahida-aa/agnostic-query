@@ -48,8 +48,8 @@ export function runDb0(input: unknown): AdapterResult {
 }
 
 export type UserShape = { id: string; name: string; age: number; role: string };
-const zodSchema = createZodSchema<UserShape>()(['name', 'age', 'role']);
-const valibotSchema = createValibotSchema<UserShape>()(['name', 'age', 'role']);
+const zodSchema = createZodSchema<UserShape>();
+const valibotSchema = createValibotSchema<UserShape>();
 
 export function runZod(input: unknown): AdapterResult {
 	const result = zodSchema.safeParse(input);

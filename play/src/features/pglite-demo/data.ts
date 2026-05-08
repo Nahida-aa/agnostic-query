@@ -1,16 +1,14 @@
 import {
-	type InferCollectionType,
-	type InitialQueryBuilder,
-	createCollection,
-} from '@tanstack/react-db';
-import {
 	parseOrderByExpression,
 	queryCollectionOptions,
 } from '@tanstack/query-db-collection';
-import { getQueryClient } from '#/integrations/tanstack-query/provider.ts';
-import { getPosts } from '#/lib/server/posts.ts';
-import type { PostRow as ServerPostRow } from '#/lib/server/posts.ts';
+import {
+	createCollection,
+	createLiveQueryCollection,
+} from '@tanstack/react-db';
 import { z } from 'zod';
+import { getPosts } from '#/features/pglite-demo/posts.fn.ts';
+import { getQueryClient } from '#/integrations/tanstack-query/provider.ts';
 
 const postSchema = z.object({
 	id: z.string(),
@@ -27,8 +25,15 @@ export const postsCollect = createCollection(
 		queryClient: getQueryClient(),
 		schema: postSchema,
 		syncMode: 'on-demand',
-		queryFn: async ({ meta }) => {
-			const { limit, offset, orderBy } = meta?.loadSubsetOptions ?? {};
+		queryFn: async ({ meta, queryKey }) => {
+			const { cursor, where, limit, offset, orderBy } =
+				meta?.loadSubsetOptions ?? {};
+			console.log({
+				queryKey,
+				cursor,
+				limit,
+				offset,
+			});
 			const sorts = parseOrderByExpression(orderBy);
 
 			const result = await getPosts({
@@ -54,7 +59,9 @@ export const postsCollect = createCollection(
 	}),
 );
 
-export type PostRow = InferCollectionType<typeof postsCollect>;
-
-export const postsInfiniteQuery = (q: InitialQueryBuilder) =>
-	q.from({ posts: postsCollect }).orderBy(({ posts }) => posts.created_at, 'desc');
+export const postsInfiniteCollection = createLiveQueryCollection(
+	(q) =>
+		q
+			.from({ posts: postsCollect })
+			.orderBy(({ posts }) => posts.created_at, 'desc'),
+);
