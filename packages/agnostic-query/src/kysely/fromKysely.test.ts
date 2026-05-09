@@ -5,7 +5,18 @@ import { fromKysely } from './fromKysely.ts';
 import { toKyselyOrderBy } from './pg.ts';
 
 interface DB {
-	user: { id: string; name: string; age: number };
+	user: {
+		id: string;
+		name: string;
+		age: number;
+		tags: { id: number; name: string }[];
+		category: string[];
+		address: {
+			city: {
+				name: string;
+			};
+		};
+	};
 }
 
 const dialect = new PGliteDialect({ pglite: new PGlite() });

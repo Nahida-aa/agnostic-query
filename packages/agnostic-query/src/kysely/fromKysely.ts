@@ -105,6 +105,34 @@ export type OperationNode =
 	| ReferenceNode
 	| RawNode;
 
+const parseRawSqlField = (sql: string): FieldPath => {
+	const rootMatch = sql.match(/^"((?:[^"]|"")*)"(.*)$/);
+	if (!rootMatch) return ['unknown_path'];
+
+	const root = rootMatch[1].replace(/""/g, '"');
+	const tail = rootMatch[2];
+
+	if (!tail) return [root];
+
+	if (/^\[\d+\]/.test(tail)) {
+		const indices = [...tail.matchAll(/\[(\d+)\]/g)].map(
+			(m) => Number(m[1]) - 1,
+		);
+		return [root, ...indices];
+	}
+
+	const segments: (string | number)[] = [];
+	for (const m of tail.matchAll(
+		/->>?(?:'((?:[^']|'')*)'|(\d+))/g,
+	)) {
+		if (m[1] !== undefined) segments.push(m[1].replace(/''/g, "'"));
+		else if (m[2] !== undefined) segments.push(Number(m[2]));
+	}
+
+	if (segments.length === 0) return ['unknown_path'];
+	return [root, ...segments];
+};
+
 const parseFieldFromNode = <TShape extends SchemaShape>(
 	node: OperationNode,
 ): FieldPathByShape<TShape> => {
@@ -112,7 +140,9 @@ const parseFieldFromNode = <TShape extends SchemaShape>(
 		return [node.column.column.name] as FieldPathByShape<TShape>;
 	}
 	if (node?.kind === 'RawNode' && node.sqlFragments.length === 1) {
-		const sqlField = node.sqlFragments?.[0];
+		return parseRawSqlField(
+			node.sqlFragments[0],
+		) as FieldPathByShape<TShape>;
 	}
 
 	return ['unknown_path'] as FieldPathByShape<TShape>;

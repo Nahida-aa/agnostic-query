@@ -41,19 +41,19 @@ export type FieldPathByShape<TShape extends SchemaShape = SchemaShape> =
 		: never;
 
 // demo
-type DemoShape = {
-	id: number;
-	name: string;
-	tags: { id: number; name: string }[];
-	category: string[];
-	address: {
-		city: {
-			name: string;
-		};
-	};
-};
-type DemoField = FieldPathByShape<DemoShape>;
-type DemoField2 = FieldPathByShape<Record<string, any>>;
+// type DemoShape = {
+// 	id: number;
+// 	name: string;
+// 	tags: { id: number; name: string }[];
+// 	category: string[];
+// 	address: {
+// 		city: {
+// 			name: string;
+// 		};
+// 	};
+// };
+// type DemoField = FieldPathByShape<DemoShape>;
+// type DemoField2 = FieldPathByShape<Record<string, any>>;
 
 /** 根据完整路径提取对应位置的类型 */
 export type GetPathType<T, P extends readonly any[]> = P extends readonly [
