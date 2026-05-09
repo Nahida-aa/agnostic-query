@@ -112,6 +112,8 @@ export const playCollect = createCollection(
 			const filter = fromTanDbWhere(where);
 			const sorts = parseOrderByExpression(orderBy);
 			const ret = {
+				queryKey,
+				pageParam,
 				orderBy,
 				filter,
 				sorts,

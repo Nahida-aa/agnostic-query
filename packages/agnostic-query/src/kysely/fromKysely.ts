@@ -70,7 +70,7 @@ type PrimitiveValueListNode = {
 };
 type AndNode = {
 	kind: 'AndNode';
-	left: BinaryOperationNode;
+	left: BinaryOperationNode | AndNode | ParensNode;
 	right: BinaryOperationNode;
 };
 type OrNode = {
@@ -80,8 +80,9 @@ type OrNode = {
 };
 type ParensNode = {
 	kind: 'ParensNode';
-	node: OrNode;
+	node: OrNode | AndNode;
 };
+
 type RawNode = {
 	kind: 'RawNode';
 	sqlFragments: string[];
@@ -107,11 +108,9 @@ export type OperationNode =
 const parseFieldFromNode = <TShape extends SchemaShape>(
 	node: OperationNode,
 ): FieldPathByShape<TShape> => {
-	console.log('Parsing field from node:', node);
 	if (node?.kind === 'ReferenceNode' && node.column?.kind === 'ColumnNode') {
 		return [node.column.column.name] as FieldPathByShape<TShape>;
 	}
-	console.log('RawNode node type in where clause:', node);
 	if (node?.kind === 'RawNode' && node.sqlFragments.length === 1) {
 		const sqlField = node.sqlFragments?.[0];
 	}
@@ -123,7 +122,7 @@ const parseWhere = <TShape extends SchemaShape>(
 	node?: OperationNode,
 ): QueryWhere<TShape> | undefined => {
 	if (!node) return;
-	console.log('parseWhere node:', JSON.stringify(node, null, 2));
+	console.log('type parseWhereNode =', JSON.stringify(node, null, 2));
 
 	if (node.kind === 'AndNode' || node.kind === 'OrNode') {
 		const left = parseWhere(node.left);
