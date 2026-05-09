@@ -1,7 +1,8 @@
 import type { QueryOrderBy } from '../core/order-by.ts';
 import type { QueryWhere } from '../core/where.ts';
 import { isComparisonWhere } from '../core/where.ts';
-import { fieldToStr, type SqlResult, sqlOpMap } from '../sql/pg.ts';
+import { fieldToStr, sqlOpMap } from '../sql/pg.ts';
+import type { SqlResult } from '../sql/types.ts';
 
 const build = (where: QueryWhere): SqlResult | undefined => {
 	if (!where) return;

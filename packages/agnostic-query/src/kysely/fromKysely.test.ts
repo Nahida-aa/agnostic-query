@@ -71,6 +71,45 @@ describe('fromKysely: limit/offset/orderBy', () => {
 		expect(schema.orderBy![0]).toEqual({ field: ['name'], direction: 'asc' });
 	});
 
+	it('round-trips JSON nested path orderBy via toKyselyOrderBy/fromKysely', () => {
+		const q = db.selectFrom('user').selectAll();
+		const qWithOrder = toKyselyOrderBy(q, [
+			{ field: ['address', 'city', 'name'], direction: 'desc' },
+		]);
+		const schema = fromKysely(qWithOrder);
+		expect(schema.orderBy).toHaveLength(1);
+		expect(schema.orderBy![0]).toEqual({
+			field: ['address', 'city', 'name'],
+			direction: 'desc',
+		});
+	});
+
+	it('round-trips PG array subscript orderBy via toKyselyOrderBy/fromKysely', () => {
+		const q = db.selectFrom('user').selectAll();
+		const qWithOrder = toKyselyOrderBy(q, [
+			{ field: ['category', 0], direction: 'asc' },
+		]);
+		const schema = fromKysely(qWithOrder);
+		expect(schema.orderBy).toHaveLength(1);
+		expect(schema.orderBy![0]).toEqual({
+			field: ['category', 0],
+			direction: 'asc',
+		});
+	});
+
+	it('round-trips nested array + object path orderBy via toKyselyOrderBy/fromKysely', () => {
+		const q = db.selectFrom('user').selectAll();
+		const qWithOrder = toKyselyOrderBy(q, [
+			{ field: ['tags', 0, 'name'], direction: 'desc' },
+		]);
+		const schema = fromKysely(qWithOrder);
+		expect(schema.orderBy).toHaveLength(1);
+		expect(schema.orderBy![0]).toEqual({
+			field: ['tags', 0, 'name'],
+			direction: 'desc',
+		});
+	});
+
 	it('returns empty schema for bare query', () => {
 		const q = db.selectFrom('user').selectAll();
 		const schema = fromKysely(q);

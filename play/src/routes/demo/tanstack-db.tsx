@@ -1,9 +1,8 @@
 import { useLiveInfiniteQuery } from '@tanstack/react-db';
 import { createFileRoute } from '@tanstack/react-router';
-import { useSyncExternalStore, useMemo } from 'react';
-import { postsInfiniteQuery } from '#/features/pglite-demo/data.ts';
+import { useMemo, useSyncExternalStore } from 'react';
 import { getCursor, subscribe } from '#/features/pglite-demo/cursor-store.ts';
-import type { Post } from '#/features/pglite-demo/data.ts';
+import { postsInfiniteQuery } from '#/features/pglite-demo/data.ts';
 
 export const Route = createFileRoute('/demo/tanstack-db')({
 	component: RouteComponent,
@@ -22,7 +21,9 @@ function CursorPanel() {
 				</summary>
 				<div className="mt-2 space-y-1 text-[var(--sea-ink-soft)]">
 					<div>queryKey: {JSON.stringify(cursor.queryKey)}</div>
-					<div>limit: {cursor.limit}, offset: {cursor.offset}</div>
+					<div>
+						limit: {cursor.limit}, offset: {cursor.offset}
+					</div>
 					<div>
 						hasCursor: {cursor.cursor ? '✅ yes' : '❌ no (first load)'}
 					</div>
@@ -96,7 +97,7 @@ function RouteComponent() {
 			<div className="space-y-4">
 				{pages?.map((page, i) => (
 					<div key={i}>
-						{(page as Post[]).map((post) => (
+						{page.map((post) => (
 							<div
 								key={post.id}
 								className="feature-card rounded-xl p-5 mb-3 border border-[var(--line)]"
@@ -108,7 +109,7 @@ function RouteComponent() {
 									{post.body}
 								</p>
 								<p className="text-xs text-[var(--kicker)] mt-3">
-									{new Date(post.created_at).toLocaleDateString(undefined, {
+									{post.created_at?.toLocaleDateString(undefined, {
 										year: 'numeric',
 										month: 'short',
 										day: 'numeric',

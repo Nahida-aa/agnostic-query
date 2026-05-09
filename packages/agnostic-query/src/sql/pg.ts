@@ -2,7 +2,7 @@ import type { QueryOrderBy } from '../core/order-by.ts';
 import type { FieldPath, SchemaShape } from '../core/schema.ts';
 import type { QueryWhere, UnaryComparisonOp } from '../core/where.ts';
 import { isComparisonWhere } from '../core/where.ts';
-
+import type { SqlResult } from './types.ts';
 export const sqlOpMap: Record<UnaryComparisonOp, string> = {
 	eq: '=',
 	gt: '>',
@@ -29,11 +29,6 @@ export const fieldToStr = (field: FieldPath): string => {
 	return prefix
 		? `${quoteIdent(root)}->${prefix}->>${last}`
 		: `${quoteIdent(root)}->>${last}`;
-};
-
-export type SqlResult = {
-	sql: string;
-	params: unknown[];
 };
 
 const build = (where: QueryWhere): SqlResult | undefined => {
@@ -69,7 +64,9 @@ const build = (where: QueryWhere): SqlResult | undefined => {
 	return { sql: `${fieldStr} ${sqlOp} ?`, params: [where.value] };
 };
 
-export const toSqlString = (where?: QueryWhere | null): SqlResult | undefined => {
+export const toSqlString = (
+	where?: QueryWhere | null,
+): SqlResult | undefined => {
 	if (!where) return;
 	return build(where);
 };

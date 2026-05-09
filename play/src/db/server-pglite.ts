@@ -11,7 +11,8 @@ let db: ReturnType<typeof drizzle<typeof schema>> | null = null;
 export async function getDb() {
 	if (db) return db;
 
-	const client = new PGlite();
+	const dataDir = process.env.PGLITE_DATA_DIR ?? './pglite-data';
+	const client = new PGlite(dataDir);
 
 	await client.query(`
 		CREATE TABLE IF NOT EXISTS post (
@@ -27,8 +28,8 @@ export async function getDb() {
 	const count = await db
 		.select({ count: sql<number>`COUNT(*)::int` })
 		.from(schema.post);
-	const allPosts: Post[] = [];
 	if (count[0].count === 0) {
+		const allPosts: Post[] = [];
 		for (let i = 0; i < 100; i++) {
 			allPosts.push({
 				id: nanoid(),
@@ -37,8 +38,8 @@ export async function getDb() {
 				created_at: faker.date.past({ years: 1 }),
 			});
 		}
+		await db.insert(schema.post).values(allPosts);
 	}
-	await db.insert(schema.post).values(allPosts);
 
 	return db;
 }
