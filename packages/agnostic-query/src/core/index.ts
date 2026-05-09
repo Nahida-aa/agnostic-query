@@ -1,5 +1,10 @@
 import type { QueryOrderBy } from './order-by.ts';
-import type { FieldPathByShape, GetPathType, SchemaShape } from './schema.ts';
+import type {
+	FieldPath,
+	FieldPathByShape,
+	GetPathType,
+	SchemaShape,
+} from './schema.ts';
 import type {
 	QueryWhere,
 	UnaryComparisonOp,
@@ -14,6 +19,7 @@ export type QuerySchema<TShape extends SchemaShape = SchemaShape> = {
 	offset?: number;
 	cursor?: any; // TODO: 先不实现
 };
+
 interface WhereExpr<TShape extends SchemaShape> {
 	_q: QueryWhere<TShape> | null;
 	where<
@@ -107,6 +113,12 @@ interface AgnosticQuery<TShape extends SchemaShape = SchemaShape> {
 					? GetPathType<TShape, Col>
 					: never,
 	): AgnosticQuery<TShape>;
+	orderBy<Col extends FieldPathByShape<TShape> | (keyof TShape & string)>(
+		col: Col,
+		direction?: 'asc' | 'desc',
+	): AgnosticQuery<TShape>;
+	limit(value?: number): AgnosticQuery<TShape>;
+	offset(value?: number): AgnosticQuery<TShape>;
 }
 
 export const aq = <TShape extends SchemaShape = SchemaShape>(
@@ -163,6 +175,20 @@ export const aq = <TShape extends SchemaShape = SchemaShape>(
 			}
 			return where(col, op, value);
 		},
+		orderBy: <Col extends FieldPathByShape<TShape> | (keyof TShape & string)>(
+			col: Col,
+			direction: 'asc' | 'desc' = 'asc',
+		): AgnosticQuery<TShape> => {
+			const field = (
+				Array.isArray(col) ? col : [col]
+			) as FieldPathByShape<TShape>;
+			const newOrderBy = state.orderBy
+				? [...state.orderBy, { field, direction }]
+				: [{ field, direction }];
+			return aq<TShape>({ ...state, orderBy: newOrderBy });
+		},
+		limit: (value?: number) => aq<TShape>({ ...state, limit: value }),
+		offset: (value?: number) => aq<TShape>({ ...state, offset: value }),
 	};
 };
 
@@ -184,4 +210,8 @@ aq<DemoShape>()
 	.where('id', 'in', [1])
 	.where(({ and, where, or, not }) =>
 		or([where('name', 'eq', '3'), where('name', 'eq', '4')]),
-	);
+	)
+	.orderBy('name')
+	.orderBy('id', 'desc')
+	.limit(31)
+	.offset(0);

@@ -40,7 +40,7 @@ describe('aq builder', () => {
 		expect(result.where).toEqual({
 			field: ['status'],
 			op: 'in',
-			value: ['a', 'b'],
+			values: ['a', 'b'],
 		});
 	});
 
@@ -76,7 +76,9 @@ describe('aq builder', () => {
 
 	it('callbacks: or', () => {
 		const result = aq<DemoShape>()
-			.where(({ or, where }) => or([where('name', 'eq', '3'), where('name', 'eq', '4')]))
+			.where(({ or, where }) =>
+				or([where('name', 'eq', '3'), where('name', 'eq', '4')]),
+			)
 			.toJSON();
 		expect(result.where).toEqual({
 			op: 'or',
@@ -89,7 +91,9 @@ describe('aq builder', () => {
 
 	it('callbacks: and', () => {
 		const result = aq<DemoShape>()
-			.where(({ and, where }) => and([where('age', 'gte', 18), where('age', 'lt', 65)]))
+			.where(({ and, where }) =>
+				and([where('age', 'gte', 18), where('age', 'lt', 65)]),
+			)
 			.toJSON();
 		expect(result.where).toEqual({
 			op: 'and',
@@ -113,7 +117,9 @@ describe('aq builder', () => {
 	it('mix simple and callback', () => {
 		const result = aq<DemoShape>()
 			.where('status', 'eq', 'active')
-			.where(({ or, where }) => or([where('name', 'eq', 'admin'), where('name', 'eq', 'mod')]))
+			.where(({ or, where }) =>
+				or([where('name', 'eq', 'admin'), where('name', 'eq', 'mod')]),
+			)
 			.toJSON();
 		expect(result.where).toEqual({
 			op: 'and',
@@ -132,7 +138,9 @@ describe('aq builder', () => {
 
 	it('callback first then simple where', () => {
 		const result = aq<DemoShape>()
-			.where(({ or, where }) => or([where('name', 'eq', 'x'), where('name', 'eq', 'y')]))
+			.where(({ or, where }) =>
+				or([where('name', 'eq', 'x'), where('name', 'eq', 'y')]),
+			)
 			.where('age', 'gte', 10)
 			.toJSON();
 		expect(result.where).toEqual({
@@ -168,12 +176,14 @@ describe('aq builder', () => {
 
 	it('in operator in callback', () => {
 		const result = aq<DemoShape>()
-			.where(({ or, where }) => or([where('status', 'in', ['a', 'b']), where('status', 'eq', 'c')]))
+			.where(({ or, where }) =>
+				or([where('status', 'in', ['a', 'b']), where('status', 'eq', 'c')]),
+			)
 			.toJSON();
 		expect(result.where).toEqual({
 			op: 'or',
 			conditions: [
-				{ field: ['status'], op: 'in', value: ['a', 'b'] },
+				{ field: ['status'], op: 'in', values: ['a', 'b'] },
 				{ field: ['status'], op: 'eq', value: 'c' },
 			],
 		});
@@ -186,12 +196,56 @@ describe('aq builder', () => {
 			orderBy: [{ field: ['name'], direction: 'asc' }],
 		};
 
-		const result = aq<DemoShape>(schema)
-			.where('name', 'eq', 'test')
-			.toJSON();
+		const result = aq<DemoShape>(schema).where('name', 'eq', 'test').toJSON();
 		expect(result.limit).toBe(10);
 		expect(result.offset).toBe(0);
 		expect(result.orderBy).toEqual([{ field: ['name'], direction: 'asc' }]);
 		expect(result.where).toEqual({ field: ['name'], op: 'eq', value: 'test' });
+	});
+
+	it('orderBy is undefined when not set', () => {
+		const result = aq<DemoShape>().toJSON();
+		expect(result.orderBy).toBeUndefined();
+	});
+
+	it('orderBy defaults to asc', () => {
+		const result = aq<DemoShape>().orderBy('name').toJSON();
+		expect(result.orderBy).toEqual([{ field: ['name'], direction: 'asc' }]);
+	});
+
+	it('orderBy with desc direction', () => {
+		const result = aq<DemoShape>().orderBy('name', 'desc').toJSON();
+		expect(result.orderBy).toEqual([{ field: ['name'], direction: 'desc' }]);
+	});
+
+	it('chaining orderBy appends entries', () => {
+		const result = aq<DemoShape>()
+			.orderBy('name', 'asc')
+			.orderBy('age', 'desc')
+			.toJSON();
+		expect(result.orderBy).toEqual([
+			{ field: ['name'], direction: 'asc' },
+			{ field: ['age'], direction: 'desc' },
+		]);
+	});
+
+	it('orderBy with initial schema appends', () => {
+		const schema: QuerySchema<DemoShape> = {
+			orderBy: [{ field: ['name'], direction: 'asc' }],
+		};
+		const result = aq<DemoShape>(schema).orderBy('age', 'desc').toJSON();
+		expect(result.orderBy).toEqual([
+			{ field: ['name'], direction: 'asc' },
+			{ field: ['age'], direction: 'desc' },
+		]);
+	});
+
+	it('where and orderBy can be chained together', () => {
+		const result = aq<DemoShape>()
+			.where('name', 'eq', 'Alice')
+			.orderBy('age', 'desc')
+			.toJSON();
+		expect(result.where).toEqual({ field: ['name'], op: 'eq', value: 'Alice' });
+		expect(result.orderBy).toEqual([{ field: ['age'], direction: 'desc' }]);
 	});
 });
