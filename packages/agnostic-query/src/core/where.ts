@@ -40,6 +40,14 @@ export type ComparisonWhere<
 	TShape extends SchemaShape = SchemaShape,
 	TField extends FieldPathByShape<TShape> = FieldPathByShape<TShape>,
 > = UnaryComparisonWhere<TShape, TField> | MultiComparisonWhere<TShape, TField>;
+/**
+ * 类型守卫：将 `QueryWhere` 收窄为 `ComparisonWhere`。
+ *
+ * TS 无法通过 `op === 'and' || op === 'or'` 的否定方向消除
+ * `MultiLogicalWhere`（其 discriminant `op` 是 `'and' | 'or'` 联合类型），
+ * 导致 `field` / `value` / `values` 在后继代码中不可被类型访问。
+ * 此守卫通过显式排除逻辑运算符来绕过该限制。
+ */
 export const isComparisonWhere = (
 	where: QueryWhere,
 ): where is ComparisonWhere =>

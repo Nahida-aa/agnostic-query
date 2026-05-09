@@ -1,7 +1,4 @@
 import { PGlite } from '@electric-sql/pglite';
-import { toDb0Where } from 'agnostic-query/db0';
-import { toDrizzleWhere } from 'agnostic-query/drizzle';
-import { toSqlString } from 'agnostic-query/sql';
 import { fromTanDbWhere } from 'agnostic-query/tanstack-db';
 import { createWhereSchema as createValibotSchema } from 'agnostic-query/valibot';
 import { createWhereSchema as createZodSchema } from 'agnostic-query/zod';
@@ -9,6 +6,9 @@ import { integer, pgTable, text } from 'drizzle-orm/pg-core';
 import { drizzle } from 'drizzle-orm/pglite';
 import { safeParse } from 'valibot';
 import type { QueryWhere } from '../../../../packages/agnostic-query/src/core/where';
+import { toDb0Where } from '../../../../packages/agnostic-query/src/db0/pg';
+import { toDrizzleWhere } from '../../../../packages/agnostic-query/src/drizzle/pg';
+import { toSqlString } from '../../../../packages/agnostic-query/src/sql/pg';
 
 export type AdapterResult =
 	| { status: 'ok'; value: string }

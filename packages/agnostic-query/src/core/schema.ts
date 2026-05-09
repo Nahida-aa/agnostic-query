@@ -1,7 +1,7 @@
 /**
- * - ["name"] → table.user.name
- * - ["address", "city"] → table.address.city
- * - ["tags", 0, "name"] → table.tags[0].name
+ * - ["name"] → name
+ * - ["address", "city"] → address: { city }
+ * - ["tags", 0, "name"] → tags: [ { name } ]
  */
 export type FieldPath = [string, ...(string | number)[]];
 

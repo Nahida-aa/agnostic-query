@@ -1,11 +1,10 @@
 import { describe, expect, it } from 'bun:test';
-import { toSqlOrderBy } from './src/sql.ts';
-import { toDb0OrderBy } from './src/db0.ts';
-import { toDrizzleOrderBy } from './src/drizzle.ts';
+import { toSqlOrderBy } from './src/sql/pg.ts';
+import { toDb0OrderBy } from './src/db0/pg.ts';
+import { toDrizzleOrderBy } from './src/drizzle/pg.ts';
 import { fromTanDbOrderBy } from './src/tanstack-db.ts';
 import type { QueryOrderBy } from './src/core/order-by.ts';
 
-type OrderBy<TShape extends Record<string, any>> = QueryOrderBy<TShape> | QueryOrderBy<TShape>[];
 import { PGlite } from '@electric-sql/pglite';
 import { drizzle } from 'drizzle-orm/pglite';
 import { pgTable, text, integer } from 'drizzle-orm/pg-core';
@@ -23,10 +22,9 @@ const db = drizzle(new PGlite());
 
 describe('toSqlOrderBy', () => {
 	it('single clause', () => {
-		const result = toSqlOrderBy<UserShape>({
-			field: ['name'],
-			direction: 'asc',
-		});
+		const result = toSqlOrderBy<UserShape>([
+			{ field: ['name'], direction: 'asc' },
+		]);
 		expect(result).toBe('"name" ASC');
 	});
 
@@ -38,17 +36,16 @@ describe('toSqlOrderBy', () => {
 		expect(result).toBe('"name" ASC, "age" DESC');
 	});
 
-	it('null returns null', () => {
-		expect(toSqlOrderBy(null)).toBeNull();
+	it('null returns undefined', () => {
+		expect(toSqlOrderBy(undefined)).toBeUndefined();
 	});
 });
 
 describe('toDb0OrderBy', () => {
 	it('single clause', () => {
-		const result = toDb0OrderBy<UserShape>({
-			field: ['name'],
-			direction: 'asc',
-		});
+		const result = toDb0OrderBy<UserShape>([
+			{ field: ['name'], direction: 'asc' },
+		]);
 		expect(result).toEqual({ sql: '"name" ASC', params: [] });
 	});
 
@@ -94,8 +91,8 @@ describe('toDrizzleOrderBy', () => {
 		expect(sql.sql).toContain('order by "users"."name" asc, "users"."age" desc');
 	});
 
-	it('null returns undefined', () => {
-		expect(toDrizzleOrderBy(users, null)).toBeUndefined();
+	it('null returns empty array', () => {
+		expect(toDrizzleOrderBy(users)).toEqual([]);
 	});
 });
 
@@ -124,17 +121,12 @@ describe('fromTanDbOrderBy', () => {
 	});
 });
 
-describe('type-level OrderBy', () => {
-	it('accepts valid order by', () => {
-		const ob: OrderBy<UserShape> = [
+describe('QueryOrderBy type', () => {
+	it('accepts valid order by array', () => {
+		const ob: QueryOrderBy<UserShape>[] = [
 			{ field: ['name'], direction: 'asc' },
 			{ field: ['age'], direction: 'desc' },
 		];
 		expect(Array.isArray(ob)).toBe(true);
-	});
-
-	it('accepts single clause', () => {
-		const ob: OrderBy<UserShape> = { field: ['name'], direction: 'desc' };
-		expect(ob.field).toEqual(['name']);
 	});
 });

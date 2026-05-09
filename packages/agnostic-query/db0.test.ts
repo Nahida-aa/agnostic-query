@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import { toDb0Where } from './src/db0.ts';
+import { toDb0Where } from './src/db0/pg.ts';
 
 describe('toDb0Where', () => {
 	it('should handle eq', () => {
@@ -98,5 +98,17 @@ describe('toDb0Where', () => {
 
 	it('should return null for undefined-like where', () => {
 		expect(toDb0Where(null as any)).toBeNull();
+	});
+
+	it('should handle multi-segment JSON path', () => {
+		const result = toDb0Where({
+			field: ['data', 'address', 'city'],
+			op: 'eq',
+			value: 'NYC',
+		});
+		expect(result).toEqual({
+			sql: `"data"->'address'->>'city' = ?`,
+			params: ['NYC'],
+		});
 	});
 });

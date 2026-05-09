@@ -15,12 +15,9 @@ import {
 	type SQL,
 	sql,
 } from 'drizzle-orm';
-import type { QueryOrderBy } from './core/order-by.ts';
-import type {
-	ComparisonWhere,
-	QueryWhere,
-	UnaryComparisonOp,
-} from './core/where.ts';
+import type { QueryOrderBy } from '../core/order-by.ts';
+import type { QueryWhere, UnaryComparisonOp } from '../core/where.ts';
+import { isComparisonWhere } from '../core/where.ts';
 
 export const drizzleOps = {
 	eq,
@@ -49,8 +46,8 @@ const _toDrizzleWhere = (table: any, where?: QueryWhere): SQL | undefined => {
 		return where.op === 'and' ? and(...conditions) : or(...conditions);
 	}
 
-	const node = where as ComparisonWhere; // 不知为何 这里的类型带有 MultiComparisonWhere
-	const [rootKey, ...jsonPath] = node.field;
+	if (!isComparisonWhere(where)) return;
+	const [rootKey, ...jsonPath] = where.field;
 	const column = table[rootKey];
 
 	if (!column) {
@@ -78,10 +75,10 @@ const _toDrizzleWhere = (table: any, where?: QueryWhere): SQL | undefined => {
 				? sql`${column}->${sql.raw(parts.join('->'))}->>${sql.raw(last)}`
 				: sql`${column}->>${sql.raw(last)}`;
 	}
-	if (node.op === 'in') return inArray(target, node.values);
-	const opFn = drizzleOps[node.op];
+	if (where.op === 'in') return inArray(target, where.values);
+	const opFn = drizzleOps[where.op];
 	if (!opFn) return;
-	return opFn(target, node.value);
+	return opFn(target, where.value);
 };
 
 export const toDrizzleWhere = (

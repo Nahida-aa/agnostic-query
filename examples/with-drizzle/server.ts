@@ -1,7 +1,7 @@
 import { PGlite } from '@electric-sql/pglite';
 import { drizzle } from 'drizzle-orm/pglite';
 import { sql } from 'drizzle-orm';
-import { toDrizzleOrderBy, toDrizzleWhere } from 'agnostic-query/drizzle';
+import { toDrizzleOrderBy, toDrizzleWhere } from '../../packages/agnostic-query/src/drizzle/pg';
 import { whereSchema, usersTable } from './schema';
 
 const client = new PGlite();

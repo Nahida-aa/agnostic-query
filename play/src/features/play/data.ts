@@ -37,6 +37,8 @@ import type { QueryWhere } from '../../../../packages/agnostic-query/src/core/wh
 const userSchema = z.object({
 	id: z.string(),
 	age: z.number(),
+	addr: z.object({ city: z.object({ name: z.string() }) }),
+	tags: z.array(z.string()),
 });
 
 export type User = z.output<typeof userSchema>;
@@ -152,13 +154,14 @@ export type ListPlay = InferResultType<
 
 export const demoQuery = (q: InitialQueryBuilder) =>
 	q
-		.from({ play: playCollect })
-		.join({ user: userCollect }, ({ play, user }) => eq(play.id, user.id))
+		.from({ user: userCollect })
+		.join({ play: playCollect }, ({ play, user }) => eq(play.id, user.id))
 		.where(({ play, user }) =>
 			and(
 				eq(add(user.age, 2), 18), // 这里演示一下表达式，虽然没有实际意义
 				// or(eq(play.id, 'some-id-3'), not(eq(play.id, 'some-id-3'))),
-				not(eq(play.filter.op, 'some-id-1')),
+				eq(user.addr.city, { name: 'some-id-1' }),
+				eq(user.addr.city.name, 'some-id-1'),
 				not(inArray(play.id, ['some-id-1', 'some-id-2'])),
 			),
 		)

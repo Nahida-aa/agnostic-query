@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import { toSqlString } from './src/sql.js';
+import { toSqlString } from './src/sql/pg.js';
 
 describe('toSqlString', () => {
 	it('eq', () => {
@@ -89,7 +89,23 @@ describe('toSqlString', () => {
 		expect(toSqlString({ field: ['name'], op: 'eq', value: null })).toBe(`"name" = NULL`);
 	});
 
-	it('returns null for null input', () => {
-		expect(toSqlString(null)).toBeNull();
+	it('returns undefined for null input', () => {
+		expect(toSqlString(null)).toBeUndefined();
+	});
+
+	it('handles JSON path with multi-segment field', () => {
+		expect(
+			toSqlString({ field: ['data', 'city'], op: 'eq', value: 'NYC' }),
+		).toBe(`"data"->>'city' = 'NYC'`);
+		expect(
+			toSqlString({
+				field: ['data', 'address', 'city'],
+				op: 'eq',
+				value: 'NYC',
+			}),
+		).toBe(`"data"->'address'->>'city' = 'NYC'`);
+		expect(
+			toSqlString({ field: ['tags', 0, 'name'], op: 'eq', value: 'main' }),
+		).toBe(`"tags"->0->>'name' = 'main'`);
 	});
 });
