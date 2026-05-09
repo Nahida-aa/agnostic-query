@@ -18,6 +18,7 @@ export type QuerySchema<TShape extends SchemaShape = SchemaShape> = {
 	limit?: number;
 	offset?: number;
 	cursor?: any; // TODO: 先不实现
+	table?: string;
 };
 
 interface WhereExpr<TShape extends SchemaShape> {
@@ -192,26 +193,26 @@ export const aq = <TShape extends SchemaShape = SchemaShape>(
 	};
 };
 
-type DemoShape = {
-	id: number;
-	name: string;
-	tags: { id: number; name: string }[];
-	category: string[];
-	address: {
-		city: {
-			name: string;
-		};
-	};
-};
+// type DemoShape = {
+// 	id: number;
+// 	name: string;
+// 	tags: { id: number; name: string }[];
+// 	category: string[];
+// 	address: {
+// 		city: {
+// 			name: string;
+// 		};
+// 	};
+// };
 
-aq<DemoShape>()
-	.where(['address', 'city', 'name'], 'eq', '1')
-	.where(['tags', 0, 'name'], 'eq', '2')
-	.where('id', 'in', [1])
-	.where(({ and, where, or, not }) =>
-		or([where('name', 'eq', '3'), where('name', 'eq', '4')]),
-	)
-	.orderBy('name')
-	.orderBy('id', 'desc')
-	.limit(31)
-	.offset(0);
+// aq<DemoShape>()
+// 	.where(['address', 'city', 'name'], 'eq', '1')
+// 	.where(['tags', 0, 'name'], 'eq', '2')
+// 	.where('id', 'in', [1])
+// 	.where(({ and, where, or, not }) =>
+// 		or([where('name', 'eq', '3'), where('name', 'eq', '4')]),
+// 	)
+// 	.orderBy('name')
+// 	.orderBy('id', 'desc')
+// 	.limit(31)
+// 	.offset(0);

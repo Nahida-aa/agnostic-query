@@ -1,3 +1,4 @@
+import type { QuerySchema } from '../core';
 import type { QueryOrderBy } from '../core/order-by.ts';
 import type { FieldPath, SchemaShape } from '../core/schema.ts';
 import type { QueryWhere, UnaryComparisonOp } from '../core/where.ts';
@@ -64,7 +65,7 @@ const build = (where: QueryWhere): SqlResult | undefined => {
 	return { sql: `${fieldStr} ${sqlOp} ?`, params: [where.value] };
 };
 
-export const toSqlString = (
+export const toSqlWhere = (
 	where?: QueryWhere | null,
 ): SqlResult | undefined => {
 	if (!where) return;
@@ -80,5 +81,24 @@ export const toSqlOrderBy = <TShape extends SchemaShape>(
 			.map((c) => `${fieldToStr(c.field)} ${c.direction.toUpperCase()}`)
 			.join(', '),
 		params: [],
+	};
+};
+
+export const toSql = <TShape extends SchemaShape>(
+	json: QuerySchema<TShape>,
+): SqlResult | undefined => {
+	if (!json.table) return;
+	const where = json.where ? toSqlWhere(json.where) : undefined;
+	const orderBy = json.orderBy?.length ? toSqlOrderBy(json.orderBy) : undefined;
+	const parts = [
+		`SELECT * FROM ${quoteIdent(json.table)}`,
+		where ? `WHERE ${where.sql}` : '',
+		orderBy ? `ORDER BY ${orderBy.sql}` : '',
+		json.limit !== undefined ? `LIMIT ${json.limit}` : '',
+		json.offset !== undefined ? `OFFSET ${json.offset}` : '',
+	].filter(Boolean);
+	return {
+		sql: parts.join(' '),
+		params: [...(where?.params ?? []), ...(orderBy?.params ?? [])],
 	};
 };

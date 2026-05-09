@@ -9,7 +9,12 @@ await db.sql`CREATE TABLE users (id TEXT PRIMARY KEY, name TEXT, age INTEGER, ta
 await db.sql`INSERT INTO users VALUES ('1', 'Alice', 30, ARRAY['admin', 'user'])`;
 await db.sql`INSERT INTO users VALUES ('2', 'Bob', 25, ARRAY['user'])`;
 await db.sql`INSERT INTO users VALUES ('3', 'Charlie', 35, ARRAY['admin'])`;
-
+type User = {
+	id: string;
+	name: string;
+	age: number;
+	tags: string[];
+};
 Bun.serve({
 	port: 3000,
 	async fetch(req) {
@@ -20,7 +25,7 @@ Bun.serve({
 		if (!result) return Response.json({ error: 'invalid query' }, { status: 400 });
 
 		const { sql, params } = result;
-		const rows = await db.prepare(`SELECT * FROM users WHERE ${sql}`).all(...params);
+		const rows: User[] = await db.prepare(`SELECT * FROM users WHERE ${sql}`).all(...params);
 
 		return Response.json({ sql, params, rows });
 	},

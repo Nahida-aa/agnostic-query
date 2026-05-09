@@ -8,7 +8,7 @@ import { safeParse } from 'valibot';
 import type { QueryWhere } from '../../../../packages/agnostic-query/src/core/where';
 import { toDb0Where } from '../../../../packages/agnostic-query/src/db0/pg';
 import { toDrizzleWhere } from '../../../../packages/agnostic-query/src/drizzle/pg';
-import { toSqlString } from '../../../../packages/agnostic-query/src/sql/pg';
+import { toSqlWhere } from '../../../../packages/agnostic-query/src/sql/pg';
 
 export type AdapterResult =
 	| { status: 'ok'; value: string }
@@ -26,7 +26,7 @@ const db = drizzle(pglite, { schema: { users } });
 
 export function runSqlString(input: unknown): AdapterResult {
 	try {
-		const result = toSqlString(input as any);
+		const result = toSqlWhere(input as any);
 		if (!result) return { status: 'error', message: 'undefined input' };
 		return {
 			status: 'ok',
@@ -88,7 +88,9 @@ export function runQueryWhereJson(input: unknown): AdapterResult {
 	return { status: 'ok', value: JSON.stringify(input, null, 2) };
 }
 
-export function runDrizzle(input: QueryWhere<UserShape> | undefined): AdapterResult {
+export function runDrizzle(
+	input: QueryWhere<UserShape> | undefined,
+): AdapterResult {
 	try {
 		const whereExpr = toDrizzleWhere(users, input);
 		if (!whereExpr) return { status: 'error', message: 'null input' };
