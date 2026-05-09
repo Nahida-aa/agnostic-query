@@ -7,6 +7,7 @@ type DemoShape = {
 	name: string;
 	age: number;
 	status: string;
+	role: string;
 };
 
 describe('aq builder', () => {

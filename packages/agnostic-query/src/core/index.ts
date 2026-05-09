@@ -62,7 +62,9 @@ const createExpr = <TShape extends SchemaShape>(
 						: never,
 		) {
 			const field = Array.isArray(col) ? col : [col];
-			return createExpr({ field, op, value } as QueryWhere<TShape>);
+			const inputWhere =
+				op === 'in' ? { field, op, values: value } : { field, op, value };
+			return createExpr(inputWhere as QueryWhere<TShape>);
 		},
 		and(exprs: WhereExpr<TShape>[]) {
 			return {
@@ -136,16 +138,14 @@ export const aq = <TShape extends SchemaShape = SchemaShape>(
 				: state.where
 					? [state.where]
 					: [];
+		const inputWhere =
+			op === 'in' ? { field, op, values: value } : { field, op, value };
 		const newWhere = state.where
 			? {
 					op: 'and',
-					conditions: [...oldWheres, { field, op, value }],
+					conditions: [...oldWheres, inputWhere],
 				}
-			: {
-					op,
-					field,
-					value,
-				};
+			: inputWhere;
 		return aq<TShape>({
 			...state,
 			where: newWhere as QueryWhere<TShape>,
