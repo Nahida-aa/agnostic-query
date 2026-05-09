@@ -13,11 +13,13 @@ export type UnaryComparisonOp = (typeof unaryComparisonOps)[number];
 
 export const multiComparisonOp = 'in';
 
+export type WhereComparisonOp = UnaryComparisonOp | 'in';
+
 export const multiLogicalWhereOps = ['and', 'or'] as const;
 export type MultiLogicalWhereOp = (typeof multiLogicalWhereOps)[number];
 export const unaryLogicalWhereOp = 'not';
 export type UnaryLogicalWhereOp = typeof unaryLogicalWhereOp;
-export type WhereLogicalOp =
+export type WhereOp =
 	| UnaryComparisonOp
 	| 'in'
 	| MultiLogicalWhereOp

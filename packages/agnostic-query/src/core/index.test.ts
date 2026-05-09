@@ -1,0 +1,196 @@
+import { describe, expect, it } from 'bun:test';
+import { aq, type QuerySchema } from './index.ts';
+import type { QueryWhere } from './where.ts';
+
+type DemoShape = {
+	id: number;
+	name: string;
+	age: number;
+	status: string;
+};
+
+describe('aq builder', () => {
+	it('toJSON returns empty schema initially', () => {
+		const result = aq<DemoShape>().toJSON();
+		expect(result.where).toBeUndefined();
+		expect(result).toEqual({});
+	});
+
+	it('string shorthand where', () => {
+		const result = aq<DemoShape>().where('name', 'eq', 'Alice').toJSON();
+		expect(result.where).toEqual({
+			field: ['name'],
+			op: 'eq',
+			value: 'Alice',
+		});
+	});
+
+	it('tuple path where', () => {
+		const result = aq<DemoShape>().where(['name'], 'eq', 'Bob').toJSON();
+		expect(result.where).toEqual({
+			field: ['name'],
+			op: 'eq',
+			value: 'Bob',
+		});
+	});
+
+	it('where with in operator', () => {
+		const result = aq<DemoShape>().where('status', 'in', ['a', 'b']).toJSON();
+		expect(result.where).toEqual({
+			field: ['status'],
+			op: 'in',
+			value: ['a', 'b'],
+		});
+	});
+
+	it('chaining wheres creates AND', () => {
+		const result = aq<DemoShape>()
+			.where('name', 'eq', 'Alice')
+			.where('age', 'gt', 18)
+			.toJSON();
+		expect(result.where).toEqual({
+			op: 'and',
+			conditions: [
+				{ field: ['name'], op: 'eq', value: 'Alice' },
+				{ field: ['age'], op: 'gt', value: 18 },
+			],
+		});
+	});
+
+	it('three chained wheres flatten into single AND', () => {
+		const result = aq<DemoShape>()
+			.where('name', 'eq', 'Alice')
+			.where('age', 'gt', 18)
+			.where('status', 'eq', 'active')
+			.toJSON();
+		expect(result.where).toEqual({
+			op: 'and',
+			conditions: [
+				{ field: ['name'], op: 'eq', value: 'Alice' },
+				{ field: ['age'], op: 'gt', value: 18 },
+				{ field: ['status'], op: 'eq', value: 'active' },
+			],
+		});
+	});
+
+	it('callbacks: or', () => {
+		const result = aq<DemoShape>()
+			.where(({ or, where }) => or([where('name', 'eq', '3'), where('name', 'eq', '4')]))
+			.toJSON();
+		expect(result.where).toEqual({
+			op: 'or',
+			conditions: [
+				{ field: ['name'], op: 'eq', value: '3' },
+				{ field: ['name'], op: 'eq', value: '4' },
+			],
+		});
+	});
+
+	it('callbacks: and', () => {
+		const result = aq<DemoShape>()
+			.where(({ and, where }) => and([where('age', 'gte', 18), where('age', 'lt', 65)]))
+			.toJSON();
+		expect(result.where).toEqual({
+			op: 'and',
+			conditions: [
+				{ field: ['age'], op: 'gte', value: 18 },
+				{ field: ['age'], op: 'lt', value: 65 },
+			],
+		});
+	});
+
+	it('callbacks: not', () => {
+		const result = aq<DemoShape>()
+			.where(({ not, where }) => not(where('role', 'eq', 'banned')))
+			.toJSON();
+		expect(result.where).toEqual({
+			op: 'not',
+			condition: { field: ['role'], op: 'eq', value: 'banned' },
+		});
+	});
+
+	it('mix simple and callback', () => {
+		const result = aq<DemoShape>()
+			.where('status', 'eq', 'active')
+			.where(({ or, where }) => or([where('name', 'eq', 'admin'), where('name', 'eq', 'mod')]))
+			.toJSON();
+		expect(result.where).toEqual({
+			op: 'and',
+			conditions: [
+				{ field: ['status'], op: 'eq', value: 'active' },
+				{
+					op: 'or',
+					conditions: [
+						{ field: ['name'], op: 'eq', value: 'admin' },
+						{ field: ['name'], op: 'eq', value: 'mod' },
+					],
+				},
+			],
+		});
+	});
+
+	it('callback first then simple where', () => {
+		const result = aq<DemoShape>()
+			.where(({ or, where }) => or([where('name', 'eq', 'x'), where('name', 'eq', 'y')]))
+			.where('age', 'gte', 10)
+			.toJSON();
+		expect(result.where).toEqual({
+			op: 'and',
+			conditions: [
+				{
+					op: 'or',
+					conditions: [
+						{ field: ['name'], op: 'eq', value: 'x' },
+						{ field: ['name'], op: 'eq', value: 'y' },
+					],
+				},
+				{ field: ['age'], op: 'gte', value: 10 },
+			],
+		});
+	});
+
+	it('nested callbacks: and within or', () => {
+		const result = aq<DemoShape>()
+			.where(({ or, and, where }) =>
+				or([
+					where('role', 'eq', 'admin'),
+					// and returns QueryWhere directly, can't nest in or which takes WhereExpr[]
+					// this tests flat or only
+				]),
+			)
+			.toJSON();
+		expect(result.where).toEqual({
+			op: 'or',
+			conditions: [{ field: ['role'], op: 'eq', value: 'admin' }],
+		});
+	});
+
+	it('in operator in callback', () => {
+		const result = aq<DemoShape>()
+			.where(({ or, where }) => or([where('status', 'in', ['a', 'b']), where('status', 'eq', 'c')]))
+			.toJSON();
+		expect(result.where).toEqual({
+			op: 'or',
+			conditions: [
+				{ field: ['status'], op: 'in', value: ['a', 'b'] },
+				{ field: ['status'], op: 'eq', value: 'c' },
+			],
+		});
+	});
+
+	it('toJSON returns the full schema', () => {
+		const schema: QuerySchema<DemoShape> = {
+			limit: 10,
+			offset: 0,
+			orderBy: [{ field: ['name'], direction: 'asc' }],
+		};
+
+		const result = aq<DemoShape>(schema)
+			.where('name', 'eq', 'test')
+			.toJSON();
+		expect(result.limit).toBe(10);
+		expect(result.offset).toBe(0);
+		expect(result.orderBy).toEqual([{ field: ['name'], direction: 'asc' }]);
+		expect(result.where).toEqual({ field: ['name'], op: 'eq', value: 'test' });
+	});
+});

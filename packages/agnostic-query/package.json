@@ -6,8 +6,8 @@
   "types": "./src/core/index.ts",
   "exports": {
     "./*": {
-      "import": ["./src/*", "./src/*.ts"],
-      "types": ["./src/*", "./src/*.ts"]
+      "import": ["./src/*", "./src/*.ts", "./src/*/index.ts"],
+      "types": ["./src/*", "./src/*.ts", "./src/*/index.ts"]
     }
   },
   "scripts": {

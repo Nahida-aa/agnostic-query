@@ -2,6 +2,7 @@ import { PGlite } from '@electric-sql/pglite';
 import { faker } from '@faker-js/faker';
 import { sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/pglite';
+import { migrate } from 'drizzle-orm/pglite/migrator';
 import { nanoid } from 'nanoid';
 import type { Post } from '#/db/schema.ts';
 import * as schema from './schema.ts';
@@ -13,17 +14,11 @@ export async function getDb() {
 
 	const dataDir = process.env.PGLITE_DATA_DIR ?? './pglite-data';
 	const client = new PGlite(dataDir);
-
-	await client.query(`
-		CREATE TABLE IF NOT EXISTS post (
-			id TEXT PRIMARY KEY,
-			title TEXT NOT NULL,
-			body TEXT NOT NULL,
-			created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-		)
-	`);
+	await client.waitReady;
 
 	db = drizzle(client, { schema });
+
+	await migrate(db, { migrationsFolder: './drizzle' });
 
 	const count = await db
 		.select({ count: sql<number>`COUNT(*)::int` })

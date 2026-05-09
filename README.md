@@ -367,6 +367,80 @@ const rolesIn = searcher.in(['role'])
 
 These paths are fully type-checked — TypeScript will reject a path that doesn't match the shape you declared.
 
+### 7. End-to-end: Kysely → QuerySchema → HTTP → Zod → Drizzle
+
+This example ties all adapters together — browser code uses Kysely to build a typed query, extracts it as `QuerySchema`, sends it to a TanStack Start server function, validates with Zod, then executes via Drizzle.
+
+**Browser: build a Kysely query and extract QuerySchema**
+
+```ts
+// ~/features/users/-search.ts (browser)
+import { fromKysely } from 'agnostic-query/kysely'
+import type { QuerySchema } from 'agnostic-query'
+import type { DB } from '~/db/types'
+
+// Use Kysely to build a type-safe query — IDE autocompletion for fields
+const q = db
+  .selectFrom('user')
+  .selectAll()
+  .where('age', '>=', 18)
+  .where('status', 'in', ['active', 'pending'])
+  .orderBy('name', 'asc')
+  .limit(20)
+
+// Extract into a portable JSON-serialisable schema
+const schema: QuerySchema<User> = fromKysely(q)
+// => {
+//   limit: 20,
+//   orderBy: [{ field: ['name'], direction: 'asc' }],
+//   where: {
+//     op: 'and',
+//     conditions: [
+//       { field: ['age'], op: 'gte', value: 18 },
+//       { field: ['status'], op: 'in', values: ['active', 'pending'] },
+//     ],
+//   },
+// }
+
+// Call the server function — TanStack Start serialises automatically
+const users = await getUsers({ data: schema })
+```
+
+**Server: TanStack Start server function, validates with Zod, applies via Drizzle**
+
+```ts
+// ~/server/functions/users.fn.ts (server-only)
+import { createServerFn } from '@tanstack/react-start'
+import { createQuerySchema } from 'agnostic-query/zod'
+import { toDrizzleWhere, toDrizzleOrderBy } from 'agnostic-query/drizzle'
+import { and, eq } from 'drizzle-orm'
+import * as schema from '~/db/schema'
+import { getDb } from '~/server/db'
+
+const { currentOrgId } = getSession()
+
+export const getUsers = createServerFn({ method: 'GET' })
+  .inputValidator(createQuerySchema<typeof schema.user.$inferSelect>())
+  .handler(async ({ data }) => {
+    const db = await getDb()
+
+    const conditions = [
+      toDrizzleWhere(schema.user, data.where),
+      eq(schema.user.orgId, currentOrgId),   // tenant-scoping
+    ].filter(Boolean)
+
+    const rows = await db
+      .select()
+      .from(schema.user)
+      .where(and(...conditions))
+      .orderBy(...toDrizzleOrderBy(schema.user, data.orderBy))
+      .limit(data.limit ?? 50)
+      .offset(data.offset ?? 0)
+
+    return rows
+  })
+```
+
 ## Toolchain
 
 - Package manager: **bun** (workspaces)

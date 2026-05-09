@@ -1,6 +1,11 @@
 import type { QueryOrderBy } from './order-by.ts';
-import type { SchemaShape } from './schema.ts';
-import type { QueryWhere } from './where.ts';
+import type { FieldPathByShape, GetPathType, SchemaShape } from './schema.ts';
+import type {
+	QueryWhere,
+	UnaryComparisonOp,
+	WhereComparisonOp,
+	WhereOp,
+} from './where.ts';
 
 export type QuerySchema<TShape extends SchemaShape = SchemaShape> = {
 	where?: QueryWhere<TShape> | null;
@@ -9,3 +14,174 @@ export type QuerySchema<TShape extends SchemaShape = SchemaShape> = {
 	offset?: number;
 	cursor?: any; // TODO: 先不实现
 };
+interface WhereExpr<TShape extends SchemaShape> {
+	_q: QueryWhere<TShape> | null;
+	where<
+		Col extends FieldPathByShape<TShape> | (keyof TShape & string),
+		Op extends WhereComparisonOp,
+	>(
+		col: Col,
+		op: Op,
+		value: Op extends 'in'
+			? Col extends keyof TShape & string
+				? TShape[Col][]
+				: Col extends FieldPathByShape<TShape>
+					? GetPathType<TShape, Col>[]
+					: never
+			: Col extends keyof TShape & string
+				? TShape[Col]
+				: Col extends FieldPathByShape<TShape>
+					? GetPathType<TShape, Col>
+					: never,
+	): WhereExpr<TShape>;
+	and(conditions: WhereExpr<TShape>[]): QueryWhere<TShape>;
+	or(conditions: WhereExpr<TShape>[]): QueryWhere<TShape>;
+	not(condition: WhereExpr<TShape>): QueryWhere<TShape>;
+}
+const createExpr = <TShape extends SchemaShape>(
+	q?: QueryWhere<TShape> | null,
+): WhereExpr<TShape> => {
+	const expr = {
+		_q: q,
+		where<
+			Col extends FieldPathByShape<TShape> | (keyof TShape & string),
+			Op extends WhereComparisonOp,
+		>(
+			col: Col,
+			op: Op,
+			value: Op extends 'in'
+				? Col extends keyof TShape & string
+					? TShape[Col][]
+					: Col extends FieldPathByShape<TShape>
+						? GetPathType<TShape, Col>[]
+						: never
+				: Col extends keyof TShape & string
+					? TShape[Col]
+					: Col extends FieldPathByShape<TShape>
+						? GetPathType<TShape, Col>
+						: never,
+		) {
+			const field = Array.isArray(col) ? col : [col];
+			return createExpr({ field, op, value } as QueryWhere<TShape>);
+		},
+		and(exprs: WhereExpr<TShape>[]) {
+			return {
+				op: 'and',
+				conditions: exprs.map((e) => e._q).filter(Boolean),
+			} as const;
+		},
+		or(exprs: WhereExpr<TShape>[]) {
+			return {
+				op: 'or',
+				conditions: exprs.map((e) => e._q).filter(Boolean),
+			} as const;
+		},
+		not(expr: WhereExpr<TShape>) {
+			return { op: 'not', condition: expr._q } as const;
+		},
+	};
+	return expr as WhereExpr<TShape>;
+};
+interface AgnosticQuery<TShape extends SchemaShape = SchemaShape> {
+	toJSON(): QuerySchema<TShape>;
+	where(
+		cb: (eb: WhereExpr<TShape>) => QueryWhere<TShape>,
+	): AgnosticQuery<TShape>;
+	where<
+		Col extends FieldPathByShape<TShape> | (keyof TShape & string),
+		Op extends WhereComparisonOp,
+	>(
+		col: Col,
+		op: Op,
+		value: Op extends 'in'
+			? Col extends keyof TShape & string
+				? TShape[Col][]
+				: Col extends FieldPathByShape<TShape>
+					? GetPathType<TShape, Col>[]
+					: never
+			: Col extends keyof TShape & string
+				? TShape[Col]
+				: Col extends FieldPathByShape<TShape>
+					? GetPathType<TShape, Col>
+					: never,
+	): AgnosticQuery<TShape>;
+}
+
+export const aq = <TShape extends SchemaShape = SchemaShape>(
+	initState?: QuerySchema<TShape>,
+): AgnosticQuery<TShape> => {
+	const state: QuerySchema<TShape> = initState || {};
+	const where = <
+		Col extends FieldPathByShape<TShape> | (keyof TShape & string),
+		Op extends WhereComparisonOp,
+	>(
+		col: Col,
+		op: Op,
+		value: Op extends 'in'
+			? Col extends keyof TShape & string
+				? TShape[Col][]
+				: Col extends FieldPathByShape<TShape>
+					? GetPathType<TShape, Col>[]
+					: never
+			: Col extends keyof TShape & string
+				? TShape[Col]
+				: Col extends FieldPathByShape<TShape>
+					? GetPathType<TShape, Col>
+					: never,
+	) => {
+		const field = Array.isArray(col) ? col : [col];
+		const oldWheres =
+			state.where?.op === 'and'
+				? state.where.conditions || []
+				: state.where
+					? [state.where]
+					: [];
+		const newWhere = state.where
+			? {
+					op: 'and',
+					conditions: [...oldWheres, { field, op, value }],
+				}
+			: {
+					op,
+					field,
+					value,
+				};
+		return aq<TShape>({
+			...state,
+			where: newWhere as QueryWhere<TShape>,
+		});
+	};
+	return {
+		toJSON: () => state,
+		where: (col: any, op?: any, value?: any) => {
+			if (typeof col === 'function') {
+				const cbWhere = col(createExpr());
+				const newWhere = state.where
+					? { op: 'and', conditions: [state.where, cbWhere] }
+					: cbWhere;
+				return aq<TShape>({ ...state, where: newWhere as QueryWhere<TShape> });
+			}
+			return where(col, op, value);
+		},
+	};
+};
+
+type DemoShape = {
+	id: number;
+	name: string;
+	tags: { id: number; name: string }[];
+	category: string[];
+	address: {
+		city: {
+			name: string;
+		};
+	};
+};
+
+aq<DemoShape>()
+	.where(['address', 'city', 'name'], 'eq', '1')
+	.where(['tags', 0, 'name'], 'eq', '2')
+	.where('id', 'in', [1])
+	.where(({ and, where, or, not }) =>
+		or([where('name', 'eq', '3'), where('name', 'eq', '4')]),
+	);
