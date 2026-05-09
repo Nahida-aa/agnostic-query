@@ -18,6 +18,7 @@ import {
 import type { QueryOrderBy } from '../core/order-by.ts';
 import type { QueryWhere, UnaryComparisonOp } from '../core/where.ts';
 import { isComparisonWhere } from '../core/where.ts';
+import { fieldToStr } from '../sql/pg.ts';
 
 export const drizzleOps = {
 	eq,
@@ -47,34 +48,31 @@ const _toDrizzleWhere = (table: any, where?: QueryWhere): SQL | undefined => {
 	}
 
 	if (!isComparisonWhere(where)) return;
-	const [rootKey, ...jsonPath] = where.field;
+	const [rootKey, ...segments] = where.field;
 	const column = table[rootKey];
 
 	if (!column) {
 		console.warn(`Field ${rootKey} does not exist on table`);
 		return;
 	}
-	// --- 处理 JSON 路径 ---
-	let target = column;
-	if (jsonPath.length > 0) {
-		/**
-		 * 对于 PostgreSQL:
-		 * 如果是深层路径，我们需要构造类似 table.column->'addr'->>'city' 的表达式
-		 * 注意：最后一个操作符通常用 ->> 以获取文本值进行比较
-		 */
-		const parts = jsonPath.map((p) =>
-			typeof p === 'number' ? `[${p}]` : `'${p}'`,
+
+	let target: SQL;
+	if (segments.length === 0) {
+		target = column;
+	} else if (segments.every((p) => typeof p === 'number')) {
+		target = sql.raw(fieldToStr(where.field));
+	} else {
+		const parts = segments.map((p) =>
+			typeof p === 'number' ? String(p) : `'${p}'`,
 		);
 		const last = parts.pop()!;
-
-		// parts 用 -> 连接，最后用 ->>
-		// column->'addr'->>'city'
-		// column->'tags'->[0]->>'name'
+		const prefix = parts.join('->');
 		target =
 			parts.length > 0
-				? sql`${column}->${sql.raw(parts.join('->'))}->>${sql.raw(last)}`
+				? sql`${column}->${sql.raw(prefix)}->>${sql.raw(last)}`
 				: sql`${column}->>${sql.raw(last)}`;
 	}
+
 	if (where.op === 'in') return inArray(target, where.values);
 	const opFn = drizzleOps[where.op];
 	if (!opFn) return;

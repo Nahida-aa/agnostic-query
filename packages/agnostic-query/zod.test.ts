@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import { createWhereSchema } from './src/zod.js';
+import { createWhereSchema } from './src/zod.ts';
 
 type UserShape = {
 	id: string;

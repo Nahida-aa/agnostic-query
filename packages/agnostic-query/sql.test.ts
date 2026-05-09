@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import { toSqlString } from './src/sql/pg.js';
+import { toSqlString } from './src/sql/pg.ts';
 
 describe('toSqlString', () => {
 	it('eq', () => {
@@ -107,5 +107,14 @@ describe('toSqlString', () => {
 		expect(
 			toSqlString({ field: ['tags', 0, 'name'], op: 'eq', value: 'main' }),
 		).toBe(`"tags"->0->>'name' = 'main'`);
+	});
+
+	it('handles PG array subscript path', () => {
+		expect(
+			toSqlString({ field: ['categories', 0], op: 'eq', value: 'foo' }),
+		).toBe(`"categories"[1] = 'foo'`);
+		expect(
+			toSqlString({ field: ['matrix', 0, 1], op: 'eq', value: 42 }),
+		).toBe(`"matrix"[1][2] = 42`);
 	});
 });

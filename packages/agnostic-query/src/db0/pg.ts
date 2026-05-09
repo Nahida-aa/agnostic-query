@@ -1,19 +1,7 @@
 import type { QueryOrderBy } from '../core/order-by.ts';
-import type { FieldPath } from '../core/schema.ts';
 import type { QueryWhere } from '../core/where.ts';
 import { isComparisonWhere } from '../core/where.ts';
-import { sqlOpMap } from '../sql/pg.js';
-
-const fieldToStr = (field: FieldPath): string => {
-	if (field.length === 1) return `"${field[0]}"`;
-	const [root, ...rest] = field;
-	const segStr = rest.map((p) =>
-		typeof p === 'number' ? String(p) : `'${p}'`,
-	);
-	const last = segStr.pop()!;
-	const prefix = segStr.join('->');
-	return prefix ? `"${root}"->${prefix}->>${last}` : `"${root}"->>${last}`;
-};
+import { fieldToStr, sqlOpMap } from '../sql/pg.ts';
 
 const build = (where: QueryWhere): { sql: string; params: any[] } | null => {
 	if (!where) return null;

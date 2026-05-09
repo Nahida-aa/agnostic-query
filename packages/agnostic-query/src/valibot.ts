@@ -1,10 +1,8 @@
 import * as v from 'valibot';
-import type { SchemaShape } from './core/schema.js';
-import {
-	multiLogicalWhereOps,
-	unaryComparisonOps,
-} from './core/where.js';
-import type { QueryWhere } from './core/where.js';
+import type { SchemaShape } from './core/schema.ts';
+import { valibotOps, type ValibotOp } from './valibot/index.ts';
+import type { UnaryComparisonOp } from './core/where.ts';
+import type { QueryWhere } from './core/where.ts';
 
 export const createWhereSchema = <TShape extends SchemaShape>() => {
 	const fieldSchema = v.pipe(

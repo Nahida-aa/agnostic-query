@@ -111,4 +111,16 @@ describe('toDb0Where', () => {
 			params: ['NYC'],
 		});
 	});
+
+	it('should handle PG array subscript path', () => {
+		const result = toDb0Where({
+			field: ['categories', 0],
+			op: 'eq',
+			value: 'foo',
+		});
+		expect(result).toEqual({
+			sql: `"categories"[1] = ?`,
+			params: ['foo'],
+		});
+	});
 });

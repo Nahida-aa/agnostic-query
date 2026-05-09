@@ -1,12 +1,7 @@
 import type { QueryOrderBy } from '../core/order-by.ts';
 import type { FieldPath, SchemaShape } from '../core/schema.ts';
-import type {
-	ComparisonWhere,
-	QueryWhere,
-	UnaryComparisonOp,
-} from '../core/where.ts';
+import type { QueryWhere, UnaryComparisonOp } from '../core/where.ts';
 import { isComparisonWhere } from '../core/where.ts';
-
 export const sqlOpMap: Record<UnaryComparisonOp, string> = {
 	eq: '=',
 	gt: '>',
@@ -26,18 +21,31 @@ const escapeVal = (value: unknown): string => {
 };
 
 /**
- * 将 FieldPath 元组转为点号分隔的 SQL 列名/路径字符串。
+ * 将 FieldPath 转为 PostgreSQL 字段引用。
  *
- * 这不是 SQL 标准语法，而是一种 ORM 层普遍采用的嵌套字段寻址约定：
- * - 字符串键用 `.` 连接（如 `["address", "city"]` → `"address.city"`）
- * - 数字索引用方括号包裹（如 `["tags", 0]` → `"tags.[0]"`）
- *
- * 各大 ORM / 数据库适配器都有类似转换层将类型安全的路径元组 "降级" 为字符串，
- * 传给底层驱动执行。例如 Prisma 的 dot-notation、MongoDB 的嵌套字段路径、
- * PostgreSQL JSON 操作符解构等，核心思路一致：把结构化路径扁平化成可执行的字符串。
+ * 路径决定语法分支：
+ * - 仅首段 → 列名引用 `["name"]` → `"name"`
+ * - 首段后全是数字 → PG 数组下标（1-indexed，路径数字 +1）
+ *   `["tags", 0]` → `"tags"[1]`
+ *   `["mat", 0, 1]` → `"mat"[1][2]`
+ * - 首段后有字符串   → JSONB 操作符（`->` 返回 jsonb，`->>` 返回 text）
+ *   `["data","city"]` → `"data"->>'city'`
+ *   `["data","a","b"]` → `"data"->'a'->>'b'`
+ *   `["tags",0,"n"]` → `"tags"->0->>'name'`
  */
-const fieldToStr = (field: FieldPath): string =>
-	field.map((p) => (typeof p === 'number' ? `[${p}]` : p)).join('.');
+export const fieldToStr = (field: FieldPath): string => {
+	if (field.length === 1) return `"${field[0]}"`;
+	const [root, ...rest] = field;
+	if (rest.every((p) => typeof p === 'number')) {
+		return `"${root}"${rest.map((i) => `[${i + 1}]`).join('')}`;
+	}
+	const segStr = rest.map((p) =>
+		typeof p === 'number' ? String(p) : `'${p}'`,
+	);
+	const last = segStr.pop()!;
+	const prefix = segStr.join('->');
+	return prefix ? `"${root}"->${prefix}->>${last}` : `"${root}"->>${last}`;
+};
 
 const build = (where: QueryWhere): string | undefined => {
 	if (where.op === 'not') {
@@ -59,16 +67,19 @@ const build = (where: QueryWhere): string | undefined => {
 
 	if (where.op === 'in') {
 		const values = where.values.map(escapeVal).join(', ');
-		return `"${fieldStr}" IN (${values})`;
+		return `${fieldStr} IN (${values})`;
 	}
 
 	const sqlOp = sqlOpMap[where.op];
 	if (!sqlOp) return;
-	return `"${fieldStr}" ${sqlOp} ${escapeVal(where.value)}`;
+	return `${fieldStr} ${sqlOp} ${escapeVal(where.value)}`;
 };
 
-export const toSqlString = (where: QueryWhere | null): string | undefined => {
+export const toSqlString = (where?: QueryWhere | null): string | undefined => {
 	if (!where) return;
+	if (where.op === 'eq') {
+		where.field;
+	}
 	return build(where);
 };
 
@@ -77,6 +88,6 @@ export const toSqlOrderBy = <TShape extends SchemaShape>(
 ): string | undefined => {
 	if (!orderBy) return;
 	return orderBy
-		.map((c) => `"${fieldToStr(c.field)}" ${c.direction.toUpperCase()}`)
+		.map((c) => `${fieldToStr(c.field)} ${c.direction.toUpperCase()}`)
 		.join(', ');
 };
