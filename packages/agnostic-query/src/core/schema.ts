@@ -14,60 +14,46 @@
 export type FieldPath = [string, ...(string | number)[]];
 
 export type SchemaShape = Record<string, any>;
-// 完整节点
+
+/** （包含中间节点和叶子节点）
+ * 但 目前在 在适配器层面 没有支持任意节点， 只支持 根节点和叶子节点
+ */
 export type FieldPathByShape<TShape extends SchemaShape = SchemaShape> =
-	// 如果 TShape 只是基础的 Record<string, any>，直接返回通用路径
-	Record<string, any> extends TShape
-		? FieldPath
-		: TShape extends Record<string, any>
-			? {
-					[K in keyof TShape]: TShape[K] extends (infer R)[]
-						? R extends Record<string, any>
-							? [K, number, ...FieldPathByShape<R>]
-							: [K, number]
-						: TShape[K] extends Record<string, any>
-							? [K, ...FieldPathByShape<TShape[K]>]
-							: [K];
-				}[keyof TShape]
-			: never;
+	TShape extends SchemaShape
+		? {
+				[K in keyof TShape]: TShape[K] extends any[]
+					?
+							| [K]
+							| [
+									K,
+									number,
+									...FieldPathByShape<
+										TShape[K][number] extends SchemaShape
+											? TShape[K][number]
+											: never
+									>,
+							  ]
+							| [K, number]
+					: TShape[K] extends SchemaShape
+						? [K] | [K, ...FieldPathByShape<TShape[K]>]
+						: [K];
+			}[keyof TShape]
+		: never;
 
 // demo
-// export type DemoShape = {
-// 	id: number;
-// 	name: string;
-// 	tags: { id: number; name: string }[];
-// 	category: string[];
-// 	address: {
-// 		city: {
-// 			name: string;
-// 		};
-// 	};
-// };
-// type DemoField = FieldPathByShape<DemoShape>;
-// type DemoField2 = FieldPathByShape<Record<string, any>>;
-
-/** （包含中间节点和叶子节点） */
-// export type FieldPathByShape<TShape extends SchemaShape = SchemaShape> =
-// 	TShape extends SchemaShape
-// 		? {
-// 				[K in keyof TShape]: TShape[K] extends any[]
-// 					?
-// 							| [K]
-// 							| [
-// 									K,
-// 									number,
-// 									...FieldPathByShape<
-// 										TShape[K][number] extends SchemaShape
-// 											? TShape[K][number]
-// 											: never
-// 									>,
-// 							  ]
-// 							| [K, number]
-// 					: TShape[K] extends SchemaShape
-// 						? [K] | [K, ...FieldPathByShape<TShape[K]>]
-// 						: [K];
-// 			}[keyof TShape]
-// 		: never;
+type DemoShape = {
+	id: number;
+	name: string;
+	tags: { id: number; name: string }[];
+	category: string[];
+	address: {
+		city: {
+			name: string;
+		};
+	};
+};
+type DemoField = FieldPathByShape<DemoShape>;
+type DemoField2 = FieldPathByShape<Record<string, any>>;
 
 /** 根据完整路径提取对应位置的类型 */
 export type GetPathType<T, P extends readonly any[]> = P extends readonly [

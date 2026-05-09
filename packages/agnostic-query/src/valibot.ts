@@ -1,15 +1,12 @@
 import * as v from 'valibot';
 import type { SchemaShape } from './core/schema.ts';
-import { valibotOps, type ValibotOp } from './valibot/index.ts';
-import type { UnaryComparisonOp } from './core/where.ts';
-import type { QueryWhere } from './core/where.ts';
+import type { QueryWhere, UnaryComparisonOp } from './core/where.ts';
+import { multiLogicalWhereOps, unaryComparisonOps } from './core/where.ts';
 
 export const createWhereSchema = <TShape extends SchemaShape>() => {
 	const fieldSchema = v.pipe(
 		v.any(),
-		v.transform((input) =>
-			typeof input === 'string' ? [input] : input,
-		),
+		v.transform((input) => (typeof input === 'string' ? [input] : input)),
 		v.array(v.union([v.string(), v.number()])),
 	);
 
@@ -42,7 +39,3 @@ export const createWhereSchema = <TShape extends SchemaShape>() => {
 	);
 	return schema;
 };
-
-export type CreateWhereSchemaOut<TShape extends SchemaShape> = v.InferOutput<
-	ReturnType<typeof createWhereSchema<TShape>>
->;

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'bun:test';
 import { PGlite } from '@electric-sql/pglite';
 import { drizzle } from 'drizzle-orm/pglite';
 import { pgTable, text, integer } from 'drizzle-orm/pg-core';
-import { toDrizzleWhere } from './src/drizzle/pg.ts';
+import { toDrizzleWhere } from './pg.ts';
 
 const users = pgTable('users', {
 	id: text('id').primaryKey(),
@@ -127,5 +127,38 @@ describe('toDrizzleWhere', () => {
 			}),
 		);
 		expect(sql.sql).toContain(`"users"."data"->'address'->>'city'`);
+	});
+});
+
+import { toDrizzleOrderBy } from './pg.ts';
+
+describe('toDrizzleOrderBy', () => {
+	it('single asc', () => {
+		const result = toDrizzleOrderBy(users, [
+			{ field: ['name'], direction: 'asc' },
+		]);
+		const sql = db.select().from(users).orderBy(...result!).toSQL();
+		expect(sql.sql).toContain('order by "users"."name"');
+	});
+
+	it('single desc', () => {
+		const result = toDrizzleOrderBy(users, [
+			{ field: ['age'], direction: 'desc' },
+		]);
+		const sql = db.select().from(users).orderBy(...result!).toSQL();
+		expect(sql.sql).toContain('order by "users"."age" desc');
+	});
+
+	it('multiple clauses', () => {
+		const result = toDrizzleOrderBy(users, [
+			{ field: ['name'], direction: 'asc' },
+			{ field: ['age'], direction: 'desc' },
+		]);
+		const sql = db.select().from(users).orderBy(...result!).toSQL();
+		expect(sql.sql).toContain('order by "users"."name" asc, "users"."age" desc');
+	});
+
+	it('null returns empty array', () => {
+		expect(toDrizzleOrderBy(users)).toEqual([]);
 	});
 });

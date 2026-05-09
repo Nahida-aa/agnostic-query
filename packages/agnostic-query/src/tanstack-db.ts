@@ -50,6 +50,10 @@ export const fromTanDbWhere = <TShape extends SchemaShape>(
 
 /**
  * 与默认解析器 结构相同
+ *
+ * 注意：`parseOrderByExpression` 内部数组输入走 `Array.isArray` 检查，
+ * 但 null/undefined 不会触发该分支，会返回空数组 `[]`。
+ * 因此 `fromTanDbOrderBy(null)` 返回 `[]`，不是 `null`。
  */
 export type FromTanDbOrderByParam = Parameters<
 	typeof parseOrderByExpression

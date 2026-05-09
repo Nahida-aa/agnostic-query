@@ -27,8 +27,11 @@ const db = drizzle(pglite, { schema: { users } });
 export function runSqlString(input: unknown): AdapterResult {
 	try {
 		const result = toSqlString(input as any);
-		if (result === null) return { status: 'error', message: 'null input' };
-		return { status: 'ok', value: result };
+		if (!result) return { status: 'error', message: 'undefined input' };
+		return {
+			status: 'ok',
+			value: `SQL:  ${result.sql}\nParams: ${JSON.stringify(result.params)}`,
+		};
 	} catch (e) {
 		return { status: 'error', message: String(e) };
 	}
@@ -37,7 +40,7 @@ export function runSqlString(input: unknown): AdapterResult {
 export function runDb0(input: unknown): AdapterResult {
 	try {
 		const result = toDb0Where(input as any);
-		if (result === null) return { status: 'error', message: 'null input' };
+		if (!result) return { status: 'error', message: 'undefined input' };
 		return {
 			status: 'ok',
 			value: `SQL:  ${result.sql}\nParams: ${JSON.stringify(result.params)}`,
@@ -85,7 +88,7 @@ export function runQueryWhereJson(input: unknown): AdapterResult {
 	return { status: 'ok', value: JSON.stringify(input, null, 2) };
 }
 
-export function runDrizzle(input: QueryWhere<UserShape> | null): AdapterResult {
+export function runDrizzle(input: QueryWhere<UserShape> | undefined): AdapterResult {
 	try {
 		const whereExpr = toDrizzleWhere(users, input);
 		if (!whereExpr) return { status: 'error', message: 'null input' };

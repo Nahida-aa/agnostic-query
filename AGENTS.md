@@ -10,6 +10,11 @@ Before substantial work:
 
 # Agent Guidelines
 
+## TypeScript
+- Never use `any` unless 100% necessary or specifically instructed.
+
+## Commands
+- Focus on checking commands like `bun run typecheck`, `bun run lint`, etc.
 
 ## Essentials
 

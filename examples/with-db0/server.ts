@@ -16,7 +16,7 @@ Bun.serve({
 		if (req.method !== 'POST') return new Response('send POST with JSON body', { status: 405 });
 
 		const body = await req.json();
-		const result = toDb0Where(body as QueryWhere | null);
+		const result = toDb0Where(body as QueryWhere | undefined);
 		if (!result) return Response.json({ error: 'invalid query' }, { status: 400 });
 
 		const { sql, params } = result;

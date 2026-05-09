@@ -22,7 +22,7 @@ Bun.serve({
 		const users1Q =  db.select().from(usersTable).where(whereExpr).orderBy(...toDrizzleOrderBy(usersTable));
 		const users1 = await users1Q
 		const user1Sql = users1Q.toSQL();
-		return Response.json({ sql: user1Sql.sql, params: user1Sql.params });
+		return Response.json({ sql: user1Sql.sql, params: user1Sql.params, users1 });
 	},
 });
 

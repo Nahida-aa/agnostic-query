@@ -42,7 +42,7 @@ function Home() {
 				{ id: 'sql', label: 'SQL', run: (i: unknown) => runSqlString(fromTanDbWhere(i as any) as any) },
 				{ id: 'db0', label: 'db0', run: (i: unknown) => runDb0(fromTanDbWhere(i as any) as any) },
 				{ id: 'zod', label: 'Zod', run: (i: unknown) => runZod(fromTanDbWhere(i as any) as any) },
-				{ id: 'drizzle', label: 'Drizzle', run: (i: any) => runDrizzle(fromTanDbWhere(i)) },
+				{ id: 'drizzle', label: 'Drizzle', run: (i: any) => runDrizzle(fromTanDbWhere(i) ?? undefined) },
 			];
 		}
 		return [

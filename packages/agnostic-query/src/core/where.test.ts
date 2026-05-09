@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import { findWhere, type QueryWhere } from './src/core/where.ts';
+import { findWhere, type QueryWhere } from './where.ts';
 
 type UserShape = {
 	id: string;

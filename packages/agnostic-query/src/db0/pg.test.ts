@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import { toDb0Where } from './src/db0/pg.ts';
+import { toDb0Where } from './pg.ts';
 
 describe('toDb0Where', () => {
 	it('should handle eq', () => {
@@ -92,12 +92,12 @@ describe('toDb0Where', () => {
 		});
 	});
 
-	it('should return null for null input', () => {
-		expect(toDb0Where(null)).toBeNull();
+	it('should return undefined for null input', () => {
+		expect(toDb0Where(undefined)).toBeUndefined();
 	});
 
-	it('should return null for undefined-like where', () => {
-		expect(toDb0Where(null as any)).toBeNull();
+	it('should return undefined for undefined where', () => {
+		expect(toDb0Where(undefined)).toBeUndefined();
 	});
 
 	it('should handle multi-segment JSON path', () => {
@@ -122,5 +122,31 @@ describe('toDb0Where', () => {
 			sql: `"categories"[1] = ?`,
 			params: ['foo'],
 		});
+	});
+});
+
+import { toDb0OrderBy } from './pg.ts';
+
+describe('toDb0OrderBy', () => {
+	it('single clause', () => {
+		const result = toDb0OrderBy([
+			{ field: ['name'], direction: 'asc' },
+		]);
+		expect(result).toEqual({ sql: '"name" ASC', params: [] });
+	});
+
+	it('multiple clauses', () => {
+		const result = toDb0OrderBy([
+			{ field: ['name'], direction: 'desc' },
+			{ field: ['age'], direction: 'asc' },
+		]);
+		expect(result).toEqual({
+			sql: '"name" DESC, "age" ASC',
+			params: [],
+		});
+	});
+
+	it('null returns undefined', () => {
+		expect(toDb0OrderBy(null)).toBeUndefined();
 	});
 });

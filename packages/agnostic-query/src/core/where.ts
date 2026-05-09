@@ -17,6 +17,11 @@ export const multiLogicalWhereOps = ['and', 'or'] as const;
 export type MultiLogicalWhereOp = (typeof multiLogicalWhereOps)[number];
 export const unaryLogicalWhereOp = 'not';
 export type UnaryLogicalWhereOp = typeof unaryLogicalWhereOp;
+export type WhereLogicalOp =
+	| UnaryComparisonOp
+	| 'in'
+	| MultiLogicalWhereOp
+	| UnaryLogicalWhereOp;
 
 export type UnaryComparisonWhere<
 	TShape extends SchemaShape = SchemaShape,
