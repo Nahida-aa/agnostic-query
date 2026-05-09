@@ -24,8 +24,6 @@ graph TB
     tanstack --> core
     kysely --> core
     sql --> core
-
-    style Package fill:#e1f5fe
 ```
 
 ## Data Flow
@@ -74,12 +72,6 @@ flowchart LR
     qs -- where/orderBy --> kysely_out
     qs -- where/orderBy --> sql_out
     kysely_ast --> kysely_parse --> qs
-
-    style Input fill:#fff3e0
-    style Parse fill:#fff8e1
-    style Validate fill:#f3e5f5
-    style Core fill:#e1f5fe
-    style Output fill:#e8f5e9
 ```
 
 ## QuerySchema Structure
@@ -190,6 +182,190 @@ import { fromKysely, toKyselyWhere, toKyselyOrderBy } from 'agnostic-query/kysel
 // SQL adapter — parameterised SQL generation
 import { toSqlString, toSqlOrderBy } from 'agnostic-query/sql'
 ```
+
+## Usage Examples
+
+### 1. Core: Build and send a QuerySchema
+
+The core types are plain objects — no imports needed at runtime. Declare a shape type and the field paths are checked against it:
+
+```ts
+import type { QuerySchema } from 'agnostic-query'
+
+// Declare your database shape — field paths are type-checked against it
+interface UserShape {
+  name: string
+  age: number
+  status: string
+}
+
+// Build a schema (e.g. from a search UI)
+const schema: QuerySchema<UserShape> = {
+  limit: 20,
+  offset: 0,
+  orderBy: [{ field: ['name'], direction: 'asc' }],
+  where: {
+    op: 'and',
+    conditions: [
+      { field: ['age'], op: 'gte', value: 18 },
+      { field: ['status'], op: 'in', values: ['active', 'pending'] },
+      // { field: ['address'], op: 'eq', value: 'x' },
+      // → TS error! 'address' doesn't exist on UserShape
+    ],
+  },
+}
+
+// Serialise and send over HTTP
+const res = await fetch('/api/users', {
+  method: 'POST',
+  body: JSON.stringify(schema),
+  headers: { 'Content-Type': 'application/json' },
+})
+```
+
+### 2. Raw SQL adapter (PostgreSQL)
+
+On the server side, convert the received schema into parameterised SQL:
+
+```ts
+import { toSqlString, toSqlOrderBy } from 'agnostic-query/sql'
+
+// schema = parsed from request body
+
+const whereClause = toSqlString(schema.where)
+// → { sql: '"age" >= ? AND "status" IN (?, ?)', params: [18, 'active', 'pending'] }
+
+const orderByClause = toSqlOrderBy(schema.orderBy)
+// → { sql: '"name" ASC', params: [] }
+
+const sql = `
+  SELECT * FROM users
+  ${whereClause ? `WHERE ${whereClause.sql}` : ''}
+  ${orderByClause ? `ORDER BY ${orderByClause.sql}` : ''}
+  LIMIT ${schema.limit ?? 50} OFFSET ${schema.offset ?? 0}
+`
+// → sql:  SELECT * FROM users WHERE "age" >= ? AND "status" IN (?, ?) ORDER BY "name" ASC LIMIT 20 OFFSET 0
+// → params: [18, 'active', 'pending']
+```
+
+### 3. Kysely adapter: extract schema from a query builder
+
+If you already have a Kysely query, extract it into a portable `QuerySchema` for serialisation or inspection:
+
+```ts
+import { fromKysely } from 'agnostic-query/kysely'
+
+const query = db
+  .selectFrom('user')
+  .selectAll()
+  .where('age', '>=', 18)
+  .where('status', 'in', ['active', 'pending'])
+  .orderBy('name', 'asc')
+  .limit(20)
+
+const schema = fromKysely(query)
+// → {
+//     limit: 20,
+//     orderBy: [{ field: ['name'], direction: 'asc' }],
+//     where: {
+//       op: 'and',
+//       conditions: [
+//         { field: ['age'], op: 'gte', value: 18 },
+//         { field: ['status'], op: 'in', values: ['active', 'pending'] },
+//       ],
+//     },
+//   }
+
+// Send it to a client or to another service
+JSON.stringify(schema)
+```
+
+### 4. Kysely adapter: apply schema to a query builder
+
+The reverse: take a portable `QuerySchema` (from a client request, file, etc.) and apply it to a Kysely query:
+
+```ts
+import { toKyselyWhere, toKyselyOrderBy } from 'agnostic-query/kysely'
+
+// schema = parsed from request body or other source
+
+let query = db.selectFrom('user').selectAll()
+
+// Apply WHERE
+if (schema.where) {
+  query = query.where(toKyselyWhere(schema.where))
+}
+
+// Apply ORDER BY
+if (schema.orderBy) {
+  query = toKyselyOrderBy(query, schema.orderBy)
+}
+
+// Apply LIMIT / OFFSET
+if (schema.limit) query = query.limit(schema.limit)
+if (schema.offset) query = query.offset(schema.offset)
+
+const users = await query.execute()
+```
+
+### 5. findWhere: search within a WHERE tree
+
+Extract a specific condition from a complex nested WHERE tree without manual traversal:
+
+```ts
+import { findWhere } from 'agnostic-query'
+
+const where = {
+  op: 'and',
+  conditions: [
+    { field: ['name'], op: 'eq', value: 'Alice' },
+    {
+      op: 'or',
+      conditions: [
+        { field: ['age'], op: 'lt', value: 30 },
+        { field: ['role'], op: 'eq', value: 'admin' },
+      ],
+    },
+  ],
+}
+
+const searcher = findWhere(where)
+
+// Find condition by field name
+const ageCondition = searcher.find(['age'])
+// → { field: ['age'], op: 'lt', value: 30 }
+
+// Find with specific operator
+const adminCondition = searcher.find(['role'], 'eq')
+// → { field: ['role'], op: 'eq', value: 'admin' }
+
+// Shortcuts for common operators
+const nameEq = searcher.eq(['name'])
+// → { field: ['name'], op: 'eq', value: 'Alice' }
+
+const rolesIn = searcher.in(['role'])
+// → undefined (no 'in' condition on 'role')
+```
+
+### 6. Complex field paths (JSONB / arrays)
+
+`FieldPath` supports nested objects and array subscripts — paths are plain tuples:
+
+```ts
+// JSONB nested field
+{ field: ['address', 'city', 'name'], op: 'eq', value: 'Berlin' }
+// → SQL: "address"->'city'->>'name' = ?
+
+// PG array element
+{ field: ['category', 0], op: 'eq', value: 'electronics' }
+// → SQL: "category"[1] = ?
+
+// Nested array of objects
+{ field: ['tags', 0, 'name'], op: 'like', value: '%tech%' }
+// → SQL: "tags"->0->>'name' LIKE ?
+```
+
+These paths are fully type-checked — TypeScript will reject a path that doesn't match the shape you declared.
 
 ## Toolchain
 
