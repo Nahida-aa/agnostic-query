@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'bun:test';
 import { aq, type QuerySchema } from './index.ts';
-import type { QueryWhere } from './where.ts';
 
 type DemoShape = {
 	id: number;
