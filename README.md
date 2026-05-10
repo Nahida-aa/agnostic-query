@@ -81,7 +81,7 @@ const schema = aq<UserShape>()
 //   }
 ```
 
-### Supported operators
+### Comparison operators
 
 | Operator | Description |
 |----------|-------------|
@@ -94,7 +94,7 @@ const schema = aq<UserShape>()
 | `ilike`  | Case-insensitive `LIKE` |
 | `in`     | Value in array (outputs `values` field) |
 
-### Logical nesting (callbacks)
+### Logical operators nesting (callbacks)
 
 For complex logic (`and`, `or`, `not`), pass a callback to `.where()`:
 

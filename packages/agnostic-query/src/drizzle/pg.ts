@@ -20,7 +20,8 @@ import type { BuildColumns } from 'drizzle-orm/column-builder';
 import type { SelectedFields } from 'drizzle-orm/gel-core/query-builders/select.types';
 import type { NeonHttpDatabase } from 'drizzle-orm/neon-http';
 import {
-	PgDatabase,
+	type PgDatabase,
+	type PgQueryResultHKT,
 	PgSelectBase,
 	type PgTableWithColumns,
 } from 'drizzle-orm/pg-core';
@@ -123,9 +124,7 @@ export const toDrizzleOrderBy = <TShape extends Record<string, any>>(
 };
 
 export const toDrizzle = <TShape extends SchemaShape>(
-	db:
-		| PgliteDatabase<Record<string, never>>
-		| NeonHttpDatabase<Record<string, never>>,
+	db: PgDatabase<PgQueryResultHKT, Record<string, any>>,
 	table: any,
 	querySchema: QuerySchema<TShape>,
 ) => {
