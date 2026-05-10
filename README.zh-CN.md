@@ -1,47 +1,12 @@
 # Agnostic Query
 
+[English](README.md) | [中文](README.zh-CN.md)
+
 使用类型安全的流式 API 构建可移植的 `QuerySchema` 对象，再转换为任意 ORM 或原生 SQL。不是 ORM 的替代品——只减少在全栈中构建、校验和翻译查询条件的样板代码。
 
-**运行时无关** -- 纯数据，可在浏览器、服务端和边缘运行环境工作。序列化为 JSON，通过 HTTP 传输，在任何平台上消费。
+**运行时无关** — 纯数据，可在浏览器、服务端和边缘运行环境工作。序列化为 JSON，通过 HTTP 传输，在任何平台上消费。
 
-**数据库无关** -- 同一个 `QuerySchema` 可驱动 Drizzle、Kysely、原生 SQL（PostgreSQL），或任何未来的适配器。
-
-## 数据流
-
-```mermaid
-flowchart LR
-    subgraph Input["构建"]
-        aq_builder["Agnostic Query"]
-        manual["手动 / 原始对象"]
-        tanstack_expr["TanStack DB"]
-        kysely_ast["Kysely 查询"]
-    end
-
-    subgraph Core["核心"]
-        qs[QuerySchema]
-    end
-
-    subgraph Validate["可选校验"]
-        zod[Zod]
-        valibot[Valibot]
-    end
-
-    subgraph Output["输出"]
-        drizzle["toDrizzleWhere<br/>toDrizzleOrderBy"]
-        kysely_out["toKyselyWhere<br/>toKyselyOrderBy"]
-        sql_out["toSqlWhere<br/>toSqlOrderBy"]
-    end
-
-    aq_builder -->|.toJSON| qs
-    manual --> qs
-    tanstack_expr --> tanparse[fromTanDbWhere] --> qs
-    kysely_ast --> kysely_parse[fromKysely] --> qs
-    qs --> zod
-    qs --> valibot
-    qs -- where/orderBy --> drizzle
-    qs -- where/orderBy --> kysely_out
-    qs -- where/orderBy --> sql_out
-```
+**数据库无关** — 同一个 `QuerySchema` 可驱动 Drizzle、Kysely、原生 SQL（PostgreSQL），或任何未来的适配器。
 
 ## 流式构建器 API
 
@@ -130,6 +95,51 @@ aq<UserShape>()
   .orderBy(['address', 'city', 'name'], 'desc')
 ```
 
+### 原始 `QueryWhere` 对象
+
+直接将预构建的 `QueryWhere` 传给 `.where()` — 在复用已有 schema 条件或编程式构建时很有用：
+
+```ts
+const roleWhere: QuerySchema<UserShape>['where'] = {
+  field: ['role'],
+  op: 'eq',
+  value: 'admin',
+}
+
+const schema = aq<UserShape>()
+  .where('name', 'eq', 'Alice')
+  .where(roleWhere)
+  .toJSON()
+// → {
+//     where: {
+//       op: 'and',
+//       conditions: [
+//         { field: ['name'], op: 'eq', value: 'Alice' },
+//         { field: ['role'], op: 'eq', value: 'admin' },
+//       ],
+//     },
+//   }
+```
+
+也可在回调内组合构建器和原始条件：
+
+```ts
+const schema = aq<UserShape>()
+  .where(({ or, where }) =>
+    or([where('name', 'eq', 'Alice'), where(roleWhere)]),
+  )
+  .toJSON()
+// → {
+//     where: {
+//       op: 'or',
+//       conditions: [
+//         { field: ['name'], op: 'eq', value: 'Alice' },
+//         { field: ['role'], op: 'eq', value: 'admin' },
+//       ],
+//     },
+//   }
+```
+
 ### 链式 `.orderBy()`
 
 多次调用 `.orderBy()` 会追加条目：
@@ -149,19 +159,6 @@ aq<UserShape>()
 
 ## 类型系统
 
-`aq` 构建器是一个**简化的 Kysely**——相同的流式风格、相同的操作符名，但生成可移植的 `QuerySchema` 数据而非 SQL AST。无需数据库连接。
-
-### vs Kysely
-
-| 方面 | Kysely | agnostic-query |
-|--------|--------|----------------|
-| 列引用 | `ReferenceExpression`（string \| `SqlBool`） | `FieldPathByShape` — 递归元组路径 |
-| 操作符 | 每个操作符独立方法（`.where('col', '=', v)`） | 单一 `.where(col, op, value)`，按 `op` 判异 |
-| `in` | `.where('col', 'in', arr)` | 语法相同，输出 `values` 字段 |
-| 逻辑嵌套 | `.where((qb) => qb.where(...).orWhere(...))` | `.where(({ or, where }) => or([...]))` |
-| 输出 | Kysely AST 节点 | 纯 JSON（`QuerySchema`） |
-| 序列化 | 需自定义序列化器 | `JSON.stringify` 即可 |
-
 ### 字段路径安全
 
 ```ts
@@ -178,7 +175,7 @@ aq<User>().where(['address', 'city', 'name'], 'eq', 'Berlin') // ✓
 aq<User>().where(['address', 'city', 'zip'], 'eq', '12345')   // ✗ 不存在 'zip' 字段
 ```
 
-## 安装
+## 使用方法
 
 ```bash
 bun add agnostic-query
@@ -203,7 +200,7 @@ bun add kysely  # 可选
 
 ```ts
 // 核心类型和构建器
-import { aq, QuerySchema, QueryWhere, QueryOrderBy, findWhere } from 'agnostic-query'
+import { aq, QuerySchema, QueryWhere, QueryOrderBy, findWhere, newComparisonWhere, newWhere } from 'agnostic-query'
 
 // Zod 校验
 import { createWhereSchema } from 'agnostic-query/zod'
@@ -212,19 +209,19 @@ import { createWhereSchema } from 'agnostic-query/zod'
 import { createWhereSchema } from 'agnostic-query/valibot'
 
 // Drizzle 适配器 — 将 where 应用到 Drizzle 查询
-import { toDrizzle, toDrizzleWhere, toDrizzleOrderBy } from 'agnostic-query/drizzle'
+import { toDrizzle, toDrizzleWhere, toDrizzleOrderBy } from 'agnostic-query/drizzle/pg'
 
 // db0 适配器 — 通过 db0 以参数化 SQL 执行 schema
-import { query } from 'agnostic-query/db0'
+import { query } from 'agnostic-query/db0/pg'
 
 // TanStack DB 适配器 — 将 TanStack 表达式解析为 QueryWhere
-import { fromTanDbWhere } from 'agnostic-query/tanstack-db'
+import { fromTanDbWhere, fromTanDbOrderBy } from 'agnostic-query/tanstack-db'
 
 // Kysely 适配器 — 双向转换
-import { fromKysely, toKyselyWhere, toKyselyOrderBy } from 'agnostic-query/kysely'
+import { fromKysely, toKyselyWhere, toKyselyOrderBy } from 'agnostic-query/kysely/pg'
 
 // SQL 适配器 — 生成参数化 SQL
-import { toSql, toSqlWhere, toSqlOrderBy } from 'agnostic-query/sql'
+import { toSql, toSqlWhere, toSqlOrderBy } from 'agnostic-query/sql/pg'
 ```
 
 ## 核心工具
@@ -285,6 +282,87 @@ searcher.eq(['name'])             // { field: ['name'], op: 'eq', value: 'Alice'
 searcher.in(['role'])             // undefined
 ```
 
+### newComparisonWhere：构建 ComparisonWhere
+
+创建可复用的 `ComparisonWhere` 对象，带完整类型推断：
+
+```ts
+import { newComparisonWhere } from 'agnostic-query'
+
+interface User {
+  name: string
+  age: number
+  status: string
+  tags: { id: number; name: string }[]
+}
+
+const nameEq = newComparisonWhere<User>()('name', 'eq', 'Alice')
+// → { field: ['name'], op: 'eq', value: 'Alice' }
+
+const statusIn = newComparisonWhere<User>()('status', 'in', ['active', 'pending'])
+// → { field: ['status'], op: 'in', values: ['active', 'pending'] }
+
+const tagName = newComparisonWhere<User>()(['tags', 0, 'name'], 'like', '%tech%')
+// → { field: ['tags', 0, 'name'], op: 'like', value: '%tech%' }
+```
+
+结果可直接传给构建器的 `.where()` 或在回调内使用：
+
+```ts
+const filter = aq<User>()
+  .where(nameEq)
+  .where(statusIn)
+  .toJSON()
+```
+
+### newWhere：仅 where 构建器
+
+独立于完整的 `QuerySchema` 构建 `QueryWhere` — 适用于单独构建、组合和复用 where 条件：
+
+```ts
+import { newWhere } from 'agnostic-query'
+
+const w = newWhere<User>()
+  .where('name', 'eq', 'Alice')
+  .where('age', 'gte', 18)
+  .toJSON()
+// → {
+//     op: 'and',
+//     conditions: [
+//       { field: ['name'], op: 'eq', value: 'Alice' },
+//       { field: ['age'], op: 'gte', value: 18 },
+//     ],
+//   }
+```
+
+接受初始 `QueryWhere` 进行扩展，拥有与 `aq().where()` 相同的所有重载：
+
+```ts
+const base = newWhere<User>({ field: ['status'], op: 'eq', value: 'active' })
+
+const full = base
+  .where(({ or, and, where }) =>
+    or([
+      and([where('role', 'eq', 'admin'), where('age', 'gte', 18)]),
+      where('role', 'eq', 'moderator'),
+    ]),
+  )
+  .toJSON()
+```
+
+结果可直接传入 `QuerySchema` 或另一个 `newWhere`：
+
+```ts
+const schema: QuerySchema<User> = {
+  limit: 20,
+  where: newWhere<User>()
+    .where(fromTanDbWhere(where))
+    .where(fromTanDbWhere(cursor?.whereFrom))
+    .toJSON(),
+  orderBy: fromTanDbOrderBy(orderBy),
+}
+```
+
 ### 复杂字段路径（JSONB / 数组）
 
 ```ts
@@ -303,7 +381,7 @@ searcher.in(['role'])             // undefined
 ## 适配器：原生 SQL（PostgreSQL）
 
 ```ts
-import { toSql } from 'agnostic-query/sql'
+import { toSql } from 'agnostic-query/sql/pg'
 
 const { sql, params } = toSql({
   table: 'users',
@@ -320,7 +398,7 @@ const { sql, params } = toSql({
 ### 从 Kysely 查询中提取 schema
 
 ```ts
-import { fromKysely } from 'agnostic-query/kysely'
+import { fromKysely } from 'agnostic-query/kysely/pg'
 
 const query = db
   .selectFrom('user')
@@ -343,7 +421,7 @@ JSON.stringify(schema) // 发送给客户端
 ### 将 schema 应用到 Kysely 查询
 
 ```ts
-import { toKyselyWhere, toKyselyOrderBy } from 'agnostic-query/kysely'
+import { toKyselyWhere, toKyselyOrderBy } from 'agnostic-query/kysely/pg'
 
 let query = db.selectFrom('user').selectAll()
 
@@ -368,7 +446,7 @@ const rows = await toDrizzle<User>(db, userTable, data)
 或手动组合以获得更多控制：
 
 ```ts
-import { toDrizzleWhere, toDrizzleOrderBy } from 'agnostic-query/drizzle'
+import { toDrizzleWhere, toDrizzleOrderBy } from 'agnostic-query/drizzle/pg'
 import { and, eq } from 'drizzle-orm'
 
 const conditions = [
@@ -385,9 +463,9 @@ const rows = await db
   .offset(data.offset ?? 0)
 ```
 
-## 端到端：aq → QuerySchema → HTTP → db0
+## 端到端：aq → QuerySchema → HTTP → Drizzle
 
-浏览器端使用 `aq` 构建器构建查询，序列化 `QuerySchema` 后发送到服务端函数，然后通过 db0 执行，全程类型安全。
+浏览器端使用 `aq` 构建器构建查询，序列化 `QuerySchema` 后发送到服务端函数，然后通过 Drizzle 执行，全程类型安全。
 
 **浏览器端**（共享类型来自 `#/features/project/project.schema`）
 
@@ -411,12 +489,8 @@ const projects = await listProject({ data: schema })
 
 ```ts
 import { aq } from 'agnostic-query'
-import { query } from 'agnostic-query/db0'
-import { createDatabase } from 'db0'
-import pg from 'db0/connectors/pg'
+import { toDrizzle } from 'agnostic-query/drizzle/pg'
 import { getCurrentUser } from '#/features/auth/auth.fn.ts'
-
-const db = createDatabase(pg({ url: process.env.DATABASE_URL }))
 
 export const listProject = createServerFn({ method: 'GET' })
   .handler(async ({ data }) => {
@@ -425,8 +499,45 @@ export const listProject = createServerFn({ method: 'GET' })
     // 注入租户隔离 — 复用 aq 构建器处理已有 schema
     const enriched = aq(data).where('user_id', 'eq', userId).toJSON()
 
-    return await query(db, enriched)
+    return await toDrizzle(db, projectTable, data)
   })
+```
+
+### 数据流
+
+```mermaid
+flowchart LR
+    subgraph Input["构建"]
+        aq_builder["Agnostic Query"]
+        manual[手动 / 原始对象]
+        tanstack_expr[TanStack DB]
+        kysely_ast[Kysely 查询]
+    end
+
+    subgraph Core["核心"]
+        qs[QuerySchema]
+    end
+
+    subgraph Validate["可选校验"]
+        zod[Zod]
+        valibot[Valibot]
+    end
+
+    subgraph Output["输出"]
+        drizzle["toDrizzleWhere<br/>toDrizzleOrderBy"]
+        kysely_out["toKyselyWhere<br/>toKyselyOrderBy"]
+        sql_out["toSqlWhere<br/>toSqlOrderBy"]
+    end
+
+    aq_builder -->|.toJSON| qs
+    manual --> qs
+    tanstack_expr --> tanparse[fromTanDbWhere] --> qs
+    kysely_ast --> kysely_parse[fromKysely] --> qs
+    qs --> zod
+    qs --> valibot
+    qs -- where/orderBy --> drizzle
+    qs -- where/orderBy --> kysely_out
+    qs -- where/orderBy --> sql_out
 ```
 
 ## 工具链
