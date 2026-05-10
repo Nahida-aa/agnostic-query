@@ -1,5 +1,11 @@
 # agnostic-query
 
+## 1.4.3
+
+### Patch Changes
+
+- [`0f8c9ad`](https://github.com/Nahida-aa/agnostic-query/commit/0f8c9adc61425e4868efbd57fbf60dbf8286a684) Thanks [@Nahida-aa](https://github.com/Nahida-aa)! - docs: add TanStack DB end-to-end example in README, update project.sync.ts
+
 ## 1.4.2
 
 ### Patch Changes
