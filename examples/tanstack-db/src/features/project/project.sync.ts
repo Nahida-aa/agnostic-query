@@ -7,7 +7,7 @@ import {
 	createCollection,
 	type InitialQueryBuilder,
 } from '@tanstack/react-db';
-import { aq, type QuerySchema } from 'agnostic-query/core/index';
+import { aq, type QuerySchema } from 'agnostic-query';
 import { fromTanDbOrderBy, fromTanDbWhere } from 'agnostic-query/tanstack-db';
 import { listProject } from '#/features/project/project.fn.ts';
 import {
@@ -34,6 +34,7 @@ export const projectCollect = createCollection(
 				orderBy: fromTanDbOrderBy(orderBy),
 				// cursor: fromTanDbWhere(cursor?.whereFrom),
 			};
+
 			const whereFrom = fromTanDbWhere<Project>(cursor?.whereFrom);
 			const data = aq(schema).where(whereFrom).toJSON();
 

@@ -31,7 +31,7 @@
         "@tanstack/react-router-ssr-query": "latest",
         "@tanstack/react-start": "latest",
         "@tanstack/router-plugin": "^1.132.0",
-        "agnostic-query": "^1.2.0",
+        "agnostic-query": "^1.4.0",
         "drizzle-kit": "^0.31.9",
         "drizzle-orm": "^0.45.1",
         "drizzle-zod": "^0.8.3",
@@ -1468,6 +1468,8 @@
     "tanstack-db/@biomejs/biome": ["@biomejs/biome@2.4.5", "", { "optionalDependencies": { "@biomejs/cli-darwin-arm64": "2.4.5", "@biomejs/cli-darwin-x64": "2.4.5", "@biomejs/cli-linux-arm64": "2.4.5", "@biomejs/cli-linux-arm64-musl": "2.4.5", "@biomejs/cli-linux-x64": "2.4.5", "@biomejs/cli-linux-x64-musl": "2.4.5", "@biomejs/cli-win32-arm64": "2.4.5", "@biomejs/cli-win32-x64": "2.4.5" }, "bin": { "biome": "bin/biome" } }, "sha512-OWNCyMS0Q011R6YifXNOg6qsOg64IVc7XX6SqGsrGszPbkVCoaO7Sr/lISFnXZ9hjQhDewwZ40789QmrG0GYgQ=="],
 
     "tanstack-db/@tanstack/react-form": ["@tanstack/react-form@1.31.0", "", { "dependencies": { "@tanstack/form-core": "1.31.0", "@tanstack/react-store": "^0.9.1" }, "peerDependencies": { "react": "^17.0.0 || ^18.0.0 || ^19.0.0" } }, "sha512-31hoeKlk45jCAnry85bOiL89FwySL9HtAhfWLHmCJ5WcvBlHJpoqnMvl6Cy8DM+7ey2eWHKiPiEL29BkG5o12w=="],
+
+    "tanstack-db/agnostic-query": ["agnostic-query@1.4.0", "", { "peerDependencies": { "@tanstack/query-db-collection": "latest", "drizzle-orm": "^0.45.2", "kysely": "^0.29.0", "valibot": "^1.4.0", "zod": "^4.4.3" }, "optionalPeers": ["@tanstack/query-db-collection", "drizzle-orm", "kysely", "valibot", "zod"] }, "sha512-6C5nJ6O7yS9v0GNVc74Bn115Y0jQlS5NE1Mcqc2ElGg5MmMC66u5+Q58/yZa4DXBM39t8cEDxrPyAU4leOOKug=="],
 
     "tanstack-db/lucide-react": ["lucide-react@0.545.0", "", { "peerDependencies": { "react": "^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0" } }, "sha512-7r1/yUuflQDSt4f1bpn5ZAocyIxcTyVyBBChSVtBKn5M+392cPmI5YJMWOJKk/HUWGm5wg83chlAZtCcGbEZtw=="],
 
