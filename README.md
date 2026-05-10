@@ -350,7 +350,7 @@ const rows = await db
   .offset(data.offset ?? 0)
 ```
 
-## End-to-end: aq → QuerySchema → HTTP → db0
+## End-to-end: aq → QuerySchema → HTTP → Drizzle
 
 Browser code builds a query with the `aq` builder, serializes the `QuerySchema`, sends it to a server function, then executes via db0 with full type safety.
 
@@ -376,12 +376,8 @@ Because `QuerySchema` is plain data, you can inject access control conditions be
 
 ```ts
 import { aq } from 'agnostic-query'
-import { query } from 'agnostic-query/db0'
-import { createDatabase } from 'db0'
-import pg from 'db0/connectors/pg'
+import { toDrizzle } from 'agnostic-query/drizzle/pg'
 import { getCurrentUser } from '#/features/auth/auth.fn.ts'
-
-const db = createDatabase(pg({ url: process.env.DATABASE_URL }))
 
 export const listProject = createServerFn({ method: 'GET' })
   .handler(async ({ data }) => {
@@ -390,7 +386,7 @@ export const listProject = createServerFn({ method: 'GET' })
     // Inject tenant isolation — reuse aq builder with existing schema
     const enriched = aq(data).where('user_id', 'eq', userId).toJSON()
 
-    return await query(db, enriched)
+    return await toDrizzle(db, projectTable, data)
   })
 ```
 ### Data Flow

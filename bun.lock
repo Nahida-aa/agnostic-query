@@ -29,7 +29,7 @@
         "@tanstack/react-router-ssr-query": "latest",
         "@tanstack/react-start": "latest",
         "@tanstack/router-plugin": "^1.132.0",
-        "agnostic-query": "latest",
+        "agnostic-query": "^0.1.2",
         "drizzle-kit": "^0.31.9",
         "drizzle-orm": "^0.45.1",
         "drizzle-zod": "^0.8.3",
@@ -89,7 +89,7 @@
     },
     "packages/agnostic-query": {
       "name": "agnostic-query",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "devDependencies": {
         "@electric-sql/pglite": "^0.4.5",
         "@tanstack/query-db-collection": "latest",
@@ -1285,7 +1285,7 @@
 
     "tanstack-db/@tanstack/react-form": ["@tanstack/react-form@1.31.0", "", { "dependencies": { "@tanstack/form-core": "1.31.0", "@tanstack/react-store": "^0.9.1" }, "peerDependencies": { "react": "^17.0.0 || ^18.0.0 || ^19.0.0" } }, "sha512-31hoeKlk45jCAnry85bOiL89FwySL9HtAhfWLHmCJ5WcvBlHJpoqnMvl6Cy8DM+7ey2eWHKiPiEL29BkG5o12w=="],
 
-    "tanstack-db/agnostic-query": ["agnostic-query@0.1.1", "", { "peerDependencies": { "@tanstack/query-db-collection": "latest", "drizzle-orm": "^0.45.2", "kysely": "^0.29.0", "valibot": "^1.4.0", "zod": "^4.4.3" }, "optionalPeers": ["@tanstack/query-db-collection", "drizzle-orm", "kysely", "valibot", "zod"] }, "sha512-W/XHfXSyV7rxESjOQlP+Fo6rtIgi2+SOCn9W7PPh1L61VZ8my63U8q44RmpOe+121Dz4A2N7yQJcThk4tySqxQ=="],
+    "tanstack-db/agnostic-query": ["agnostic-query@0.1.2", "", { "peerDependencies": { "@tanstack/query-db-collection": "latest", "drizzle-orm": "^0.45.2", "kysely": "^0.29.0", "valibot": "^1.4.0", "zod": "^4.4.3" }, "optionalPeers": ["@tanstack/query-db-collection", "drizzle-orm", "kysely", "valibot", "zod"] }, "sha512-V4ZQSxLHuUQhb8FGB4yLof9Nm09NvlZNAT9+sWuvHnH/5sb+ZrsbmejidXht0rXrDt0Vw6cgth3uio6C3Z6/Kg=="],
 
     "tanstack-db/lucide-react": ["lucide-react@0.545.0", "", { "peerDependencies": { "react": "^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0" } }, "sha512-7r1/yUuflQDSt4f1bpn5ZAocyIxcTyVyBBChSVtBKn5M+392cPmI5YJMWOJKk/HUWGm5wg83chlAZtCcGbEZtw=="],
 
