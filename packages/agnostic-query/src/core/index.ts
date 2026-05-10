@@ -12,14 +12,14 @@ import type {
 	WhereOp,
 } from './where.ts';
 
-export type QuerySchema<TShape extends SchemaShape = SchemaShape> = {
+export interface QuerySchema<TShape extends SchemaShape = SchemaShape> {
 	where?: QueryWhere<TShape> | null;
 	orderBy?: QueryOrderBy<TShape>[];
 	limit?: number;
 	offset?: number;
 	cursor?: any; // TODO: 先不实现
 	table?: string; // 表名, 是可选的, 因为 QuerySchema 只是数据模型, 不帮你执行操作
-};
+}
 interface WhereExpr<TShape extends SchemaShape> {
 	_q: QueryWhere<TShape> | null;
 	where<

@@ -43,6 +43,7 @@
     "@tanstack/query-db-collection": "latest",
     "drizzle-orm": "^0.45.2",
     "kysely": "^0.29.0",
+    "rolldown": "^1.0.0",
     "valibot": "^1.4.0",
     "zod": "^4.4.3"
   }
