@@ -213,19 +213,19 @@ import { createWhereSchema } from 'agnostic-query/zod'
 import { createWhereSchema } from 'agnostic-query/valibot'
 
 // Drizzle adapter — apply where to Drizzle query
-import { toDrizzle, toDrizzleWhere, toDrizzleOrderBy } from 'agnostic-query/drizzle'
+import { toDrizzle, toDrizzleWhere, toDrizzleOrderBy } from 'agnostic-query/drizzle/pg'
 
 // db0 adapter — execute schema as parameterised SQL via db0
-import { query } from 'agnostic-query/db0'
+import { query } from 'agnostic-query/db0/pg'
 
 // TanStack DB adapter — parse TanStack expression into QueryWhere
-import { fromTanDbWhere } from 'agnostic-query/tanstack-db'
+import { fromTanDbWhere, fromTanDbOrderBy } from 'agnostic-query/tanstack-db'
 
 // Kysely adapter — bidirectional
-import { fromKysely, toKyselyWhere, toKyselyOrderBy } from 'agnostic-query/kysely'
+import { fromKysely, toKyselyWhere, toKyselyOrderBy } from 'agnostic-query/kysely/pg'
 
 // SQL adapter — parameterised SQL generation
-import { toSql, toSqlWhere, toSqlOrderBy } from 'agnostic-query/sql'
+import { toSql, toSqlWhere, toSqlOrderBy } from 'agnostic-query/sql/pg'
 ```
 
 ## Core Utilities
