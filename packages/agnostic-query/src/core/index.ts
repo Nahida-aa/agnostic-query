@@ -41,7 +41,7 @@ interface WhereExpr<TShape extends SchemaShape> {
 					? GetPathType<TShape, Col>
 					: never,
 	): WhereExpr<TShape>;
-	where(where: QueryWhere<TShape>): WhereExpr<TShape>;
+	where(where?: QueryWhere<TShape> | null): WhereExpr<TShape>;
 	and(conditions: WhereExpr<TShape>[]): QueryWhere<TShape>;
 	or(conditions: WhereExpr<TShape>[]): QueryWhere<TShape>;
 	not(condition: WhereExpr<TShape>): QueryWhere<TShape>;
@@ -69,6 +69,9 @@ export const createExpr = <TShape extends SchemaShape>(
 						? GetPathType<TShape, Col>
 						: never,
 		) {
+			if (col === null || col === undefined) {
+				return createExpr(q);
+			}
 			if (col && typeof col === 'object' && 'op' in col) {
 				return createExpr(col as unknown as QueryWhere<TShape>);
 			}
@@ -119,7 +122,7 @@ interface AgnosticQuery<TShape extends SchemaShape = SchemaShape> {
 					? GetPathType<TShape, Col>
 					: never,
 	): AgnosticQuery<TShape>;
-	where(where: QueryWhere<TShape>): AgnosticQuery<TShape>;
+	where(where?: QueryWhere<TShape> | null): AgnosticQuery<TShape>;
 	orderBy<Col extends FieldPathByShape<TShape> | (keyof TShape & string)>(
 		col: Col,
 		direction?: 'asc' | 'desc',
@@ -200,6 +203,9 @@ export const aq = <TShape extends SchemaShape = SchemaShape>(
 	return {
 		toJSON: () => state,
 		where: (col: any, op?: any, value?: any) => {
+			if (col === null || col === undefined) {
+				return aq<TShape>(state);
+			}
 			if (typeof col === 'function') {
 				const cbWhere = col(createExpr());
 				const newWhere = state.where
@@ -252,7 +258,7 @@ aq<DemoShape>()
 	.where(({ and, where, or, not }) =>
 		or([where('name', 'eq', '3'), where('name', 'eq', '4'), where(where5)]),
 	)
-	.where(where5)
+	.where()
 	.orderBy('name')
 	.orderBy('id', 'desc')
 	.limit(31)
