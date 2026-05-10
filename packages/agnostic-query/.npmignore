@@ -15,5 +15,5 @@ tags.json
 *.local.*
 .turbo
 .npmrc
-*.test.*
+*.test.ts
 rolldown.config.ts
