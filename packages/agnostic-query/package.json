@@ -1,7 +1,7 @@
 {
   "name": "agnostic-query",
   "description": "Type-safe fluent builder for portable query schemas. Runtime-agnostic, database-agnostic — the same QuerySchema drives Drizzle, Kysely, db0, or raw SQL.",
-  "version": "1.3.1",
+  "version": "1.4.0",
   "keywords": [
     "query",
     "query-builder",
@@ -21,8 +21,16 @@
   "types": "./src/index.ts",
   "exports": {
     "./*": {
-      "import": ["./src/*", "./src/*.ts", "./src/*/index.ts"],
-      "types": ["./src/*", "./src/*.ts", "./src/*/index.ts"]
+      "import": [
+        "./src/*",
+        "./src/*.ts",
+        "./src/*/index.ts"
+      ],
+      "types": [
+        "./src/*",
+        "./src/*.ts",
+        "./src/*/index.ts"
+      ]
     }
   },
   "scripts": {
@@ -63,7 +71,7 @@
     "valibot": "^1.4.0",
     "zod": "^4.4.3"
   },
-    "repository": {
+  "repository": {
     "type": "git",
     "url": "https://github.com/Nahida-aa/agnostic-query.git"
   }
