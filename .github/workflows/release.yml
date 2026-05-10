@@ -19,6 +19,7 @@ jobs:
       - uses: oven-sh/setup-bun@v2
       - run: bun install
       - run: bun test
+        working-directory: packages/agnostic-query
       - name: Configure git
         run: |
           git config user.name "github-actions[bot]"
