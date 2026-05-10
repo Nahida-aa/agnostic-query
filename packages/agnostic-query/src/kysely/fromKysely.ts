@@ -122,9 +122,7 @@ const parseRawSqlField = (sql: string): FieldPath => {
 	}
 
 	const segments: (string | number)[] = [];
-	for (const m of tail.matchAll(
-		/->>?(?:'((?:[^']|'')*)'|(\d+))/g,
-	)) {
+	for (const m of tail.matchAll(/->>?(?:'((?:[^']|'')*)'|(\d+))/g)) {
 		if (m[1] !== undefined) segments.push(m[1].replace(/''/g, "'"));
 		else if (m[2] !== undefined) segments.push(Number(m[2]));
 	}
@@ -140,9 +138,7 @@ const parseFieldFromNode = <TShape extends SchemaShape>(
 		return [node.column.column.name] as FieldPathByShape<TShape>;
 	}
 	if (node?.kind === 'RawNode' && node.sqlFragments.length === 1) {
-		return parseRawSqlField(
-			node.sqlFragments[0],
-		) as FieldPathByShape<TShape>;
+		return parseRawSqlField(node.sqlFragments[0]) as FieldPathByShape<TShape>;
 	}
 
 	return ['unknown_path'] as FieldPathByShape<TShape>;
@@ -152,7 +148,7 @@ const parseWhere = <TShape extends SchemaShape>(
 	node?: OperationNode,
 ): QueryWhere<TShape> | undefined => {
 	if (!node) return;
-	console.log('type parseWhereNode =', JSON.stringify(node, null, 2));
+	// console.log('type parseWhereNode =', JSON.stringify(node, null, 2));
 
 	if (node.kind === 'AndNode' || node.kind === 'OrNode') {
 		const left = parseWhere(node.left);
