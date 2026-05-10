@@ -7,42 +7,6 @@ Build portable `QuerySchema` objects with a type-safe fluent API, then convert t
 **Database-agnostic** — the same `QuerySchema` drives Drizzle, Kysely, raw SQL (PostgreSQL), or any future adapter.
 
 
-## Data Flow
-
-```mermaid
-flowchart LR
-    subgraph Input["Build"]
-        aq_builder["Agnostic Query"]
-        manual[Manual / Raw Object]
-        tanstack_expr[TanStack DB]
-        kysely_ast[Kysely Query]
-    end
-
-    subgraph Core["Core"]
-        qs[QuerySchema]
-    end
-
-    subgraph Validate["Optional Validation"]
-        zod[Zod]
-        valibot[Valibot]
-    end
-
-    subgraph Output["Output"]
-        drizzle["toDrizzleWhere<br/>toDrizzleOrderBy"]
-        kysely_out["toKyselyWhere<br/>toKyselyOrderBy"]
-        sql_out["toSqlWhere<br/>toSqlOrderBy"]
-    end
-
-    aq_builder -->|.toJSON| qs
-    manual --> qs
-    tanstack_expr --> tanparse[fromTanDbWhere] --> qs
-    kysely_ast --> kysely_parse[fromKysely] --> qs
-    qs --> zod
-    qs --> valibot
-    qs -- where/orderBy --> drizzle
-    qs -- where/orderBy --> kysely_out
-    qs -- where/orderBy --> sql_out
-```
 
 ## Fluent Builder API
 
@@ -429,6 +393,43 @@ export const listProject = createServerFn({ method: 'GET' })
     return await query(db, enriched)
   })
 ```
+### Data Flow
+
+```mermaid
+flowchart LR
+    subgraph Input["Build"]
+        aq_builder["Agnostic Query"]
+        manual[Manual / Raw Object]
+        tanstack_expr[TanStack DB]
+        kysely_ast[Kysely Query]
+    end
+
+    subgraph Core["Core"]
+        qs[QuerySchema]
+    end
+
+    subgraph Validate["Optional Validation"]
+        zod[Zod]
+        valibot[Valibot]
+    end
+
+    subgraph Output["Output"]
+        drizzle["toDrizzleWhere<br/>toDrizzleOrderBy"]
+        kysely_out["toKyselyWhere<br/>toKyselyOrderBy"]
+        sql_out["toSqlWhere<br/>toSqlOrderBy"]
+    end
+
+    aq_builder -->|.toJSON| qs
+    manual --> qs
+    tanstack_expr --> tanparse[fromTanDbWhere] --> qs
+    kysely_ast --> kysely_parse[fromKysely] --> qs
+    qs --> zod
+    qs --> valibot
+    qs -- where/orderBy --> drizzle
+    qs -- where/orderBy --> kysely_out
+    qs -- where/orderBy --> sql_out
+```
+
 
 ## Toolchain
 

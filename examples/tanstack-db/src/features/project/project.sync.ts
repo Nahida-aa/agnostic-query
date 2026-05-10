@@ -1,13 +1,9 @@
 // examples/tanstack-db/src/features/project/sync.ts
 console.log('[pglite-demo/data.ts] module loaded');
 
-import {
-	parseOrderByExpression,
-	queryCollectionOptions,
-} from '@tanstack/query-db-collection';
+import { queryCollectionOptions } from '@tanstack/query-db-collection';
 import {
 	createCollection,
-	createLiveQueryCollection,
 	type InitialQueryBuilder,
 } from '@tanstack/react-db';
 import type { QuerySchema } from 'agnostic-query/core/index';
@@ -24,27 +20,28 @@ export const projectCollect = createCollection(
 		queryKey: ['project'],
 		queryClient: getQueryClient(),
 		schema: projectSchema,
-		syncMode: 'on-demand',
+		syncMode: 'eager',
 		queryFn: async ({ meta, queryKey }) => {
-			console.log('[pglite-demo] queryFn FIRED!', { queryKey, meta });
-			const { cursor, where, limit, offset, orderBy } =
+			console.log('[infinite] queryFn FIRED!', { queryKey, meta });
+			const { where, limit, offset, orderBy } =
 				meta?.loadSubsetOptions ?? {};
 			const data: QuerySchema<Project> = {
-				limit: limit ?? 10,
-				offset: offset ?? 0,
+				limit,
+				offset,
 				where: fromTanDbWhere<Project>(where),
 				orderBy: fromTanDbOrderBy<Project>(orderBy),
 			};
-			console.log({
-				queryKey,
-				cursor,
-				data,
+			console.log('[infinite] queryFn fired:', {
+				syncMode: 'eager',
+				limit,
+				offset,
+				orderBy,
 			});
 
 			const result = await listProject({
 				data,
 			});
-			console.log('Query result.length:', result.length);
+			console.log('[infinite] result count:', result.length);
 
 			return result;
 		},
@@ -54,3 +51,8 @@ export const projectCollect = createCollection(
 		onDelete: async () => {},
 	}),
 );
+
+export const infiniteProjectQuery = (q: InitialQueryBuilder) =>
+	q
+		.from({ p: projectCollect })
+		.orderBy(({ p }) => p.created_at, 'desc');
