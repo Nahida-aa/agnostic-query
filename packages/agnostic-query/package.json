@@ -59,7 +59,7 @@
   "scripts": {
     "typecheck": "tsgo --noEmit",
     "test": "bun test",
-    "prepublishOnly": "cp ../../README.md ."
+    "prepublishOnly": "cp ../../README.md . && cp ../../LICENSE ."
   },
   "peerDependencies": {
     "zod": "^4.4.3",
