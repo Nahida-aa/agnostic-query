@@ -3,6 +3,7 @@ console.log('[pglite-demo/data.ts] module loaded');
 
 import { queryCollectionOptions } from '@tanstack/query-db-collection';
 import {
+	BasicIndex,
 	createCollection,
 	type InitialQueryBuilder,
 } from '@tanstack/react-db';
@@ -20,22 +21,31 @@ export const projectCollect = createCollection(
 		queryKey: ['project'],
 		queryClient: getQueryClient(),
 		schema: projectSchema,
-		syncMode: 'eager',
+		syncMode: 'on-demand',
+		autoIndex: 'eager',
+		defaultIndexType: BasicIndex,
 		queryFn: async ({ meta, queryKey }) => {
-			console.log('[infinite] queryFn FIRED!', { queryKey, meta });
-			const { where, limit, offset, orderBy } =
+			const { where, limit, offset, orderBy, cursor } =
 				meta?.loadSubsetOptions ?? {};
 			const data: QuerySchema<Project> = {
 				limit,
 				offset,
 				where: fromTanDbWhere<Project>(where),
 				orderBy: fromTanDbOrderBy<Project>(orderBy),
+				cursor: {
+					whereCurrent: fromTanDbWhere(cursor?.whereCurrent),
+					whereFrom: fromTanDbWhere(cursor?.whereFrom),
+				},
 			};
+
 			console.log('[infinite] queryFn fired:', {
-				syncMode: 'eager',
+				whereCurrent: cursor?.whereCurrent,
+				cursor: cursor?.whereFrom,
+				queryKey,
 				limit,
 				offset,
 				orderBy,
+				data,
 			});
 
 			const result = await listProject({
@@ -53,6 +63,4 @@ export const projectCollect = createCollection(
 );
 
 export const infiniteProjectQuery = (q: InitialQueryBuilder) =>
-	q
-		.from({ p: projectCollect })
-		.orderBy(({ p }) => p.created_at, 'desc');
+	q.from({ p: projectCollect }).orderBy(({ p }) => p.created_at, 'desc');

@@ -114,19 +114,6 @@ aq<UserShape>()
 
 ## Type System
 
-The `aq` builder is a **simplified Kysely** — same fluent pattern, same operator names, but produces portable `QuerySchema` data instead of SQL AST. No database connection required.
-
-### vs Kysely
-
-| Aspect | Kysely | agnostic-query |
-|--------|--------|----------------|
-| Column refs | `ReferenceExpression` (string \| `SqlBool`) | `FieldPathByShape` — recursive tuple paths |
-| Operators | Per-operator method (`.where('col', '=', v)`) | Single `.where(col, op, value)`, discriminated on `op` |
-| `in` | `.where('col', 'in', arr)` | Same syntax, outputs `values` field |
-| Logical nesting | `.where((qb) => qb.where(...).orWhere(...))` | `.where(({ or, where }) => or([...]))` |
-| Output | Kysely AST nodes | Plain JSON (`QuerySchema`) |
-| Serialization | Custom serialiser needed | `JSON.stringify` |
-
 ### Field path safety
 
 ```ts
@@ -268,7 +255,7 @@ All paths are fully type-checked against your shape.
 ## Adapter: Raw SQL (PostgreSQL)
 
 ```ts
-import { toSql } from 'agnostic-query/sql'
+import { toSql } from 'agnostic-query/sql/pg'
 
 const { sql, params } = toSql({
   table: 'users',
@@ -285,7 +272,7 @@ Or compose the parts yourself using `toSqlWhere` / `toSqlOrderBy` for partial qu
 ### Extract schema from a Kysely query
 
 ```ts
-import { fromKysely } from 'agnostic-query/kysely'
+import { fromKysely } from 'agnostic-query/kysely/pg'
 
 const query = db
   .selectFrom('user')
@@ -308,7 +295,7 @@ JSON.stringify(schema) // send to client
 ### Apply schema to a Kysely query
 
 ```ts
-import { toKyselyWhere, toKyselyOrderBy } from 'agnostic-query/kysely'
+import { toKyselyWhere, toKyselyOrderBy } from 'agnostic-query/kysely/pg'
 
 let query = db.selectFrom('user').selectAll()
 
@@ -333,7 +320,7 @@ const rows = await toDrizzle<User>(db, userTable, data)
 Or compose manually for more control:
 
 ```ts
-import { toDrizzleWhere, toDrizzleOrderBy } from 'agnostic-query/drizzle'
+import { toDrizzleWhere, toDrizzleOrderBy } from 'agnostic-query/drizzle/pg'
 import { and, eq } from 'drizzle-orm'
 
 const conditions = [

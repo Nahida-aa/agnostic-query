@@ -23,9 +23,29 @@ export const fromTanDbWhere = <TShape extends SchemaShape>(
 				op: 'lt',
 				value,
 			}),
+			lte: (field, value) => ({
+				field,
+				op: 'lte',
+				value,
+			}),
 			gt: (field, value) => ({
 				field,
 				op: 'gt',
+				value,
+			}),
+			gte: (field, value) => ({
+				field,
+				op: 'gte',
+				value,
+			}),
+			like: (field, value) => ({
+				field,
+				op: 'like',
+				value,
+			}),
+			ilike: (field, value) => ({
+				field,
+				op: 'ilike',
 				value,
 			}),
 			in: (field, values) => ({

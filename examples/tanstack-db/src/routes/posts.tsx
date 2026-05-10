@@ -25,7 +25,10 @@ function RouteComponent() {
 		isFetchingNextPage,
 		isLoading,
 		isReady,
-	} = useLiveInfiniteQuery(infiniteProjectQuery, { pageSize: 10 });
+	} = useLiveInfiniteQuery(infiniteProjectQuery, {
+		pageSize: 10,
+		getNextPageParam: (lastPage, allPages) => {},
+	});
 
 	const totalLoaded = pages?.reduce((s, p) => s + p.length, 0) ?? 0;
 	const pageCount = pages?.length ?? 0;
