@@ -1,5 +1,11 @@
 # agnostic-query
 
+## 1.4.2
+
+### Patch Changes
+
+- [`cfea6db`](https://github.com/Nahida-aa/agnostic-query/commit/cfea6dbc3ed1c7271e4b7b8a7c52f35ccdae84a5) Thanks [@Nahida-aa](https://github.com/Nahida-aa)! - docs: sync Chinese README, add language links, remove zh-CN from npm package
+
 ## 1.4.1
 
 ### Patch Changes
