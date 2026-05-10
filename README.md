@@ -504,6 +504,129 @@ export const listProject = createServerFn({ method: 'GET' })
     return await toDrizzle(db, projectTable, data)
   })
 ```
+## End-to-end: TanStack DB + agnostic-query
+
+Full-stack infinite query from the [`examples/tanstack-db`](examples/tanstack-db) project. TanStack DB collection translates its internal WHERE/ORDER BY into `QuerySchema`, which is sent to a server function and executed via Drizzle.
+
+**Table schema** (`project.table.ts`)
+
+```ts
+import { integer, pgTable, text } from 'drizzle-orm/pg-core'
+import { timeIdWithTimestamps } from '#/db/helpers.ts'
+
+export const projectTable = pgTable('project', (t) => ({
+  ...timeIdWithTimestamps,
+  order: integer().default(0),
+  name: text().notNull(),
+}))
+```
+
+**Drizzle-Zod schema** (`project.schmea.ts`)
+
+```ts
+import { createSelectSchema } from 'drizzle-zod'
+import { projectTable } from './project.table.ts'
+
+export const projectSchema = createSelectSchema(projectTable)
+export type Project = typeof projectTable.$inferSelect
+```
+
+**Server function** (`project.fn.ts`) — validates incoming `QuerySchema` with Zod, executes via `toDrizzle`
+
+```ts
+import { createServerFn } from '@tanstack/react-start'
+import { toDrizzle } from 'agnostic-query/drizzle/pg'
+import { createQuerySchema } from 'agnostic-query/zod'
+import { db } from '#/db/index.ts'
+import type { Project } from '#/features/project/project.schmea.ts'
+import { projectTable } from '#/features/project/project.table.ts'
+
+export const listProject = createServerFn()
+  .inputValidator(createQuerySchema<Project>())
+  .handler(async ({ data }) => {
+    return await toDrizzle(db, projectTable, data)
+  })
+```
+
+**Client collection** (`project.sync.ts`) — translates TanStack DB metadata into `QuerySchema` using `fromTanDbWhere` / `fromTanDbOrderBy`, then calls the server function
+
+```ts
+import { queryCollectionOptions } from '@tanstack/query-db-collection'
+import {
+  BasicIndex,
+  createCollection,
+  type InitialQueryBuilder,
+} from '@tanstack/react-db'
+import { aq, newWhere, type QuerySchema } from 'agnostic-query/index'
+import { fromTanDbOrderBy, fromTanDbWhere } from 'agnostic-query/tanstack-db'
+import { listProject } from '#/features/project/project.fn.ts'
+import {
+  type Project,
+  projectSchema,
+} from '#/features/project/project.schmea.ts'
+import { getQueryClient } from '#/integrations/tanstack-query/provider'
+
+export const projectCollect = createCollection(
+  queryCollectionOptions({
+    queryKey: ['project'],
+    queryClient: getQueryClient(),
+    schema: projectSchema,
+    syncMode: 'on-demand',
+    autoIndex: 'eager',
+    defaultIndexType: BasicIndex,
+    queryFn: async ({ meta }) => {
+      const { where, limit, orderBy, cursor } =
+        meta?.loadSubsetOptions ?? {}
+      const data = {
+        limit,
+        where: newWhere(fromTanDbWhere(where))
+          .where(fromTanDbWhere(cursor?.whereFrom))
+          .toJSON(),
+        orderBy: fromTanDbOrderBy(orderBy),
+      }
+      return await listProject({ data })
+    },
+    getKey: (item) => item.id,
+  }),
+)
+
+export const infiniteProjectQuery = (q: InitialQueryBuilder) =>
+  q.from({ p: projectCollect }).orderBy(({ p }) => p.created_at, 'desc')
+```
+
+**Route** (`projects.tsx`) — React component with infinite scroll using `useLiveInfiniteQuery`
+
+```tsx
+import { useLiveInfiniteQuery } from '@tanstack/react-db'
+import { createFileRoute } from '@tanstack/react-router'
+import { infiniteProjectQuery } from '#/features/project/project.sync.ts'
+
+export const Route = createFileRoute('/projects')({
+  component: RouteComponent,
+})
+
+function RouteComponent() {
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useLiveInfiniteQuery(infiniteProjectQuery, { pageSize: 10 })
+
+  return (
+    <div>
+      {data?.map((p) => (
+        <div key={p.id}>
+          <h2>{p.name}</h2>
+          <p>{p.created_at?.toLocaleString()}</p>
+        </div>
+      ))}
+      {hasNextPage && (
+        <button onClick={() => fetchNextPage()} disabled={isFetchingNextPage}>
+          {isFetchingNextPage ? 'Loading...' : 'Load More'}
+        </button>
+      )}
+    </div>
+  )
+}
+```
+
 ### Data Flow
 
 ```mermaid

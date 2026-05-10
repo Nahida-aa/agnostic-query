@@ -503,6 +503,129 @@ export const listProject = createServerFn({ method: 'GET' })
   })
 ```
 
+## 端到端：TanStack DB + agnostic-query
+
+全栈无限滚动查询，来自 [`examples/tanstack-db`](examples/tanstack-db) 项目。TanStack DB collection 将内部 WHERE/ORDER BY 翻译为 `QuerySchema`，发送到服务端函数，通过 Drizzle 执行。
+
+**表 Schema**（`project.table.ts`）
+
+```ts
+import { integer, pgTable, text } from 'drizzle-orm/pg-core'
+import { timeIdWithTimestamps } from '#/db/helpers.ts'
+
+export const projectTable = pgTable('project', (t) => ({
+  ...timeIdWithTimestamps,
+  order: integer().default(0),
+  name: text().notNull(),
+}))
+```
+
+**Drizzle-Zod schema**（`project.schmea.ts`）
+
+```ts
+import { createSelectSchema } from 'drizzle-zod'
+import { projectTable } from './project.table.ts'
+
+export const projectSchema = createSelectSchema(projectTable)
+export type Project = typeof projectTable.$inferSelect
+```
+
+**服务端函数**（`project.fn.ts`）— 用 Zod 校验传入的 `QuerySchema`，通过 `toDrizzle` 执行
+
+```ts
+import { createServerFn } from '@tanstack/react-start'
+import { toDrizzle } from 'agnostic-query/drizzle/pg'
+import { createQuerySchema } from 'agnostic-query/zod'
+import { db } from '#/db/index.ts'
+import type { Project } from '#/features/project/project.schmea.ts'
+import { projectTable } from '#/features/project/project.table.ts'
+
+export const listProject = createServerFn()
+  .inputValidator(createQuerySchema<Project>())
+  .handler(async ({ data }) => {
+    return await toDrizzle(db, projectTable, data)
+  })
+```
+
+**客户端 Collection**（`project.sync.ts`）— 用 `fromTanDbWhere` / `fromTanDbOrderBy` 将 TanStack DB 元数据翻译为 `QuerySchema`，调用服务端函数
+
+```ts
+import { queryCollectionOptions } from '@tanstack/query-db-collection'
+import {
+  BasicIndex,
+  createCollection,
+  type InitialQueryBuilder,
+} from '@tanstack/react-db'
+import { aq, newWhere, type QuerySchema } from 'agnostic-query/index'
+import { fromTanDbOrderBy, fromTanDbWhere } from 'agnostic-query/tanstack-db'
+import { listProject } from '#/features/project/project.fn.ts'
+import {
+  type Project,
+  projectSchema,
+} from '#/features/project/project.schmea.ts'
+import { getQueryClient } from '#/integrations/tanstack-query/provider'
+
+export const projectCollect = createCollection(
+  queryCollectionOptions({
+    queryKey: ['project'],
+    queryClient: getQueryClient(),
+    schema: projectSchema,
+    syncMode: 'on-demand',
+    autoIndex: 'eager',
+    defaultIndexType: BasicIndex,
+    queryFn: async ({ meta }) => {
+      const { where, limit, orderBy, cursor } =
+        meta?.loadSubsetOptions ?? {}
+      const data = {
+        limit,
+        where: newWhere(fromTanDbWhere(where))
+          .where(fromTanDbWhere(cursor?.whereFrom))
+          .toJSON(),
+        orderBy: fromTanDbOrderBy(orderBy),
+      }
+      return await listProject({ data })
+    },
+    getKey: (item) => item.id,
+  }),
+)
+
+export const infiniteProjectQuery = (q: InitialQueryBuilder) =>
+  q.from({ p: projectCollect }).orderBy(({ p }) => p.created_at, 'desc')
+```
+
+**路由**（`projects.tsx`）— React 无限滚动组件
+
+```tsx
+import { useLiveInfiniteQuery } from '@tanstack/react-db'
+import { createFileRoute } from '@tanstack/react-router'
+import { infiniteProjectQuery } from '#/features/project/project.sync.ts'
+
+export const Route = createFileRoute('/projects')({
+  component: RouteComponent,
+})
+
+function RouteComponent() {
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useLiveInfiniteQuery(infiniteProjectQuery, { pageSize: 10 })
+
+  return (
+    <div>
+      {data?.map((p) => (
+        <div key={p.id}>
+          <h2>{p.name}</h2>
+          <p>{p.created_at?.toLocaleString()}</p>
+        </div>
+      ))}
+      {hasNextPage && (
+        <button onClick={() => fetchNextPage()} disabled={isFetchingNextPage}>
+          {isFetchingNextPage ? 'Loading...' : 'Load More'}
+        </button>
+      )}
+    </div>
+  )
+}
+```
+
 ### 数据流
 
 ```mermaid
