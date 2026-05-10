@@ -6,6 +6,7 @@ import type {
 	SchemaShape,
 } from './schema.ts';
 import type {
+	ComparisonWhere,
 	QueryWhere,
 	UnaryComparisonOp,
 	WhereComparisonOp,
@@ -40,6 +41,7 @@ interface WhereExpr<TShape extends SchemaShape> {
 					? GetPathType<TShape, Col>
 					: never,
 	): WhereExpr<TShape>;
+	where(where: QueryWhere<TShape>): WhereExpr<TShape>;
 	and(conditions: WhereExpr<TShape>[]): QueryWhere<TShape>;
 	or(conditions: WhereExpr<TShape>[]): QueryWhere<TShape>;
 	not(condition: WhereExpr<TShape>): QueryWhere<TShape>;
@@ -67,6 +69,9 @@ export const createExpr = <TShape extends SchemaShape>(
 						? GetPathType<TShape, Col>
 						: never,
 		) {
+			if (col && typeof col === 'object' && 'op' in col) {
+				return createExpr(col as unknown as QueryWhere<TShape>);
+			}
 			const field = Array.isArray(col) ? col : [col];
 			const inputWhere =
 				op === 'in' ? { field, op, values: value } : { field, op, value };
@@ -114,6 +119,7 @@ interface AgnosticQuery<TShape extends SchemaShape = SchemaShape> {
 					? GetPathType<TShape, Col>
 					: never,
 	): AgnosticQuery<TShape>;
+	where(where: QueryWhere<TShape>): AgnosticQuery<TShape>;
 	orderBy<Col extends FieldPathByShape<TShape> | (keyof TShape & string)>(
 		col: Col,
 		direction?: 'asc' | 'desc',
@@ -121,6 +127,33 @@ interface AgnosticQuery<TShape extends SchemaShape = SchemaShape> {
 	limit(value?: number): AgnosticQuery<TShape>;
 	offset(value?: number): AgnosticQuery<TShape>;
 }
+
+const newWhere = <
+	TShape extends SchemaShape,
+	Col extends
+		| FieldPathByShape<TShape>
+		| (keyof TShape & string) = keyof TShape & string,
+	Op extends WhereComparisonOp = WhereComparisonOp,
+>(
+	col: Col,
+	op: Op,
+	value: Op extends 'in'
+		? Col extends keyof TShape & string
+			? TShape[Col][]
+			: Col extends FieldPathByShape<TShape>
+				? GetPathType<TShape, Col>[]
+				: never
+		: Col extends keyof TShape & string
+			? TShape[Col]
+			: Col extends FieldPathByShape<TShape>
+				? GetPathType<TShape, Col>
+				: never,
+) => {
+	const field = Array.isArray(col) ? col : [col];
+	const inputWhere =
+		op === 'in' ? { field, op, values: value } : { field, op, value };
+	return inputWhere as ComparisonWhere<TShape>;
+};
 
 export const aq = <TShape extends SchemaShape = SchemaShape>(
 	initState?: QuerySchema<TShape>,
@@ -145,14 +178,15 @@ export const aq = <TShape extends SchemaShape = SchemaShape>(
 					: never,
 	) => {
 		const field = Array.isArray(col) ? col : [col];
+		const inputWhere =
+			op === 'in' ? { field, op, values: value } : { field, op, value };
 		const oldWheres =
 			state.where?.op === 'and'
 				? state.where.conditions || []
 				: state.where
 					? [state.where]
 					: [];
-		const inputWhere =
-			op === 'in' ? { field, op, values: value } : { field, op, value };
+
 		const newWhere = state.where
 			? {
 					op: 'and',
@@ -174,6 +208,13 @@ export const aq = <TShape extends SchemaShape = SchemaShape>(
 					: cbWhere;
 				return aq<TShape>({ ...state, where: newWhere as QueryWhere<TShape> });
 			}
+			// 新增：col 是 QueryWhere 对象
+			if (col && typeof col === 'object' && 'op' in col) {
+				const newWhere: QueryWhere<TShape> = state.where
+					? { op: 'and', conditions: [state.where, col] }
+					: col;
+				return aq<TShape>({ ...state, where: newWhere });
+			}
 			return where(col, op, value);
 		},
 		orderBy: <Col extends FieldPathByShape<TShape> | (keyof TShape & string)>(
@@ -193,26 +234,27 @@ export const aq = <TShape extends SchemaShape = SchemaShape>(
 	};
 };
 
-// type DemoShape = {
-// 	id: number;
-// 	name: string;
-// 	tags: { id: number; name: string }[];
-// 	category: string[];
-// 	address: {
-// 		city: {
-// 			name: string;
-// 		};
-// 	};
-// };
-
-// aq<DemoShape>()
-// 	.where(['address', 'city', 'name'], 'eq', '1')
-// 	.where(['tags', 0, 'name'], 'eq', '2')
-// 	.where('id', 'in', [1])
-// 	.where(({ and, where, or, not }) =>
-// 		or([where('name', 'eq', '3'), where('name', 'eq', '4')]),
-// 	)
-// 	.orderBy('name')
-// 	.orderBy('id', 'desc')
-// 	.limit(31)
-// 	.offset(0);
+type DemoShape = {
+	id: number;
+	name: string;
+	tags: { id: number; name: string }[];
+	category: string[];
+	address: {
+		city: {
+			name: string;
+		};
+	};
+};
+const where5 = newWhere<DemoShape>('name', 'eq', '5');
+aq<DemoShape>()
+	.where(['address', 'city', 'name'], 'eq', '1')
+	.where(['tags', 0, 'name'], 'eq', '2')
+	.where('id', 'in', [1])
+	.where(({ and, where, or, not }) =>
+		or([where('name', 'eq', '3'), where('name', 'eq', '4'), where(where5)]),
+	)
+	.where(where5)
+	.orderBy('name')
+	.orderBy('id', 'desc')
+	.limit(31)
+	.offset(0);
