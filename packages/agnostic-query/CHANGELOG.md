@@ -1,5 +1,11 @@
 # agnostic-query
 
+## 1.4.1
+
+### Patch Changes
+
+- [`eace0a3`](https://github.com/Nahida-aa/agnostic-query/commit/eace0a37911fe9574958b5d31d7ffbab29cddb94) Thanks [@Nahida-aa](https://github.com/Nahida-aa)! - Fix: add `"."` and `"./*/*"` exports to package.json so `import { aq } from 'agnostic-query'` resolves correctly without needing `'agnostic-query/index'`
+
 ## 1.4.0
 
 ### Minor Changes
