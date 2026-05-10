@@ -1,7 +1,7 @@
 import { createDatabase } from 'db0';
 import pgliteConnector from 'db0/connectors/pglite';
-import { toDb0Where } from '../../packages/agnostic-query/src/db0/pg';
-import type { QueryWhere } from '../../packages/agnostic-query/src/core/where';
+import { toDb0Where, query } from 'agnostic-query/db0/pg';
+import type { QueryWhere } from 'agnostic-query/core/where';
 
 const db = createDatabase(pgliteConnector());
 
@@ -20,12 +20,13 @@ Bun.serve({
 	async fetch(req) {
 		if (req.method !== 'POST') return new Response('send POST with JSON body', { status: 405 });
 
-		const body = await req.json();
+		const body =( await req.json()) as QueryWhere | undefined
 		const result = toDb0Where(body as QueryWhere | undefined);
 		if (!result) return Response.json({ error: 'invalid query' }, { status: 400 });
 
 		const { sql, params } = result;
-		const rows: User[] = await db.prepare(`SELECT * FROM users WHERE ${sql}`).all(...params);
+		const rows = await query<User>(db, { where: body} )
+
 
 		return Response.json({ sql, params, rows });
 	},

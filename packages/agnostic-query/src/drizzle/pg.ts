@@ -1,6 +1,7 @@
 import {
 	and,
 	asc,
+	type ColumnsSelection,
 	desc,
 	eq,
 	gt,
@@ -15,7 +16,19 @@ import {
 	type SQL,
 	sql,
 } from 'drizzle-orm';
+import type { BuildColumns } from 'drizzle-orm/column-builder';
+import type { SelectedFields } from 'drizzle-orm/gel-core/query-builders/select.types';
+import {
+	PgDatabase,
+	PgSelectBase,
+	type PgTableWithColumns,
+} from 'drizzle-orm/pg-core';
+import type { PgColumnBuilderBase } from 'drizzle-orm/pg-core/columns/common';
+import type { PgSelectBuilder } from 'drizzle-orm/pg-core/query-builders';
+import type { SelectMode } from 'drizzle-orm/query-builders/select.types';
+import type { QuerySchema } from '../core/index.ts';
 import type { QueryOrderBy } from '../core/order-by.ts';
+import type { SchemaShape } from '../core/schema';
 import type { QueryWhere, UnaryComparisonOp } from '../core/where.ts';
 import { isComparisonWhere } from '../core/where.ts';
 import { fieldToStr } from '../sql/pg.ts';
@@ -30,7 +43,10 @@ export const drizzleOps = {
 	ilike,
 } satisfies Record<UnaryComparisonOp, (column: any, value: any) => SQL>;
 
-const _toDrizzleWhere = (table: any, where?: QueryWhere): SQL | undefined => {
+const _toDrizzleWhere = (
+	table: any,
+	where?: QueryWhere | null,
+): SQL | undefined => {
 	if (!where) return undefined;
 	if (where.op === 'not') {
 		const subCondition = _toDrizzleWhere(table, where.condition);
@@ -81,7 +97,7 @@ const _toDrizzleWhere = (table: any, where?: QueryWhere): SQL | undefined => {
 
 export const toDrizzleWhere = (
 	table: any,
-	where?: QueryWhere,
+	where?: QueryWhere | null,
 	extraConditions?: SQL,
 ): SQL | undefined => {
 	const whereConditions = _toDrizzleWhere(table, where);
@@ -101,4 +117,30 @@ export const toDrizzleOrderBy = <TShape extends Record<string, any>>(
 		const fn = c.direction === 'desc' ? desc : asc;
 		return fn(col);
 	});
+};
+
+type SelectFn = () => PgSelectBuilder<undefined>;
+
+export const toDrizzle = <
+	TShape extends SchemaShape,
+	TTableName extends string,
+	TSelection extends ColumnsSelection,
+	TSelectMode extends SelectMode,
+	TSchema extends string,
+	TColumnsMap extends Record<string, PgColumnBuilderBase>,
+	TTable extends PgTableWithColumns<{
+		name: TTableName;
+		schema: TSchema;
+		columns: BuildColumns<TTableName, TColumnsMap, 'pg'>;
+		dialect: 'pg';
+	}>,
+>(
+	select: SelectFn,
+	table: TTable,
+	querySchema: QuerySchema<TShape>,
+) => {
+	return select()
+		.from(table)
+		.where(toDrizzleWhere(table, querySchema.where))
+		.orderBy(...toDrizzleOrderBy(table, querySchema.orderBy));
 };

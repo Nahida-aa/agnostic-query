@@ -215,6 +215,9 @@ import { createWhereSchema } from 'agnostic-query/valibot'
 // Drizzle adapter — apply where to Drizzle query
 import { toDrizzleWhere } from 'agnostic-query/drizzle'
 
+// db0 adapter — execute schema as parameterised SQL via db0
+import { query } from 'agnostic-query/db0'
+
 // TanStack DB adapter — parse TanStack expression into QueryWhere
 import { fromTanDbWhere } from 'agnostic-query/tanstack-db'
 
@@ -222,7 +225,7 @@ import { fromTanDbWhere } from 'agnostic-query/tanstack-db'
 import { fromKysely, toKyselyWhere, toKyselyOrderBy } from 'agnostic-query/kysely'
 
 // SQL adapter — parameterised SQL generation
-import { toSqlWhere, toSqlOrderBy } from 'agnostic-query/sql'
+import { toSql, toSqlWhere, toSqlOrderBy } from 'agnostic-query/sql'
 ```
 
 ## Core Utilities
@@ -309,11 +312,9 @@ const { sql, params } = toSql({
 })!
 // → sql:    SELECT * FROM "users" WHERE "age" >= ? AND "status" IN (?, ?) ORDER BY "name" ASC LIMIT 20 OFFSET 0
 // → params: [18, 'active', 'pending']
-// Then pass to your Postgres driver:
-//   db.query(sql, params)
 ```
 
-Or compose the parts yourself using `toSqlWhere` / `toSqlOrderBy` for partial queries.
+Or compose the parts yourself using `toSqlWhere` / `toSqlOrderBy` for partial queries. Pass the resulting `{ sql, params }` to any driver that supports parameterised queries (node-postgres, postgres.js, db0, Bun, etc.).
 
 ## Adapter: Kysely
 
@@ -376,16 +377,23 @@ const rows = await db
   .offset(data.offset ?? 0)
 ```
 
-## End-to-end: aq → QuerySchema → HTTP → Zod → Drizzle
+## End-to-end: aq → QuerySchema → HTTP → db0
 
-Browser code builds a query with the `aq` builder, serializes the `QuerySchema`, sends it to a TanStack Start server function, validates with Zod, then executes via Drizzle.
+Browser code builds a query with the `aq` builder, serializes the `QuerySchema`, sends it to a server function, then executes via db0 with full type safety.
 
 **Browser**
 
 ```ts
 import { aq } from 'agnostic-query'
 
-const schema = aq<User>()
+interface User {
+  id: number
+  name: string
+  age: number
+  status: string
+}
+
+const schema = aq<User>({ table: 'users' })
   .where('age', 'gte', 18)
   .where('status', 'in', ['active', 'pending'])
   .orderBy('name', 'asc')
@@ -395,30 +403,18 @@ const schema = aq<User>()
 const users = await getUsers({ data: schema })
 ```
 
-**Server (TanStack Start)**
+**Server**
 
 ```ts
-import { createQuerySchema } from 'agnostic-query/zod'
-import { toDrizzleWhere, toDrizzleOrderBy } from 'agnostic-query/drizzle'
-import { and, eq } from 'drizzle-orm'
+import { query } from 'agnostic-query/db0'
+import { createDatabase } from 'db0'
+import pg from 'db0/connectors/pg'
+
+const db = createDatabase(pg({ url: process.env.DATABASE_URL }))
 
 export const getUsers = createServerFn({ method: 'GET' })
-  .inputValidator(createQuerySchema<typeof schema.user.$inferSelect>())
   .handler(async ({ data }) => {
-    const db = await getDb()
-
-    const conditions = [
-      toDrizzleWhere(schema.user, data.where),
-      eq(schema.user.orgId, currentOrgId),
-    ].filter(Boolean)
-
-    return await db
-      .select()
-      .from(schema.user)
-      .where(and(...conditions))
-      .orderBy(...toDrizzleOrderBy(schema.user, data.orderBy))
-      .limit(data.limit ?? 50)
-      .offset(data.offset ?? 0)
+    return await query<User>(db, data)
   })
 ```
 

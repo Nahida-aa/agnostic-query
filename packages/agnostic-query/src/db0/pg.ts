@@ -1,7 +1,8 @@
+import type { QuerySchema } from '../core';
 import type { QueryOrderBy } from '../core/order-by.ts';
 import type { QueryWhere } from '../core/where.ts';
 import { isComparisonWhere } from '../core/where.ts';
-import { fieldToStr, sqlOpMap } from '../sql/pg.ts';
+import { fieldToStr, sqlOpMap, toSql } from '../sql/pg.ts';
 import type { SqlResult } from '../sql/types.ts';
 
 const build = (where: QueryWhere): SqlResult | undefined => {
@@ -57,4 +58,15 @@ export const toDb0OrderBy = <TShape extends Record<string, any>>(
 			.join(', '),
 		params: [],
 	};
+};
+
+export const query = async <T>(
+	db: {
+		prepare: (sql: string) => { all: (...params: any[]) => Promise<unknown[]> };
+	},
+	json: QuerySchema,
+): Promise<T[]> => {
+	const result = toSql(json);
+	if (!result) return [];
+	return db.prepare(result.sql).all(...result.params) as any as Promise<T[]>;
 };
