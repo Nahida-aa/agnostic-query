@@ -1,5 +1,5 @@
 export type { QuerySchema } from './core';
-export { aq, createExpr, newComparisonWhere } from './core';
+export { aq } from './core';
 export type { QueryOrderBy } from './core/order-by';
 
 export type {
@@ -14,4 +14,4 @@ export type {
 	WhereComparisonOp,
 	WhereOp,
 } from './core/where';
-export { findWhere } from './core/where';
+export { createExpr, findWhere, newComparisonWhere } from './core/where';

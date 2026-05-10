@@ -5,12 +5,16 @@ import type {
 	GetPathType,
 	SchemaShape,
 } from './schema.ts';
-import type {
-	ComparisonWhere,
-	QueryWhere,
-	UnaryComparisonOp,
-	WhereComparisonOp,
-	WhereOp,
+import {
+	type ComparisonWhere,
+	type ComparisonWhereValue,
+	createExpr,
+	newComparisonWhere,
+	type QueryWhere,
+	type UnaryComparisonOp,
+	type WhereComparisonOp,
+	type WhereExpr,
+	type WhereOp,
 } from './where.ts';
 
 export interface QuerySchema<TShape extends SchemaShape = SchemaShape> {
@@ -21,88 +25,11 @@ export interface QuerySchema<TShape extends SchemaShape = SchemaShape> {
 	cursor?: any; // TODO: 先不实现
 	table?: string; // 表名, 是可选的, 因为 QuerySchema 只是数据模型, 不帮你执行操作
 }
-interface WhereExpr<TShape extends SchemaShape> {
-	_q: QueryWhere<TShape> | null;
-	where<
-		Col extends FieldPathByShape<TShape> | (keyof TShape & string),
-		Op extends WhereComparisonOp,
-	>(
-		col: Col,
-		op: Op,
-		value: Op extends 'in'
-			? Col extends keyof TShape & string
-				? TShape[Col][]
-				: Col extends FieldPathByShape<TShape>
-					? GetPathType<TShape, Col>[]
-					: never
-			: Col extends keyof TShape & string
-				? TShape[Col]
-				: Col extends FieldPathByShape<TShape>
-					? GetPathType<TShape, Col>
-					: never,
-	): WhereExpr<TShape>;
-	where(where?: QueryWhere<TShape> | null): WhereExpr<TShape>;
-	and(conditions: WhereExpr<TShape>[]): QueryWhere<TShape>;
-	or(conditions: WhereExpr<TShape>[]): QueryWhere<TShape>;
-	not(condition: WhereExpr<TShape>): QueryWhere<TShape>;
-}
-export const createExpr = <TShape extends SchemaShape>(
-	q?: QueryWhere<TShape> | null,
-): WhereExpr<TShape> => {
-	const expr = {
-		_q: q,
-		where<
-			Col extends FieldPathByShape<TShape> | (keyof TShape & string),
-			Op extends WhereComparisonOp,
-		>(
-			col: Col,
-			op: Op,
-			value: Op extends 'in'
-				? Col extends keyof TShape & string
-					? TShape[Col][]
-					: Col extends FieldPathByShape<TShape>
-						? GetPathType<TShape, Col>[]
-						: never
-				: Col extends keyof TShape & string
-					? TShape[Col]
-					: Col extends FieldPathByShape<TShape>
-						? GetPathType<TShape, Col>
-						: never,
-		) {
-			if (col === null || col === undefined) {
-				return createExpr(q);
-			}
-			if (col && typeof col === 'object' && 'op' in col) {
-				return createExpr(col as unknown as QueryWhere<TShape>);
-			}
-			const field = Array.isArray(col) ? col : [col];
-			const inputWhere =
-				op === 'in' ? { field, op, values: value } : { field, op, value };
-			return createExpr(inputWhere as QueryWhere<TShape>);
-		},
-		and(exprs: WhereExpr<TShape>[]) {
-			return {
-				op: 'and',
-				conditions: exprs.map((e) => e._q).filter(Boolean),
-			} as const;
-		},
-		or(exprs: WhereExpr<TShape>[]) {
-			return {
-				op: 'or',
-				conditions: exprs.map((e) => e._q).filter(Boolean),
-			} as const;
-		},
-		not(expr: WhereExpr<TShape>) {
-			return { op: 'not', condition: expr._q } as const;
-		},
-	};
-	return expr as WhereExpr<TShape>;
-};
 
 interface AgnosticQuery<TShape extends SchemaShape = SchemaShape> {
 	toJSON(): QuerySchema<TShape>;
 	where(
-		cb: (eb: WhereExpr<TShape>) => QueryWhere<TShape>,
+		cb: (eb: WhereExpr<TShape>) => WhereExpr<TShape>,
 	): AgnosticQuery<TShape>;
 	where<
 		Col extends FieldPathByShape<TShape> | (keyof TShape & string),
@@ -110,17 +37,7 @@ interface AgnosticQuery<TShape extends SchemaShape = SchemaShape> {
 	>(
 		col: Col,
 		op: Op,
-		value: Op extends 'in'
-			? Col extends keyof TShape & string
-				? TShape[Col][]
-				: Col extends FieldPathByShape<TShape>
-					? GetPathType<TShape, Col>[]
-					: never
-			: Col extends keyof TShape & string
-				? TShape[Col]
-				: Col extends FieldPathByShape<TShape>
-					? GetPathType<TShape, Col>
-					: never,
+		value: ComparisonWhereValue<TShape, Col, Op>,
 	): AgnosticQuery<TShape>;
 	where(where?: QueryWhere<TShape> | null): AgnosticQuery<TShape>;
 	orderBy<Col extends FieldPathByShape<TShape> | (keyof TShape & string)>(
@@ -130,32 +47,6 @@ interface AgnosticQuery<TShape extends SchemaShape = SchemaShape> {
 	limit(value?: number): AgnosticQuery<TShape>;
 	offset(value?: number): AgnosticQuery<TShape>;
 }
-
-export const newComparisonWhere =
-	<TShape extends SchemaShape>() =>
-	<
-		Col extends FieldPathByShape<TShape> | (keyof TShape & string),
-		Op extends WhereComparisonOp,
-	>(
-		col: Col,
-		op: Op,
-		value: Op extends 'in'
-			? Col extends keyof TShape & string
-				? TShape[Col][]
-				: Col extends FieldPathByShape<TShape>
-					? GetPathType<TShape, Col>[]
-					: never
-			: Col extends keyof TShape & string
-				? TShape[Col]
-				: Col extends FieldPathByShape<TShape>
-					? GetPathType<TShape, Col>
-					: never,
-	) => {
-		const field = Array.isArray(col) ? col : [col];
-		const inputWhere =
-			op === 'in' ? { field, op, values: value } : { field, op, value };
-		return inputWhere as ComparisonWhere<TShape>;
-	};
 
 export const aq = <TShape extends SchemaShape = SchemaShape>(
 	initState?: QuerySchema<TShape>,
@@ -167,17 +58,7 @@ export const aq = <TShape extends SchemaShape = SchemaShape>(
 	>(
 		col: Col,
 		op: Op,
-		value: Op extends 'in'
-			? Col extends keyof TShape & string
-				? TShape[Col][]
-				: Col extends FieldPathByShape<TShape>
-					? GetPathType<TShape, Col>[]
-					: never
-			: Col extends keyof TShape & string
-				? TShape[Col]
-				: Col extends FieldPathByShape<TShape>
-					? GetPathType<TShape, Col>
-					: never,
+		value: ComparisonWhereValue<TShape, Col, Op>,
 	) => {
 		const field = Array.isArray(col) ? col : [col];
 		const inputWhere =
@@ -207,18 +88,23 @@ export const aq = <TShape extends SchemaShape = SchemaShape>(
 				return aq<TShape>(state);
 			}
 			if (typeof col === 'function') {
-				const cbWhere = col(createExpr());
-				const newWhere = state.where
+				const cbWhere = (col as (eb: WhereExpr<TShape>) => WhereExpr<TShape>)(
+					createExpr(),
+				)._q;
+				const changedWhere = state.where
 					? { op: 'and', conditions: [state.where, cbWhere] }
 					: cbWhere;
-				return aq<TShape>({ ...state, where: newWhere as QueryWhere<TShape> });
+				return aq<TShape>({
+					...state,
+					where: changedWhere as QueryWhere<TShape>,
+				});
 			}
 			// 新增：col 是 QueryWhere 对象
 			if (col && typeof col === 'object' && 'op' in col) {
-				const newWhere: QueryWhere<TShape> = state.where
+				const changedWhere: QueryWhere<TShape> = state.where
 					? { op: 'and', conditions: [state.where, col] }
 					: col;
-				return aq<TShape>({ ...state, where: newWhere });
+				return aq<TShape>({ ...state, where: changedWhere });
 			}
 			return where(col, op, value);
 		},

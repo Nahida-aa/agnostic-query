@@ -27,14 +27,15 @@ export const projectCollect = createCollection(
 		queryFn: async ({ meta, queryKey }) => {
 			const { where, limit, offset, orderBy, cursor } =
 				meta?.loadSubsetOptions ?? {};
-			const data: QuerySchema<Project> = {
+			const schema: QuerySchema<Project> = {
 				limit,
 				// offset,
 				where: fromTanDbWhere(where),
 				orderBy: fromTanDbOrderBy(orderBy),
 				// cursor: fromTanDbWhere(cursor?.whereFrom),
 			};
-			const schema = aq(data).where(fromTanDbWhere(cursor?.whereFrom));
+			const whereFrom = fromTanDbWhere<Project>(cursor?.whereFrom);
+			const data = aq(schema).where(whereFrom).toJSON();
 
 			console.log('[infinite] queryFn fired:', {
 				whereCurrent: cursor?.whereCurrent,

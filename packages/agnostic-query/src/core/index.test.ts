@@ -161,15 +161,101 @@ describe('aq builder', () => {
 		const result = aq<DemoShape>()
 			.where(({ or, and, where }) =>
 				or([
-					where('role', 'eq', 'admin'),
-					// and returns QueryWhere directly, can't nest in or which takes WhereExpr[]
-					// this tests flat or only
+					and([where('role', 'eq', 'admin'), where('status', 'eq', 'active')]),
+					where('age', 'gt', 30),
 				]),
 			)
 			.toJSON();
 		expect(result.where).toEqual({
 			op: 'or',
-			conditions: [{ field: ['role'], op: 'eq', value: 'admin' }],
+			conditions: [
+				{
+					op: 'and',
+					conditions: [
+						{ field: ['role'], op: 'eq', value: 'admin' },
+						{ field: ['status'], op: 'eq', value: 'active' },
+					],
+				},
+				{ field: ['age'], op: 'gt', value: 30 },
+			],
+		});
+	});
+
+	it('deeply nested: and > or > and', () => {
+		const result = aq<DemoShape>()
+			.where(({ or, and, where }) =>
+				and([
+					or([
+						and([where('name', 'eq', 'a'), where('status', 'eq', 'x')]),
+						and([where('name', 'eq', 'b'), where('status', 'eq', 'y')]),
+					]),
+					where('age', 'gte', 18),
+				]),
+			)
+			.toJSON();
+		expect(result.where).toEqual({
+			op: 'and',
+			conditions: [
+				{
+					op: 'or',
+					conditions: [
+						{
+							op: 'and',
+							conditions: [
+								{ field: ['name'], op: 'eq', value: 'a' },
+								{ field: ['status'], op: 'eq', value: 'x' },
+							],
+						},
+						{
+							op: 'and',
+							conditions: [
+								{ field: ['name'], op: 'eq', value: 'b' },
+								{ field: ['status'], op: 'eq', value: 'y' },
+							],
+						},
+					],
+				},
+				{ field: ['age'], op: 'gte', value: 18 },
+			],
+		});
+	});
+
+	it('nested not within and within or', () => {
+		const result = aq<DemoShape>()
+			.where(({ or, and, not, where }) =>
+				or([
+					and([not(where('status', 'eq', 'banned')), where('age', 'gte', 18)]),
+					where('role', 'eq', 'admin'),
+				]),
+			)
+			.toJSON();
+		expect(result.where).toEqual({
+			op: 'or',
+			conditions: [
+				{
+					op: 'and',
+					conditions: [
+						{ op: 'not', condition: { field: ['status'], op: 'eq', value: 'banned' } },
+						{ field: ['age'], op: 'gte', value: 18 },
+					],
+				},
+				{ field: ['role'], op: 'eq', value: 'admin' },
+			],
+		});
+	});
+
+	it('double not: not(not(...))', () => {
+		const result = aq<DemoShape>()
+			.where(({ not, where }) =>
+				not(not(where('status', 'eq', 'active'))),
+			)
+			.toJSON();
+		expect(result.where).toEqual({
+			op: 'not',
+			condition: {
+				op: 'not',
+				condition: { field: ['status'], op: 'eq', value: 'active' },
+			},
 		});
 	});
 
@@ -330,5 +416,54 @@ describe('aq builder', () => {
 				{ field: ['age'], op: 'gt', value: 18 },
 			],
 		});
+	});
+
+	it('where(null) is a no-op', () => {
+		const result = aq<DemoShape>()
+			.where(null)
+			.where('name', 'eq', 'Alice')
+			.toJSON();
+		expect(result.where).toEqual({ field: ['name'], op: 'eq', value: 'Alice' });
+	});
+
+	it('where(undefined) is a no-op', () => {
+		const result = aq<DemoShape>()
+			.where(undefined)
+			.where('name', 'eq', 'Alice')
+			.toJSON();
+		expect(result.where).toEqual({ field: ['name'], op: 'eq', value: 'Alice' });
+	});
+
+	it('where() with no args is a no-op', () => {
+		const result = aq<DemoShape>()
+			.where()
+			.where('name', 'eq', 'Alice')
+			.toJSON();
+		expect(result.where).toEqual({ field: ['name'], op: 'eq', value: 'Alice' });
+	});
+
+	it('null/undefined where does not break chaining', () => {
+		const result = aq<DemoShape>()
+			.where('status', 'eq', 'active')
+			.where(null)
+			.where('age', 'gt', 18)
+			.where(undefined)
+			.toJSON();
+		expect(result.where).toEqual({
+			op: 'and',
+			conditions: [
+				{ field: ['status'], op: 'eq', value: 'active' },
+				{ field: ['age'], op: 'gt', value: 18 },
+			],
+		});
+	});
+
+	it('not with null condition produces undefined where', () => {
+		const result = aq<DemoShape>()
+			.where(({ not, where }) =>
+				not(where(null!)),
+			)
+			.toJSON();
+		expect(result.where).toBeUndefined();
 	});
 });
