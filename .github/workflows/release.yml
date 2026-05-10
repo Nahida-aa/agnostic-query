@@ -18,9 +18,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
       - uses: oven-sh/setup-bun@v2
       - run: bun install
-      - run: |
-          bun test; status=$?
-          if [ $status -eq 99 ]; then exit 0; else exit $status; fi
+      - run: bun test || [ $? -eq 99 ]
         working-directory: packages/agnostic-query
       - name: Configure git
         run: |
