@@ -213,7 +213,7 @@ import { createWhereSchema } from 'agnostic-query/zod'
 import { createWhereSchema } from 'agnostic-query/valibot'
 
 // Drizzle adapter — apply where to Drizzle query
-import { toDrizzleWhere } from 'agnostic-query/drizzle'
+import { toDrizzle, toDrizzleWhere, toDrizzleOrderBy } from 'agnostic-query/drizzle'
 
 // db0 adapter — execute schema as parameterised SQL via db0
 import { query } from 'agnostic-query/db0'
@@ -358,10 +358,19 @@ const users = await query.execute()
 
 ## Adapter: Drizzle
 
+One-shot: build and execute the full query with `toDrizzle`:
+
+```ts
+import { toDrizzle } from 'agnostic-query/drizzle/pg'
+
+const rows = await toDrizzle<User>(db, userTable, data)
+```
+
+Or compose manually for more control:
+
 ```ts
 import { toDrizzleWhere, toDrizzleOrderBy } from 'agnostic-query/drizzle'
 import { and, eq } from 'drizzle-orm'
-import * as schema from '~/db/schema'
 
 const conditions = [
   toDrizzleWhere(schema.user, data.where),
@@ -381,40 +390,43 @@ const rows = await db
 
 Browser code builds a query with the `aq` builder, serializes the `QuerySchema`, sends it to a server function, then executes via db0 with full type safety.
 
-**Browser**
+**Browser** (shared type from `#/features/project/project.schema`)
 
 ```ts
 import { aq } from 'agnostic-query'
+import type { Project } from '#/features/project/project.schema.ts'
 
-interface User {
-  id: number
-  name: string
-  age: number
-  status: string
-}
-
-const schema = aq<User>({ table: 'users' })
+const schema = aq<Project>({ table: 'project' })
   .where('age', 'gte', 18)
   .where('status', 'in', ['active', 'pending'])
   .orderBy('name', 'asc')
   .limit(20)
   .toJSON()
 
-const users = await getUsers({ data: schema })
+const projects = await listProject({ data: schema })
 ```
 
 **Server**
 
+Because `QuerySchema` is plain data, you can inject access control conditions before executing:
+
 ```ts
+import { aq } from 'agnostic-query'
 import { query } from 'agnostic-query/db0'
 import { createDatabase } from 'db0'
 import pg from 'db0/connectors/pg'
+import { getCurrentUser } from '#/features/auth/auth.fn.ts'
 
 const db = createDatabase(pg({ url: process.env.DATABASE_URL }))
 
-export const getUsers = createServerFn({ method: 'GET' })
+export const listProject = createServerFn({ method: 'GET' })
   .handler(async ({ data }) => {
-    return await query<User>(db, data)
+    const { userId } = getCurrentUser()
+
+    // Inject tenant isolation — reuse aq builder with existing schema
+    const enriched = aq(data).where('user_id', 'eq', userId).toJSON()
+
+    return await query(db, enriched)
   })
 ```
 
