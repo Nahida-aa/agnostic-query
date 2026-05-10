@@ -20,7 +20,6 @@
   "files": [
     "src",
     "README.md",
-    "README.zh-CN.md",
     "LICENSE",
     "package.json"
   ],
@@ -59,7 +58,7 @@
   "scripts": {
     "typecheck": "tsgo --noEmit",
     "test": "bun test",
-    "prepublishOnly": "cp ../../README.md . && cp ../../README.zh-CN.md . && cp ../../LICENSE ."
+    "prepublishOnly": "cp ../../README.md . && cp ../../LICENSE ."
   },
   "peerDependencies": {
     "zod": "^4.4.3",
