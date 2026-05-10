@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { seedProjects } from '#/features/project/project.fn.ts';
 import { infiniteProjectQuery } from '#/features/project/project.sync.ts';
 
-export const Route = createFileRoute('/posts')({
+export const Route = createFileRoute('/projects')({
 	component: RouteComponent,
 });
 
@@ -20,6 +20,7 @@ function RouteComponent() {
 
 	const {
 		pages,
+		data,
 		fetchNextPage,
 		hasNextPage,
 		isFetchingNextPage,
@@ -27,13 +28,13 @@ function RouteComponent() {
 		isReady,
 	} = useLiveInfiniteQuery(infiniteProjectQuery, {
 		pageSize: 10,
-		getNextPageParam: (lastPage, allPages) => {},
 	});
 
 	const totalLoaded = pages?.reduce((s, p) => s + p.length, 0) ?? 0;
 	const pageCount = pages?.length ?? 0;
 
 	console.log('[infinite] render:', {
+		dataLen: data?.length,
 		isReady,
 		isLoading,
 		pageCount,
@@ -63,16 +64,12 @@ function RouteComponent() {
 			)}
 
 			<div className="space-y-3">
-				{pages?.map((page, i) => (
-					<div key={i}>
-						{page.map((p: any) => (
-							<div key={p.id} className="border rounded-lg p-4">
-								<h2 className="font-semibold">{p.name}</h2>
-								<p className="text-xs text-gray-500">
-									{p.created_at?.toLocaleString() ?? p.created_at}
-								</p>
-							</div>
-						))}
+				{data?.map((p, i) => (
+					<div key={p.id} className="border rounded-lg p-4">
+						<h2 className="font-semibold">{p.name}</h2>
+						<p className="text-xs text-gray-500">
+							{p.created_at?.toLocaleString() ?? p.created_at}
+						</p>
 					</div>
 				))}
 			</div>

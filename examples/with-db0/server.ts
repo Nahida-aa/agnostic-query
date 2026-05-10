@@ -1,8 +1,7 @@
 import { createDatabase } from 'db0';
 import pgliteConnector from 'db0/connectors/pglite';
 import { toDb0Where, query } from 'agnostic-query/db0/pg';
-import type { QueryWhere } from 'agnostic-query/core/where';
-import type { QuerySchema } from 'agnostic-query';	
+import { newWhere, type QuerySchema, type QueryWhere } from 'agnostic-query';	
 
 
 const db = createDatabase(pgliteConnector());
@@ -23,7 +22,6 @@ Bun.serve({
 		if (req.method !== 'POST') return new Response('send POST with JSON body', { status: 405 });
 
 		const body = (await req.json()) as QuerySchema<User>;
-
 		const rows = await query(db, body)
 
 		return Response.json(rows);
