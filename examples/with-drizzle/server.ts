@@ -1,8 +1,8 @@
 import { PGlite } from '@electric-sql/pglite';
-import { drizzle } from 'drizzle-orm/pglite';
 import { sql } from 'drizzle-orm';
-import { toDrizzleOrderBy, toDrizzleWhere } from '../../packages/agnostic-query/src/drizzle/pg';
+import { toDrizzleOrderBy, toDrizzleWhere, toDrizzle } from 'agnostic-query/drizzle/pg';
 import { whereSchema, usersTable } from './schema';
+import { drizzle } from 'drizzle-orm/pglite';
 
 const client = new PGlite();
 const db = drizzle(client);
@@ -22,6 +22,7 @@ Bun.serve({
 		const users1Q =  db.select().from(usersTable).where(whereExpr).orderBy(...toDrizzleOrderBy(usersTable));
 		const users1 = await users1Q
 		const user1Sql = users1Q.toSQL();
+		 const query = await toDrizzle(db, usersTable, { where: parsed.data });
 		return Response.json({ sql: user1Sql.sql, params: user1Sql.params, users1 });
 	},
 });

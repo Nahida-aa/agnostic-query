@@ -18,6 +18,7 @@ import {
 } from 'drizzle-orm';
 import type { BuildColumns } from 'drizzle-orm/column-builder';
 import type { SelectedFields } from 'drizzle-orm/gel-core/query-builders/select.types';
+import type { NeonHttpDatabase } from 'drizzle-orm/neon-http';
 import {
 	PgDatabase,
 	PgSelectBase,
@@ -25,6 +26,8 @@ import {
 } from 'drizzle-orm/pg-core';
 import type { PgColumnBuilderBase } from 'drizzle-orm/pg-core/columns/common';
 import type { PgSelectBuilder } from 'drizzle-orm/pg-core/query-builders';
+import type { PgTable, TableConfig } from 'drizzle-orm/pg-core/table';
+import type { PgliteDatabase } from 'drizzle-orm/pglite';
 import type { SelectMode } from 'drizzle-orm/query-builders/select.types';
 import type { QuerySchema } from '../core/index.ts';
 import type { QueryOrderBy } from '../core/order-by.ts';
@@ -119,28 +122,28 @@ export const toDrizzleOrderBy = <TShape extends Record<string, any>>(
 	});
 };
 
-type SelectFn = () => PgSelectBuilder<undefined>;
-
-export const toDrizzle = <
-	TShape extends SchemaShape,
-	TTableName extends string,
-	TSelection extends ColumnsSelection,
-	TSelectMode extends SelectMode,
-	TSchema extends string,
-	TColumnsMap extends Record<string, PgColumnBuilderBase>,
-	TTable extends PgTableWithColumns<{
-		name: TTableName;
-		schema: TSchema;
-		columns: BuildColumns<TTableName, TColumnsMap, 'pg'>;
-		dialect: 'pg';
-	}>,
->(
-	select: SelectFn,
-	table: TTable,
+export const toDrizzle = <TShape extends SchemaShape>(
+	db:
+		| PgliteDatabase<Record<string, never>>
+		| NeonHttpDatabase<Record<string, never>>,
+	table: any,
 	querySchema: QuerySchema<TShape>,
 ) => {
-	return select()
+	const query = db
+		.select()
 		.from(table)
 		.where(toDrizzleWhere(table, querySchema.where))
 		.orderBy(...toDrizzleOrderBy(table, querySchema.orderBy));
+	if (querySchema.limit && querySchema.offset) {
+		return query.limit(querySchema.limit).offset(querySchema.offset) as Promise<
+			TShape[]
+		>;
+	}
+	if (querySchema.limit) {
+		return query.limit(querySchema.limit) as Promise<TShape[]>;
+	}
+	if (querySchema.offset) {
+		return query.offset(querySchema.offset) as Promise<TShape[]>;
+	}
+	return query as Promise<TShape[]>;
 };
