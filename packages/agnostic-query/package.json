@@ -1,6 +1,7 @@
 {
   "name": "agnostic-query",
-  "version": "0.0.7",
+  "description": "Type-safe fluent builder for portable query schemas. Runtime-agnostic, database-agnostic — the same QuerySchema drives Drizzle, Kysely, db0, or raw SQL.",
+  "version": "0.0.8",
   "type": "module",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
