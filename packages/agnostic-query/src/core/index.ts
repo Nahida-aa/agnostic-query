@@ -128,32 +128,31 @@ interface AgnosticQuery<TShape extends SchemaShape = SchemaShape> {
 	offset(value?: number): AgnosticQuery<TShape>;
 }
 
-const newWhere = <
-	TShape extends SchemaShape,
-	Col extends
-		| FieldPathByShape<TShape>
-		| (keyof TShape & string) = keyof TShape & string,
-	Op extends WhereComparisonOp = WhereComparisonOp,
->(
-	col: Col,
-	op: Op,
-	value: Op extends 'in'
-		? Col extends keyof TShape & string
-			? TShape[Col][]
-			: Col extends FieldPathByShape<TShape>
-				? GetPathType<TShape, Col>[]
-				: never
-		: Col extends keyof TShape & string
-			? TShape[Col]
-			: Col extends FieldPathByShape<TShape>
-				? GetPathType<TShape, Col>
-				: never,
-) => {
-	const field = Array.isArray(col) ? col : [col];
-	const inputWhere =
-		op === 'in' ? { field, op, values: value } : { field, op, value };
-	return inputWhere as ComparisonWhere<TShape>;
-};
+export const newComparisonWhere =
+	<TShape extends SchemaShape>() =>
+	<
+		Col extends FieldPathByShape<TShape> | (keyof TShape & string),
+		Op extends WhereComparisonOp,
+	>(
+		col: Col,
+		op: Op,
+		value: Op extends 'in'
+			? Col extends keyof TShape & string
+				? TShape[Col][]
+				: Col extends FieldPathByShape<TShape>
+					? GetPathType<TShape, Col>[]
+					: never
+			: Col extends keyof TShape & string
+				? TShape[Col]
+				: Col extends FieldPathByShape<TShape>
+					? GetPathType<TShape, Col>
+					: never,
+	) => {
+		const field = Array.isArray(col) ? col : [col];
+		const inputWhere =
+			op === 'in' ? { field, op, values: value } : { field, op, value };
+		return inputWhere as ComparisonWhere<TShape>;
+	};
 
 export const aq = <TShape extends SchemaShape = SchemaShape>(
 	initState?: QuerySchema<TShape>,
@@ -245,7 +244,7 @@ type DemoShape = {
 		};
 	};
 };
-const where5 = newWhere<DemoShape>('name', 'eq', '5');
+const where5 = newComparisonWhere<DemoShape>()('name', 'eq', '5');
 aq<DemoShape>()
 	.where(['address', 'city', 'name'], 'eq', '1')
 	.where(['tags', 0, 'name'], 'eq', '2')

@@ -95,6 +95,51 @@ aq<UserShape>()
   .orderBy(['address', 'city', 'name'], 'desc')
 ```
 
+### Raw `QueryWhere` object
+
+Pass a pre-built `QueryWhere` directly to `.where()` — useful when reusing conditions from an existing schema or building programmatically:
+
+```ts
+const roleWhere: QuerySchema<UserShape>['where'] = {
+  field: ['role'],
+  op: 'eq',
+  value: 'admin',
+}
+
+const schema = aq<UserShape>()
+  .where('name', 'eq', 'Alice')
+  .where(roleWhere)
+  .toJSON()
+// → {
+//     where: {
+//       op: 'and',
+//       conditions: [
+//         { field: ['name'], op: 'eq', value: 'Alice' },
+//         { field: ['role'], op: 'eq', value: 'admin' },
+//       ],
+//     },
+//   }
+```
+
+This also works inside callbacks for combining builder and raw conditions:
+
+```ts
+const schema = aq<UserShape>()
+  .where(({ or, where }) =>
+    or([where('name', 'eq', 'Alice'), where(roleWhere)]),
+  )
+  .toJSON()
+// → {
+//     where: {
+//       op: 'or',
+//       conditions: [
+//         { field: ['name'], op: 'eq', value: 'Alice' },
+//         { field: ['role'], op: 'eq', value: 'admin' },
+//       ],
+//     },
+//   }
+```
+
 ### Chaining `.orderBy()`
 
 Multiple `.orderBy()` calls append entries:
@@ -155,7 +200,7 @@ bun add kysely  # optional
 
 ```ts
 // Core types & builder
-import { aq, QuerySchema, QueryWhere, QueryOrderBy, findWhere } from 'agnostic-query'
+import { aq, QuerySchema, QueryWhere, QueryOrderBy, findWhere, newComparisonWhere } from 'agnostic-query'
 
 // Zod validation
 import { createWhereSchema } from 'agnostic-query/zod'
@@ -235,6 +280,39 @@ searcher.find(['age'])            // { field: ['age'], op: 'lt', value: 30 }
 searcher.find(['role'], 'eq')     // { field: ['role'], op: 'eq', value: 'admin' }
 searcher.eq(['name'])             // { field: ['name'], op: 'eq', value: 'Alice' }
 searcher.in(['role'])             // undefined
+```
+
+### newComparisonWhere: build a ComparisonWhere
+
+Create a reusable `ComparisonWhere` object with full type inference:
+
+```ts
+import { newComparisonWhere } from 'agnostic-query'
+
+interface User {
+  name: string
+  age: number
+  status: string
+  tags: { id: number; name: string }[]
+}
+
+const nameEq = newComparisonWhere<User>()('name', 'eq', 'Alice')
+// → { field: ['name'], op: 'eq', value: 'Alice' }
+
+const statusIn = newComparisonWhere<User>()('status', 'in', ['active', 'pending'])
+// → { field: ['status'], op: 'in', values: ['active', 'pending'] }
+
+const tagName = newComparisonWhere<User>()(['tags', 0, 'name'], 'like', '%tech%')
+// → { field: ['tags', 0, 'name'], op: 'like', value: '%tech%' }
+```
+
+Pass the result directly to `.where()` on a builder or inside a callback:
+
+```ts
+const filter = aq<User>()
+  .where(nameEq)
+  .where(statusIn)
+  .toJSON()
 ```
 
 ### Complex field paths (JSONB / arrays)

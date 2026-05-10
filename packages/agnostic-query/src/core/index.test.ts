@@ -247,4 +247,88 @@ describe('aq builder', () => {
 		expect(result.where).toEqual({ field: ['name'], op: 'eq', value: 'Alice' });
 		expect(result.orderBy).toEqual([{ field: ['age'], direction: 'desc' }]);
 	});
+
+	it('where accepts a QueryWhere object directly', () => {
+		const where: QuerySchema<DemoShape>['where'] = {
+			field: ['name'],
+			op: 'eq',
+			value: 'Alice',
+		};
+		const result = aq<DemoShape>().where(where).toJSON();
+		expect(result.where).toEqual({ field: ['name'], op: 'eq', value: 'Alice' });
+	});
+
+	it('where with QueryWhere object appends via AND', () => {
+		const existing: QuerySchema<DemoShape>['where'] = {
+			field: ['name'],
+			op: 'eq',
+			value: 'Alice',
+		};
+		const extra: QuerySchema<DemoShape>['where'] = {
+			field: ['age'],
+			op: 'gt',
+			value: 18,
+		};
+		const result = aq<DemoShape>().where(existing).where(extra).toJSON();
+		expect(result.where).toEqual({
+			op: 'and',
+			conditions: [
+				{ field: ['name'], op: 'eq', value: 'Alice' },
+				{ field: ['age'], op: 'gt', value: 18 },
+			],
+		});
+	});
+
+	it('where with QueryWhere in callback', () => {
+		const roleWhere: QuerySchema<DemoShape>['where'] = {
+			field: ['role'],
+			op: 'eq',
+			value: 'admin',
+		};
+		const result = aq<DemoShape>()
+			.where(({ or, where }) =>
+				or([where('name', 'eq', 'Alice'), where(roleWhere)]),
+			)
+			.toJSON();
+		expect(result.where).toEqual({
+			op: 'or',
+			conditions: [
+				{ field: ['name'], op: 'eq', value: 'Alice' },
+				{ field: ['role'], op: 'eq', value: 'admin' },
+			],
+		});
+	});
+
+	it('where with QueryWhere using in operator', () => {
+		const statusWhere: QuerySchema<DemoShape>['where'] = {
+			field: ['status'],
+			op: 'in',
+			values: ['active', 'pending'],
+		};
+		const result = aq<DemoShape>().where(statusWhere).toJSON();
+		expect(result.where).toEqual({
+			field: ['status'],
+			op: 'in',
+			values: ['active', 'pending'],
+		});
+	});
+
+	it('where mix QueryWhere object and simple where', () => {
+		const nameWhere: QuerySchema<DemoShape>['where'] = {
+			field: ['name'],
+			op: 'eq',
+			value: 'Alice',
+		};
+		const result = aq<DemoShape>()
+			.where(nameWhere)
+			.where('age', 'gt', 18)
+			.toJSON();
+		expect(result.where).toEqual({
+			op: 'and',
+			conditions: [
+				{ field: ['name'], op: 'eq', value: 'Alice' },
+				{ field: ['age'], op: 'gt', value: 18 },
+			],
+		});
+	});
 });
