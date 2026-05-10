@@ -1,5 +1,5 @@
 {
-  "name": "agnostic-query",
+  "name": "agnostic-query-monorepo",
   "private": true,
   "type": "module",
   "workspaces": [
