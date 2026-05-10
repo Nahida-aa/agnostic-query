@@ -2,6 +2,8 @@
 
 [English](README.md) | [中文](README.zh-CN.md)
 
+[![codecov](https://codecov.io/gh/Nahida-aa/agnostic-query/graph/badge.svg)](https://codecov.io/gh/Nahida-aa/agnostic-query)
+
 使用类型安全的流式 API 构建可移植的 `QuerySchema` 对象，再转换为任意 ORM 或原生 SQL。不是 ORM 的替代品——只减少在全栈中构建、校验和翻译查询条件的样板代码。
 
 **运行时无关** — 纯数据，可在浏览器、服务端和边缘运行环境工作。序列化为 JSON，通过 HTTP 传输，在任何平台上消费。

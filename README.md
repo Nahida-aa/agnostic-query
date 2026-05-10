@@ -2,6 +2,8 @@
 
 [English](README.md) | [中文](README.zh-CN.md)
 
+[![codecov](https://codecov.io/gh/Nahida-aa/agnostic-query/graph/badge.svg)](https://codecov.io/gh/Nahida-aa/agnostic-query)
+
 Build portable `QuerySchema` objects with a type-safe fluent API, then convert to any ORM or raw SQL. Not an ORM replacement — just reduces the boilerplate of building, validating, and translating query conditions across the stack.
 
 **Runtime-agnostic** — plain data that work in browsers, servers, and edge runtimes. Serialize to JSON, transmit over HTTP, consume on any platform.
