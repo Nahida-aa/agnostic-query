@@ -200,7 +200,7 @@ bun add kysely  # optional
 
 ```ts
 // Core types & builder
-import { aq, QuerySchema, QueryWhere, QueryOrderBy, findWhere, newComparisonWhere } from 'agnostic-query'
+import { aq, QuerySchema, QueryWhere, QueryOrderBy, findWhere, newComparisonWhere, newWhere } from 'agnostic-query'
 
 // Zod validation
 import { createWhereSchema } from 'agnostic-query/zod'
@@ -313,6 +313,54 @@ const filter = aq<User>()
   .where(nameEq)
   .where(statusIn)
   .toJSON()
+```
+
+### newWhere: where-only builder
+
+Build a `QueryWhere` independently of a full `QuerySchema` — useful when you want to construct, compose, and reuse where conditions in isolation:
+
+```ts
+import { newWhere } from 'agnostic-query'
+
+const w = newWhere<User>()
+  .where('name', 'eq', 'Alice')
+  .where('age', 'gte', 18)
+  .toJSON()
+// → {
+//     op: 'and',
+//     conditions: [
+//       { field: ['name'], op: 'eq', value: 'Alice' },
+//       { field: ['age'], op: 'gte', value: 18 },
+//     ],
+//   }
+```
+
+Accepts an initial `QueryWhere` to extend, with all the same overloads as `aq().where()`:
+
+```ts
+const base = newWhere<User>({ field: ['status'], op: 'eq', value: 'active' })
+
+const full = base
+  .where(({ or, and, where }) =>
+    or([
+      and([where('role', 'eq', 'admin'), where('age', 'gte', 18)]),
+      where('role', 'eq', 'moderator'),
+    ]),
+  )
+  .toJSON()
+```
+
+Pass the result directly into `QuerySchema` or another `newWhere`:
+
+```ts
+const schema: QuerySchema<User> = {
+  limit: 20,
+  where: newWhere<User>()
+    .where(fromTanDbWhere(where))
+    .where(fromTanDbWhere(cursor?.whereFrom))
+    .toJSON(),
+  orderBy: fromTanDbOrderBy(orderBy),
+}
 ```
 
 ### Complex field paths (JSONB / arrays)

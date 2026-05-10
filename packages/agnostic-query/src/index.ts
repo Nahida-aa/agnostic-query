@@ -14,4 +14,4 @@ export type {
 	WhereComparisonOp,
 	WhereOp,
 } from './core/where';
-export { createExpr, findWhere, newComparisonWhere } from './core/where';
+export { createExpr, findWhere, newComparisonWhere, newWhere } from './core/where';
