@@ -13,7 +13,7 @@ The portable query model. Can be constructed via the `aq` builder or as a plain 
 
 ```ts
 interface QuerySchema<TShape extends SchemaShape = SchemaShape> {
-  where?: QueryWhere<TShape>
+  where?: QueryWhere<TShape> | null
   orderBy?: QueryOrderBy<TShape>[]
   limit?: number
   offset?: number
