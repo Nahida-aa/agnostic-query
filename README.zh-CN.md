@@ -4,7 +4,7 @@
 
 使用类型安全的流式 API 构建可移植的 `QuerySchema` 对象，再转换为任意 ORM 或原生 SQL。不是 ORM 的替代品——只减少在全栈中构建、校验和翻译查询条件的样板代码。
 
-**运行时无关** — 纯数据，可在浏览器、服务端和边缘运行环境工作。序列化为 JSON，通过 HTTP 传输，在任何平台上消费。
+**运行时无关** — 纯数据，可在客户端、服务端和边缘运行环境工作。序列化为 JSON，通过 HTTP 传输，在任何平台上消费。
 
 **数据库无关** — 同一个 `QuerySchema` 可驱动 Drizzle、Kysely、原生 SQL（PostgreSQL），或任何未来的适配器。
 
@@ -465,9 +465,9 @@ const rows = await db
 
 ## 端到端：aq → QuerySchema → HTTP → Drizzle
 
-浏览器端使用 `aq` 构建器构建查询，序列化 `QuerySchema` 后发送到服务端函数，然后通过 Drizzle 执行，全程类型安全。
+客户端使用 `aq` 构建器构建查询，序列化 `QuerySchema` 后发送到服务端函数，然后通过 Drizzle 执行，全程类型安全。
 
-**浏览器端**（共享类型来自 `#/features/project/project.schema`）
+**客户端**（共享类型来自 `#/features/project/project.schema`）
 
 ```ts
 import { aq } from 'agnostic-query'

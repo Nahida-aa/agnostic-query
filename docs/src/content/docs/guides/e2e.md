@@ -5,9 +5,9 @@ description: Full-stack examples showing aq → QuerySchema → HTTP → databas
 
 ## aq → QuerySchema → HTTP → Drizzle
 
-Browser code builds a query with the `aq` builder, serializes the `QuerySchema`, and sends it to a server function.
+Client code builds a query with the `aq` builder, serializes the `QuerySchema`, and sends it to a server function.
 
-**Browser**
+**Client**
 
 ```ts
 import { aq } from 'agnostic-query'

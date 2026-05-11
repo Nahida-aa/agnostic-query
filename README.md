@@ -467,9 +467,9 @@ const rows = await db
 
 ## End-to-end: aq → QuerySchema → HTTP → Drizzle
 
-Browser code builds a query with the `aq` builder, serializes the `QuerySchema`, sends it to a server function, then executes via db0 with full type safety.
+Client code builds a query with the `aq` builder, serializes the `QuerySchema`, sends it to a server function, then executes via db0 with full type safety.
 
-**Browser** (shared type from `#/features/project/project.schema`)
+**Client** (shared type from `#/features/project/project.schema`)
 
 ```ts
 import { aq } from 'agnostic-query'
