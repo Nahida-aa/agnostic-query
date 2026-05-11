@@ -7,7 +7,7 @@ import {
 	createCollection,
 	type InitialQueryBuilder,
 } from '@tanstack/react-db';
-import { aq, newWhere, type QuerySchema } from 'agnostic-query/index';
+import { aq, newWhere, type QuerySchema } from 'agnostic-query';
 import { fromTanDbOrderBy, fromTanDbWhere } from 'agnostic-query/tanstack-db';
 import { listProject } from '#/features/project/project.fn.ts';
 import {
@@ -19,8 +19,9 @@ import { getQueryClient } from '#/integrations/tanstack-query/provider';
 export const projectCollect = createCollection(
 	queryCollectionOptions({
 		queryKey: ['project'],
-		queryClient: getQueryClient(),
 		schema: projectSchema,
+		getKey: (item) => item.id,
+		queryClient: getQueryClient(),
 		syncMode: 'on-demand',
 		autoIndex: 'eager',
 		defaultIndexType: BasicIndex,
@@ -54,7 +55,6 @@ export const projectCollect = createCollection(
 
 			return result;
 		},
-		getKey: (item) => item.id,
 		onInsert: async () => {},
 		onUpdate: async () => {},
 		onDelete: async () => {},

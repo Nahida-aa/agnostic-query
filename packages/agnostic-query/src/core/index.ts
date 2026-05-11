@@ -22,7 +22,7 @@ export interface QuerySchema<TShape extends SchemaShape = SchemaShape> {
 	orderBy?: QueryOrderBy<TShape>[];
 	limit?: number;
 	offset?: number;
-	cursor?: any; // TODO: 先不实现
+	mate?: Record<string, any>; // 额外的元信息
 	table?: string; // 表名, 是可选的, 因为 QuerySchema 只是数据模型, 不帮你执行操作
 }
 
@@ -49,9 +49,9 @@ interface AgnosticQuery<TShape extends SchemaShape = SchemaShape> {
 }
 
 export const aq = <TShape extends SchemaShape = SchemaShape>(
-	initState?: QuerySchema<TShape>,
+	state?: QuerySchema<TShape>,
 ): AgnosticQuery<TShape> => {
-	const state: QuerySchema<TShape> = initState || {};
+	// const state: QuerySchema<TShape> = initState || {};
 	const where = <
 		Col extends FieldPathByShape<TShape> | (keyof TShape & string),
 		Op extends WhereComparisonOp,
@@ -64,13 +64,13 @@ export const aq = <TShape extends SchemaShape = SchemaShape>(
 		const inputWhere =
 			op === 'in' ? { field, op, values: value } : { field, op, value };
 		const oldWheres =
-			state.where?.op === 'and'
+			state?.where?.op === 'and'
 				? state.where.conditions || []
-				: state.where
+				: state?.where
 					? [state.where]
 					: [];
 
-		const newWhere = state.where
+		const newWhere = state?.where
 			? {
 					op: 'and',
 					conditions: [...oldWheres, inputWhere],
@@ -82,7 +82,7 @@ export const aq = <TShape extends SchemaShape = SchemaShape>(
 		});
 	};
 	return {
-		toJSON: () => state,
+		toJSON: () => state || {},
 		where: (col: any, op?: any, value?: any) => {
 			if (col === null || col === undefined) {
 				return aq<TShape>(state);
@@ -91,7 +91,7 @@ export const aq = <TShape extends SchemaShape = SchemaShape>(
 				const cbWhere = (col as (eb: WhereExpr<TShape>) => WhereExpr<TShape>)(
 					createExpr(),
 				)._q;
-				const changedWhere = state.where
+				const changedWhere = state?.where
 					? { op: 'and', conditions: [state.where, cbWhere] }
 					: cbWhere;
 				return aq<TShape>({
@@ -101,7 +101,7 @@ export const aq = <TShape extends SchemaShape = SchemaShape>(
 			}
 			// 新增：col 是 QueryWhere 对象
 			if (col && typeof col === 'object' && 'op' in col) {
-				const changedWhere: QueryWhere<TShape> = state.where
+				const changedWhere: QueryWhere<TShape> = state?.where
 					? { op: 'and', conditions: [state.where, col] }
 					: col;
 				return aq<TShape>({ ...state, where: changedWhere });
@@ -115,7 +115,7 @@ export const aq = <TShape extends SchemaShape = SchemaShape>(
 			const field = (
 				Array.isArray(col) ? col : [col]
 			) as FieldPathByShape<TShape>;
-			const newOrderBy = state.orderBy
+			const newOrderBy = state?.orderBy
 				? [...state.orderBy, { field, direction }]
 				: [{ field, direction }];
 			return aq<TShape>({ ...state, orderBy: newOrderBy });

@@ -178,9 +178,8 @@ export const createExpr = <TShape extends SchemaShape>(
 	return expr as WhereExpr<TShape>;
 };
 export const newWhere = <TShape extends SchemaShape>(
-	initState?: QueryWhere<TShape> | null,
+	state?: QueryWhere<TShape> | null,
 ) => {
-	const state = initState ?? null;
 	const where = <
 		Col extends FieldPathByShape<TShape> | (keyof TShape & string),
 		Op extends WhereComparisonOp,
