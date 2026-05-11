@@ -1,10 +1,12 @@
+import type { LoadSubsetOptions } from '@tanstack/db';
 import {
 	parseOrderByExpression,
 	parseWhereExpression,
 } from '@tanstack/query-db-collection';
+import type { QuerySchema } from './core/index.ts';
 import type { QueryOrderBy } from './core/order-by.ts';
 import type { SchemaShape } from './core/schema.ts';
-import type { QueryWhere } from './core/where.ts';
+import { newWhere, type QueryWhere } from './core/where.ts';
 
 export type FromTanDbWhereParam = Parameters<typeof parseWhereExpression>[0];
 
@@ -81,3 +83,16 @@ export type FromTanDbOrderByParam = Parameters<
 export const fromTanDbOrderBy = <TShape extends SchemaShape>(
 	orderBy: FromTanDbOrderByParam,
 ) => parseOrderByExpression(orderBy) as unknown as QueryOrderBy<TShape>[];
+
+export const fromTanDb = <TShape extends SchemaShape>(
+	loadSubsetOptions?: LoadSubsetOptions,
+) => {
+	return {
+		limit: loadSubsetOptions?.limit,
+		// offset,
+		where: newWhere(fromTanDbWhere(loadSubsetOptions?.where))
+			.where(fromTanDbWhere(loadSubsetOptions?.cursor?.whereFrom))
+			.toJSON(),
+		orderBy: fromTanDbOrderBy(loadSubsetOptions?.orderBy),
+	} as QuerySchema<TShape>;
+};
