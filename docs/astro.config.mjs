@@ -4,7 +4,7 @@ import starlight from '@astrojs/starlight';
 import starlightCatppuccin from '@catppuccin/starlight'
 import starlightUiTweaks from 'starlight-ui-tweaks'
 import starlightGitHubAlerts from 'starlight-github-alerts';
-// bun add  starlight-ui-tweaks @catppuccin/starlight starlight-github-alerts
+import astroMermaid from 'astro-mermaid';
 
 export default defineConfig({
   site: 'https://nahida-aa.github.io/agnostic-query',
@@ -42,5 +42,6 @@ export default defineConfig({
         },
       ],
     }),
+    astroMermaid(),
   ],
 });
