@@ -5,20 +5,11 @@ description: The problem agnostic-query solves and how it fits into your stack.
 
 ## The Problem
 
-Modern full-stack TypeScript apps often use different query libraries on each side of the wire:
-
-| Side | Library | Query style |
-|------|---------|-------------|
-| **Client** | TanStack DB (`@tanstack/react-db`) | Collection-based, expressions as objects |
-| **Server** | Drizzle ORM | SQL-like API with typed tables |
-| **Server** | Kysely | SQL-like query builder |
-| **Server** | Raw SQL | String templates / parameterised queries |
-
-This means the same logical query — `WHERE age >= 18 AND status IN ('active', 'pending') ORDER BY name ASC LIMIT 20` — has to be expressed separately for TanStack DB, again for Drizzle or Kysely, and passed manually across the HTTP boundary.
+You use **TanStack DB** to build queries on the client, and **Drizzle** to execute them on the server. But they speak different query languages — the same `WHERE age >= 18` has to be expressed twice in two different APIs, and there's no serialisable format to pass it across the wire.
 
 The result:
 
-- **Duplicate code**: the same filtering logic written twice (or three times)
+- **Duplicate code**: the same filtering logic written twice
 - **No shared type safety**: a change to one side doesn't flag mismatches on the other
 - **Manual JSON bridging**: you invent your own query-object format and write ad-hoc converters
 - **No validation**: no way to guarantee the client isn't sending a malformed query

@@ -566,7 +566,7 @@ import {
   BasicIndex,
   createCollection,
   type InitialQueryBuilder,
-} from '@tanstack/react-db'
+} from '@tanstack/db'
 import { aq, newWhere, type QuerySchema } from 'agnostic-query/index'
 import { fromTanDbOrderBy, fromTanDbWhere } from 'agnostic-query/tanstack-db'
 import { listProject } from '#/features/project/project.fn.ts'
@@ -607,7 +607,7 @@ export const infiniteProjectQuery = (q: InitialQueryBuilder) =>
 **Route** (`projects.tsx`) — React component with infinite scroll using `useLiveInfiniteQuery`
 
 ```tsx
-import { useLiveInfiniteQuery } from '@tanstack/react-db'
+import { useLiveInfiniteQuery } from '@tanstack/db'
 import { createFileRoute } from '@tanstack/react-router'
 import { infiniteProjectQuery } from '#/features/project/project.sync.ts'
 
