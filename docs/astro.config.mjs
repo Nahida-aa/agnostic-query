@@ -26,6 +26,7 @@ export default defineConfig({
         {
           label: 'Guides',
           items: [
+            { label: 'Why Agnostic Query?', slug: 'guides/why' },
             { label: 'Getting Started', slug: 'guides/getting-started' },
             { label: 'Builder API', slug: 'guides/builder' },
             { label: 'WHERE System', slug: 'guides/where' },

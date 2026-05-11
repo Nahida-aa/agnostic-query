@@ -2,7 +2,17 @@
 
 [English](README.md) | [中文](README.zh-CN.md)
 
-使用类型安全的流式 API 构建可移植的 `QuerySchema` 对象，再转换为任意 ORM 或原生 SQL。不是 ORM 的替代品——只减少在全栈中构建、校验和翻译查询条件的样板代码。
+查询只写一次——客户端和服务端共享，Drizzle、Kysely、原生 SQL 复用。
+
+如果你在客户端用 **TanStack DB**，服务端用 **Drizzle** 或 **Kysely**，一定知道这个痛点——同一个 `WHERE age >= 18` 要用两套不同的 API 写两遍。`agnostic-query` 用可移植的 `QuerySchema`（纯 JSON 格式）将它们桥接起来，适配器双向转换。
+
+**数据流：**
+
+```
+TanStack DB  ──fromTanDbWhere──>  QuerySchema  ──toDrizzle──>  Drizzle
+aq 构建器    ──.toJSON()──────>  QuerySchema  ──toKysely──>  Kysely
+Kysely 查询  ──fromKysely─────>  QuerySchema  ──toSql──────>  原生 SQL
+```
 
 **运行时无关** — 纯数据，可在客户端、服务端和边缘运行环境工作。序列化为 JSON，通过 HTTP 传输，在任何平台上消费。
 

@@ -2,9 +2,19 @@
 
 [English](README.md) | [中文](README.zh-CN.md)
 
-Build portable `QuerySchema` objects with a type-safe fluent API, then convert to any ORM or raw SQL. Not an ORM replacement — just reduces the boilerplate of building, validating, and translating query conditions across the stack.
+Write your query once — share it between client and server, reuse across Drizzle, Kysely, and raw SQL.
 
-**Runtime-agnostic** — plain data that work in browsers, servers, and edge runtimes. Serialize to JSON, transmit over HTTP, consume on any platform.
+If you use **TanStack DB** on the client and **Drizzle** or **Kysely** on the server, you know the pain: the same `WHERE age >= 18` has to be written twice in two different APIs. `agnostic-query` bridges them with a portable `QuerySchema` — a plain JSON format that adapters convert in both directions.
+
+**How it works:**
+
+```
+TanStack DB  ──fromTanDbWhere──>  QuerySchema  ──toDrizzle──>  Drizzle
+aq builder   ──.toJSON()──────>  QuerySchema  ──toKysely──>  Kysely
+Kysely query ──fromKysely─────>  QuerySchema  ──toSql──────>  Raw SQL
+```
+
+**Runtime-agnostic** — plain data that work in clients, servers, and edge runtimes. Serialize to JSON, transmit over HTTP, consume on any platform.
 
 **Database-agnostic** — the same `QuerySchema` drives Drizzle, Kysely, raw SQL (PostgreSQL), or any future adapter.
 

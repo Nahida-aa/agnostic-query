@@ -1,9 +1,9 @@
 ---
 title: Agnostic Query
-description: Type-safe fluent builder for portable QuerySchema objects. Runtime-agnostic, database-agnostic.
+description: Write your query once — share between client and server, reuse across Drizzle, Kysely, and raw SQL.
 template: splash
 hero:
-  tagline: Build portable QuerySchema objects with a type-safe fluent API, then convert to any ORM or raw SQL.
+  tagline: Write your query once. Share it between client and server. Reuse across Drizzle, Kysely, and raw SQL.
   actions:
     - text: Get Started
       link: /guides/getting-started/
@@ -16,30 +16,38 @@ hero:
 
 import { Card, CardGrid } from '@astrojs/starlight/components';
 
-## Build once, query anywhere
+## Why Agnostic Query?
 
-The same `QuerySchema` drives Drizzle, Kysely, raw SQL (PostgreSQL), or any future adapter. Not an ORM replacement — just reduces the boilerplate of building, validating, and translating query conditions across the stack.
+You use **TanStack DB** on the client and **Drizzle** or **Kysely** on the server. The same `WHERE age >= 18` has to be written twice in two different APIs. `agnostic-query` bridges them with a portable `QuerySchema` — a plain JSON format that adapters convert in both directions.
+
+```
+TanStack DB  ──fromTanDbWhere──>  QuerySchema  ──toDrizzle──>  Drizzle
+aq builder   ──.toJSON()──────>  QuerySchema  ──toKysely──>  Kysely
+Kysely query ──fromKysely─────>  QuerySchema  ──toSql──────>  Raw SQL
+```
 
 **Runtime-agnostic** — plain data that work in clients, servers, and edge runtimes. Serialize to JSON, transmit over HTTP, consume on any platform.
 
+**Database-agnostic** — the same `QuerySchema` drives Drizzle, Kysely, raw SQL (PostgreSQL), or any future adapter.
+
 <CardGrid stagger>
-  <Card title="Fluent Builder" icon="pencil">
+  <Card title="No More Duplicate Queries" icon="pencil">
+    Write the query once. fromTanDbWhere converts TanStack DB expressions, toDrizzle executes them — zero duplication.
+  </Card>
+  <Card title="Fluent Builder" icon="set more">
     Chain `.where()`, `.orderBy()`, `.limit()`, `.offset()` with full TypeScript type safety.
   </Card>
-  <Card title="WHERE System" icon="set more">
+  <Card title="WHERE System" icon="open-book">
     Comparison operators, logical nesting with `and`/`or`/`not`, raw `QueryWhere` objects, and standalone `newWhere()` builder.
   </Card>
-  <Card title="Database Adapters" icon="open-book">
+  <Card title="Database Adapters" icon="check">
     Drizzle, Kysely, raw SQL (PostgreSQL), db0, TanStack DB — all from the same `QuerySchema`.
   </Card>
-  <Card title="Runtime Validation" icon="check">
+  <Card title="Runtime Validation" icon="add-document">
     Optional Zod or Valibot schemas for validating `QuerySchema` at runtime boundaries.
   </Card>
   <Card title="Type Safety" icon="set more">
     Recursive field paths, operator-dependent value types, and full generic inference across the entire API.
-  </Card>
-  <Card title="Zero Runtime Dependencies" icon="add-document">
-    Core package has no dependencies. Only install the adapters you need.
   </Card>
 </CardGrid>
 
