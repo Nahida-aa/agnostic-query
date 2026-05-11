@@ -8,7 +8,11 @@ import {
 	type InitialQueryBuilder,
 } from '@tanstack/react-db';
 import { aq, newWhere, type QuerySchema } from 'agnostic-query';
-import { fromTanDbOrderBy, fromTanDbWhere } from 'agnostic-query/tanstack-db';
+import {
+	fromTanDb,
+	fromTanDbOrderBy,
+	fromTanDbWhere,
+} from 'agnostic-query/tanstack-db';
 import { listProject } from '#/features/project/project.fn.ts';
 import {
 	type Project,
@@ -26,25 +30,13 @@ export const projectCollect = createCollection(
 		autoIndex: 'eager',
 		defaultIndexType: BasicIndex,
 		queryFn: async ({ meta, queryKey }) => {
-			const { where, limit, offset, orderBy, cursor } =
-				meta?.loadSubsetOptions ?? {};
-			const data = {
-				limit,
-				// offset,
-				where: newWhere(fromTanDbWhere(where))
-					.where(fromTanDbWhere(cursor?.whereFrom))
-					.toJSON(),
-				orderBy: fromTanDbOrderBy(orderBy),
-				// cursor: fromTanDbWhere(cursor?.whereFrom),
-			};
+			const data = fromTanDb(meta?.loadSubsetOptions);
 
 			console.log('[infinite] queryFn fired:', {
-				whereCurrent: cursor?.whereCurrent,
-				cursor: cursor?.whereFrom,
+				whereCurrent: meta?.loadSubsetOptions?.cursor?.whereCurrent,
+				cursor: meta?.loadSubsetOptions?.cursor?.whereFrom,
 				queryKey,
-				limit,
-				offset,
-				orderBy,
+				offset: meta?.loadSubsetOptions?.offset,
 				data,
 			});
 
