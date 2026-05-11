@@ -14,6 +14,63 @@ The result:
 - **Manual JSON bridging**: you invent your own query-object format and write ad-hoc converters
 - **No validation**: no way to guarantee the client isn't sending a malformed query
 
+## Before & After
+
+Here's the real `queryFn` from the [example project](https://github.com/Nahida-aa/agnostic-query/tree/main/examples/tanstack-db) — without and with `agnostic-query`.
+
+### Without agnostic-query
+
+You'd have to manually parse the TanStack DB metadata, invent a JSON format, and write a Drizzle translator on the server:
+
+```ts
+// Client: manually building a query object from TanStack DB internals
+const data = {
+  limit: meta?.loadSubsetOptions?.limit,
+  where: manuallyParseWhere(meta?.loadSubsetOptions?.where),
+  orderBy: manuallyParseOrderBy(meta?.loadSubsetOptions?.orderBy),
+}
+// → ad-hoc { limit, where, orderBy } with no shared type
+```
+
+```ts
+// Server: receive ad-hoc JSON, manually translate to Drizzle
+export const listProject = createServerFn()
+  .handler(async ({ data }) => {
+    // Manually build Drizzle where/orderBy from the JSON
+    const conditions = data.where.map(...)
+    const rows = await db.select().from(projectTable)
+      .where(and(...conditions))
+      .orderBy(...)
+      .limit(data.limit)
+    return rows
+  })
+```
+
+### With agnostic-query
+
+One call on each side, shared types, automatic validation:
+
+```ts
+// Client: fromTanDb handles where, cursor, limit, orderBy in one line
+import { fromTanDb } from 'agnostic-query/tanstack-db'
+
+const data = fromTanDb<Project>(meta?.loadSubsetOptions)
+// → typed QuerySchema<Project>
+```
+
+```ts
+// Server: receive QuerySchema, execute via Drizzle, validate automatically
+import { toDrizzle } from 'agnostic-query/drizzle/pg'
+import { createQuerySchema } from 'agnostic-query/zod'
+
+export const listProject = createServerFn()
+  .inputValidator(createQuerySchema<Project>())
+  .handler(async ({ data }) => {
+    return await toDrizzle(db, projectTable, data)
+    // → typed Promise<Project[]>
+  })
+```
+
 ## The Solution
 
 `agnostic-query` defines a portable `QuerySchema` — a plain JSON format that any of these libraries can convert to and from:
@@ -27,13 +84,9 @@ Kysely query ──fromKysely─────>  QuerySchema  ──toSql───
 ### Client → Server flow
 
 1. **Client**: TanStack DB collection's `queryFn` receives its internal WHERE/ORDER BY expressions
-2. **Translation**: `fromTanDbWhere` and `fromTanDbOrderBy` convert them into `QuerySchema`
+2. **Translation**: `fromTanDb` converts them into `QuerySchema` in one call
 3. **Serialization**: the `QuerySchema` is sent as JSON to the server (HTTP, RPC, server fn)
-4. **Execution**: the server validates it with Zod/Valibot and executes via `toDrizzle` (or `toKysely`/`toSql`)
-
-### Direct builder → Server flow
-
-If you're not using TanStack DB, the `aq` builder constructs `QuerySchema` directly — same format, same server-side execution.
+4. **Execution**: the server validates it with Zod/Valibot and executes via `toDrizzle`
 
 ## What It Is Not
 
