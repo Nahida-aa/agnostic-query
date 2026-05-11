@@ -2,25 +2,33 @@
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 
-// https://astro.build/config
 export default defineConfig({
-	integrations: [
-		starlight({
-			title: 'My Docs',
-			social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/withastro/starlight' }],
-			sidebar: [
-				{
-					label: 'Guides',
-					items: [
-						// Each item here is one entry in the navigation menu.
-						{ label: 'Example Guide', slug: 'guides/example' },
-					],
-				},
-				{
-					label: 'Reference',
-					items: [{ autogenerate: { directory: 'reference' } }],
-				},
-			],
-		}),
-	],
+  site: 'https://nahida-aa.github.io/agnostic-query',
+  integrations: [
+    starlight({
+      title: 'Agnostic Query',
+      social: [
+        { icon: 'github', label: 'GitHub', href: 'https://github.com/Nahida-aa/agnostic-query' },
+      ],
+      sidebar: [
+        {
+          label: 'Guides',
+          items: [
+            { label: 'Getting Started', slug: 'guides/getting-started' },
+            { label: 'Builder API', slug: 'guides/builder' },
+            { label: 'WHERE System', slug: 'guides/where' },
+            { label: 'Adapters', slug: 'guides/adapters' },
+            { label: 'End-to-End Examples', slug: 'guides/e2e' },
+            { label: 'Validation', slug: 'guides/validation' },
+          ],
+        },
+        {
+          label: 'Reference',
+          items: [
+            { label: 'API', slug: 'reference/api' },
+          ],
+        },
+      ],
+    }),
+  ],
 });

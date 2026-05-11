@@ -1,40 +1,67 @@
 ---
-title: Welcome to Starlight
-description: Get started building your docs site with Starlight.
-template: splash # Remove or comment out this line to display the site sidebar on this page.
+title: Agnostic Query
+description: Type-safe fluent builder for portable QuerySchema objects. Runtime-agnostic, database-agnostic.
+template: splash
 hero:
-  tagline: Congrats on setting up a new Starlight project!
-  image:
-    file: ../../assets/houston.webp
+  tagline: Build portable QuerySchema objects with a type-safe fluent API, then convert to any ORM or raw SQL.
   actions:
-    - text: Example Guide
-      link: /guides/example/
+    - text: Get Started
+      link: /guides/getting-started/
       icon: right-arrow
-    - text: Read the Starlight docs
-      link: https://starlight.astro.build
+    - text: View on GitHub
+      link: https://github.com/Nahida-aa/agnostic-query
       icon: external
       variant: minimal
 ---
 
 import { Card, CardGrid } from '@astrojs/starlight/components';
 
-## Next steps
+## Build once, query anywhere
+
+The same `QuerySchema` drives Drizzle, Kysely, raw SQL (PostgreSQL), or any future adapter. Not an ORM replacement — just reduces the boilerplate of building, validating, and translating query conditions across the stack.
+
+**Runtime-agnostic** — plain data that work in browsers, servers, and edge runtimes. Serialize to JSON, transmit over HTTP, consume on any platform.
 
 <CardGrid stagger>
-	<Card title="Update content" icon="pencil">
-		Edit `src/content/docs/index.mdx` to see this page change.
-	</Card>
-	<Card title="Change page layout" icon="document">
-		Delete `template: splash` in `src/content/docs/index.mdx` to display a
-		sidebar on this page.
-	</Card>
-	<Card title="Add new content" icon="add-document">
-		Add Markdown or MDX files to `src/content/docs` to create new pages.
-	</Card>
-	<Card title="Configure your site" icon="setting">
-		Edit your `sidebar` and other config in `astro.config.mjs`.
-	</Card>
-	<Card title="Read the docs" icon="open-book">
-		Learn more in [the Starlight Docs](https://starlight.astro.build/).
-	</Card>
+  <Card title="Fluent Builder" icon="pencil">
+    Chain `.where()`, `.orderBy()`, `.limit()`, `.offset()` with full TypeScript type safety.
+  </Card>
+  <Card title="WHERE System" icon="set more">
+    Comparison operators, logical nesting with `and`/`or`/`not`, raw `QueryWhere` objects, and standalone `newWhere()` builder.
+  </Card>
+  <Card title="Database Adapters" icon="open-book">
+    Drizzle, Kysely, raw SQL (PostgreSQL), db0, TanStack DB — all from the same `QuerySchema`.
+  </Card>
+  <Card title="Runtime Validation" icon="check">
+    Optional Zod or Valibot schemas for validating `QuerySchema` at runtime boundaries.
+  </Card>
+  <Card title="Type Safety" icon="set more">
+    Recursive field paths, operator-dependent value types, and full generic inference across the entire API.
+  </Card>
+  <Card title="Zero Runtime Dependencies" icon="add-document">
+    Core package has no dependencies. Only install the adapters you need.
+  </Card>
 </CardGrid>
+
+## Quick Start
+
+```bash
+bun add agnostic-query
+```
+
+```ts
+import { aq } from 'agnostic-query'
+
+interface User {
+  name: string
+  age: number
+  status: string
+}
+
+const schema = aq<User>()
+  .where('name', 'eq', 'Alice')
+  .where('age', 'gte', 18)
+  .orderBy('name', 'asc')
+  .limit(20)
+  .toJSON()
+```
