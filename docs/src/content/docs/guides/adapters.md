@@ -100,7 +100,7 @@ const data = {
 }
 
 // Convenience — handles where, cursor, limit, orderBy in one call
-const data = fromTanDb<TShape>(meta?.loadSubsetOptions)
+const data = fromTanDb(meta?.loadSubsetOptions)
 ```
 
 ## db0
@@ -108,7 +108,7 @@ const data = fromTanDb<TShape>(meta?.loadSubsetOptions)
 Execute a `QuerySchema` as parameterised SQL via db0:
 
 ```ts
-import { query } from 'agnostic-query/db0/pg'
+import { toDb0 } from 'agnostic-query/db0/pg'
 
-const rows = await query(db, schema)
+const rows = await toDb0(db, schema)
 ```

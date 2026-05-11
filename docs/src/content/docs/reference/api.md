@@ -116,7 +116,7 @@ findWhere<TShape>(where: QueryWhere<TShape>): WhereSearcher<TShape>
 Create a `WhereExpr` for use in callbacks. Used internally by `.where(callback)`.
 
 ```ts
-createExpr<TShape>(): WhereExpr<TShape>
+createExpr<TShape>(q?: QueryWhere<TShape> | null): WhereExpr<TShape>
 ```
 
 ## Adapter Functions
@@ -156,7 +156,7 @@ fromTanDb<TShape>(loadSubsetOptions?: LoadSubsetOptions): QuerySchema<TShape>
 ### db0
 
 ```ts
-query<T>(db: Database, data: QuerySchema<T>): Promise<T[]>
+toDb0<T>(db: Database, data: QuerySchema<T>): Promise<T[]>
 ```
 
 ### Zod / Valibot

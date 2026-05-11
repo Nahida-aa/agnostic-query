@@ -60,7 +60,7 @@ export const toDb0OrderBy = <TShape extends Record<string, any>>(
 	};
 };
 
-export const query = async <T extends Record<string, any>>(
+export const toDb0 = async <T extends Record<string, any>>(
 	db: {
 		prepare: (sql: string) => { all: (...params: any[]) => Promise<unknown[]> };
 	},

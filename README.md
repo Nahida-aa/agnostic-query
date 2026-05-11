@@ -224,7 +224,7 @@ import { createWhereSchema } from 'agnostic-query/valibot'
 import { toDrizzle, toDrizzleWhere, toDrizzleOrderBy } from 'agnostic-query/drizzle/pg'
 
 // db0 adapter — execute schema as parameterised SQL via db0
-import { query } from 'agnostic-query/db0/pg'
+import { toDb0 } from 'agnostic-query/db0/pg'
 
 // TanStack DB adapter — parse TanStack expression into QueryWhere
 import { fromTanDbWhere, fromTanDbOrderBy } from 'agnostic-query/tanstack-db'

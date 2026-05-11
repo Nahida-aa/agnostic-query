@@ -6,7 +6,7 @@ hero:
   tagline: Write your query once. Share it between client and server. Reuse across Drizzle, Kysely, and raw SQL.
   actions:
     - text: Get Started
-      link: /guides/getting-started/
+      link: /agnostic-query/guides/getting-started/
       icon: right-arrow
     - text: View on GitHub
       link: https://github.com/Nahida-aa/agnostic-query
@@ -21,9 +21,9 @@ import { Card, CardGrid } from '@astrojs/starlight/components';
 You use **TanStack DB** on the client and **Drizzle** or **Kysely** on the server. The same `WHERE age >= 18` has to be written twice in two different APIs. `agnostic-query` bridges them with a portable `QuerySchema` — a plain JSON format that adapters convert in both directions.
 
 ```
-TanStack DB  ──fromTanDbWhere──>  QuerySchema  ──toDrizzle──>  Drizzle
-aq builder   ──.toJSON()──────>  QuerySchema  ──toKysely──>  Kysely
-Kysely query ──fromKysely─────>  QuerySchema  ──toSql──────>  Raw SQL
+TanStack DB  ──fromTanDb──>  QuerySchema  ──toDrizzle──>  Drizzle
+aq builder   ──.toJSON()──>  QuerySchema  ──toKysely──>  Kysely
+Kysely query ──fromKysely──>  QuerySchema  ──toSql──────>  Raw SQL
 ```
 
 **Runtime-agnostic** — plain data that work in clients, servers, and edge runtimes. Serialize to JSON, transmit over HTTP, consume on any platform.

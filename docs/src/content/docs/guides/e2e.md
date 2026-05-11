@@ -103,7 +103,7 @@ export const projectCollect = createCollection(
     autoIndex: 'eager',
     defaultIndexType: BasicIndex,
     queryFn: async ({ meta }) => {
-      const data = fromTanDb<Project>(meta?.loadSubsetOptions)
+      const data = fromTanDb(meta?.loadSubsetOptions)
       return await listProject({ data })
     },
     getKey: (item) => item.id,

@@ -75,7 +75,7 @@ One call on each side, shared types, automatic validation:
 // Client: fromTanDb handles where, cursor, limit, orderBy in one line
 import { fromTanDb } from 'agnostic-query/tanstack-db'
 
-const data = fromTanDb<Project>(meta?.loadSubsetOptions)
+const data = fromTanDb(meta?.loadSubsetOptions)
 // → typed QuerySchema<Project>
 ```
 
@@ -111,7 +111,7 @@ Kysely query ──fromKysely─────>  QuerySchema  ──toSql───
 
 ## What It Is Not
 
-`agnostic-query` is not an ORM. It doesn't connect to databases, manage migrations, or replace Drizzle/Kysely on the server. It's a **serialisable intermediate format** that reduces the friction of moving query definitions between layers of your stack.
+`agnostic-query` is not an ORM. It doesn't manage connections, schemas, or migrations. What it does provide are **tree-shakeable adapters** (`toDrizzle`, `toKysely`, `toDb0`) that convert or execute queries on the server — so you can send a portable `QuerySchema` from the client and run it against any backend without coupling your client code to a specific ORM.
 
 ## When Should You Use It?
 

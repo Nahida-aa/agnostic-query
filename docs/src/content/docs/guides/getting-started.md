@@ -79,7 +79,7 @@ import { createWhereSchema } from 'agnostic-query/valibot'
 import { toDrizzle, toDrizzleWhere, toDrizzleOrderBy } from 'agnostic-query/drizzle/pg'
 
 // db0 adapter
-import { query } from 'agnostic-query/db0/pg'
+import { toDb0 } from 'agnostic-query/db0/pg'
 
 // TanStack DB adapter
 import { fromTanDbWhere, fromTanDbOrderBy } from 'agnostic-query/tanstack-db'

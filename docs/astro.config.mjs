@@ -7,7 +7,8 @@ import starlightGitHubAlerts from 'starlight-github-alerts';
 import astroMermaid from 'astro-mermaid';
 
 export default defineConfig({
-  site: 'https://nahida-aa.github.io/agnostic-query',
+  site: 'https://nahida-aa.github.io',
+  base: '/agnostic-query',
   integrations: [
     starlight({
       plugins: [
