@@ -5,6 +5,8 @@ description: Use the aq builder to construct QuerySchema objects with type-safe 
 
 The `aq` builder provides a fluent API for constructing `QuerySchema` objects.
 
+Both `interface` and `type` work as the shape parameter — use whichever you prefer.
+
 ## Basic Usage
 
 ```ts

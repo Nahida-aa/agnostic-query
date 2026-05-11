@@ -26,12 +26,12 @@ bun add kysely  # optional
 
 ## First QuerySchema
 
-Define your shape as a TypeScript interface, then build a query with the `aq` builder:
+Define your shape as a TypeScript `interface` or `type`, then build a query with the `aq` builder:
 
 ```ts
 import { aq } from 'agnostic-query'
 
-interface User {
+type User = {
   name: string
   age: number
   status: string

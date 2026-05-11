@@ -3,6 +3,8 @@ title: API Reference
 description: Complete API reference for agnostic-query.
 ---
 
+All generic types accept either `interface` or `type` as the shape parameter — both work identically.
+
 ## Core Types
 
 ### QuerySchema
