@@ -1,5 +1,11 @@
 # agnostic-query
 
+## 1.5.0
+
+### Minor Changes
+
+- [`590bc16`](https://github.com/Nahida-aa/agnostic-query/commit/590bc16d5d97a22cd0b6f8640533485e1181f20c) Thanks [@Nahida-aa](https://github.com/Nahida-aa)! - feat: replace `cursor` with `mate` for metadata, add optional chaining safety, improve param naming
+
 ## 1.4.3
 
 ### Patch Changes
