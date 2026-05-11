@@ -177,9 +177,22 @@ export const createExpr = <TShape extends SchemaShape>(
 	};
 	return expr as WhereExpr<TShape>;
 };
+interface NewWhere<TShape extends SchemaShape = SchemaShape> {
+	toJSON(): QueryWhere<TShape> | null | undefined;
+	where(cb: (eb: WhereExpr<TShape>) => WhereExpr<TShape>): NewWhere<TShape>;
+	where<
+		Col extends FieldPathByShape<TShape> | (keyof TShape & string),
+		Op extends WhereComparisonOp,
+	>(
+		col: Col,
+		op: Op,
+		value: ComparisonWhereValue<TShape, Col, Op>,
+	): NewWhere<TShape>;
+	where(where?: QueryWhere<TShape> | null): NewWhere<TShape>;
+}
 export const newWhere = <TShape extends SchemaShape>(
 	state?: QueryWhere<TShape> | null,
-) => {
+): NewWhere<TShape> => {
 	const where = <
 		Col extends FieldPathByShape<TShape> | (keyof TShape & string),
 		Op extends WhereComparisonOp,

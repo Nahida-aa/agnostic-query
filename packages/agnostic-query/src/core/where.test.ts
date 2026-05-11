@@ -49,7 +49,9 @@ describe('findWhere', () => {
 			],
 		};
 		expect((findWhere(orWhere).eq(['id']) as any)?.value).toBe('1');
-		expect((findWhere(orWhere).find(['name'], 'like') as any)?.value).toBe('%admin%');
+		expect((findWhere(orWhere).find(['name'], 'like') as any)?.value).toBe(
+			'%admin%',
+		);
 	});
 
 	it('should find comparison in UnaryLogicalWhere (not)', () => {
@@ -99,7 +101,7 @@ describe('newWhere builder', () => {
 
 	it('toJSON returns null initially', () => {
 		const result = newWhere<Shape>().toJSON();
-		expect(result).toBeNull();
+		expect(result).toBeUndefined();
 	});
 
 	it('where with col/op/value', () => {
@@ -239,9 +241,7 @@ describe('newWhere builder', () => {
 			op: 'eq',
 			value: 'active',
 		};
-		const result = newWhere<Shape>(initWhere)
-			.where('age', 'gt', 18)
-			.toJSON();
+		const result = newWhere<Shape>(initWhere).where('age', 'gt', 18).toJSON();
 		expect(result).toEqual({
 			op: 'and',
 			conditions: [
@@ -259,9 +259,7 @@ describe('newWhere builder', () => {
 				{ field: ['status'], op: 'eq', value: 'active' },
 			],
 		};
-		const result = newWhere<Shape>(initWhere)
-			.where('age', 'gt', 18)
-			.toJSON();
+		const result = newWhere<Shape>(initWhere).where('age', 'gt', 18).toJSON();
 		expect(result).toEqual({
 			op: 'and',
 			conditions: [

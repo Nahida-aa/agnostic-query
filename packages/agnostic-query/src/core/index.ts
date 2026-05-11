@@ -22,8 +22,8 @@ export interface QuerySchema<TShape extends SchemaShape = SchemaShape> {
 	orderBy?: QueryOrderBy<TShape>[];
 	limit?: number;
 	offset?: number;
-	mate?: Record<string, any>; // 额外的元信息
-	table?: string; // 表名, 是可选的, 因为 QuerySchema 只是数据模型, 不帮你执行操作
+	mate?: Record<string, any>;
+	table?: string;
 }
 
 interface AgnosticQuery<TShape extends SchemaShape = SchemaShape> {
