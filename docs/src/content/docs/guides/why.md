@@ -16,29 +16,50 @@ The result:
 
 ## Before & After
 
-Here's the real `queryFn` from the [example project](https://github.com/Nahida-aa/agnostic-query/tree/main/examples/tanstack-db) — without and with `agnostic-query`.
+Here's the same scenario — a client query driven by TanStack DB, executed by Drizzle on the server — built without and with `agnostic-query`.
 
 ### Without agnostic-query
 
-You'd have to manually parse the TanStack DB metadata, invent a JSON format, and write a Drizzle translator on the server:
+The official TanStack DB docs show this pattern ([Quick Start: Simple REST API](https://tanstack.com/db/latest/docs/collections/query-collection#quick-start-simple-rest-api)):
 
 ```ts
-// Client: manually building a query object from TanStack DB internals
-const data = {
-  limit: meta?.loadSubsetOptions?.limit,
-  where: manuallyParseWhere(meta?.loadSubsetOptions?.where),
-  orderBy: manuallyParseOrderBy(meta?.loadSubsetOptions?.orderBy),
+// Client: manually parse LoadSubsetOptions and build URL params
+import { parseLoadSubsetOptions } from '@tanstack/db'
+
+queryFn: async (ctx) => {
+  const parsed = parseLoadSubsetOptions(ctx.meta?.loadSubsetOptions)
+  const params = new URLSearchParams()
+
+  parsed.filters.forEach(({ field, operator, value }) => {
+    const fieldName = field.join('.')
+    if (operator === 'eq') params.set(fieldName, String(value))
+    if (operator === 'lt') params.set(`${fieldName}_lt`, String(value))
+    // ... handle every operator manually
+  })
+
+  parsed.sorts.forEach(s => {
+    params.set('sort', `${s.field.join('.')}:${s.direction}`)
+  })
+
+  if (parsed.limit) params.set('limit', String(parsed.limit))
+
+  const response = await fetch(`/api/products?${params}`)
+  return response.json()
 }
-// → ad-hoc { limit, where, orderBy } with no shared type
 ```
 
 ```ts
-// Server: receive ad-hoc JSON, manually translate to Drizzle
+// Server: receive URL params, manually translate to Drizzle
+// No shared type, no validation
 export const listProject = createServerFn()
   .handler(async ({ data }) => {
-    // Manually build Drizzle where/orderBy from the JSON
-    const conditions = data.where.map(...)
-    const rows = await db.select().from(projectTable)
+    const conditions = []
+    if (data.name) conditions.push(eq(projectTable.name, data.name))
+    if (data.age_lt) conditions.push(lt(projectTable.age, Number(data.age_lt)))
+    // ... each filter mapped manually
+
+    const rows = await db.select()
+      .from(projectTable)
       .where(and(...conditions))
       .orderBy(...)
       .limit(data.limit)
