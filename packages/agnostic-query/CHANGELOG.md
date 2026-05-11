@@ -1,5 +1,11 @@
 # agnostic-query
 
+## 1.6.0
+
+### Minor Changes
+
+- [`3d1d69b`](https://github.com/Nahida-aa/agnostic-query/commit/3d1d69b4334690be28658c49e02be814323cf633) Thanks [@Nahida-aa](https://github.com/Nahida-aa)! - feat: add fromTanDb convenience function for TanStack DB LoadSubsetOptions
+
 ## 1.5.0
 
 ### Minor Changes
