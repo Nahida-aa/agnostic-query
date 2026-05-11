@@ -150,6 +150,7 @@ toKyselyOrderBy<T>(query: SelectQueryBuilder, orderBy: QueryOrderBy<T>[]): Selec
 ```ts
 fromTanDbWhere(where: unknown): QueryWhere | undefined
 fromTanDbOrderBy(orderBy: unknown): QueryOrderBy[]
+fromTanDb<TShape>(loadSubsetOptions?: LoadSubsetOptions): QuerySchema<TShape>
 ```
 
 ### db0

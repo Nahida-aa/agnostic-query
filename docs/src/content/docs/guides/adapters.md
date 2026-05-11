@@ -89,14 +89,18 @@ const users = await query.execute()
 Convert TanStack DB expressions into agnostic-query format:
 
 ```ts
-import { fromTanDbWhere, fromTanDbOrderBy } from 'agnostic-query/tanstack-db'
+import { fromTanDbWhere, fromTanDbOrderBy, fromTanDb } from 'agnostic-query/tanstack-db'
 
+// Manual composition
 const data = {
   where: newWhere(fromTanDbWhere(where))
     .where(fromTanDbWhere(cursor?.whereFrom))
     .toJSON(),
   orderBy: fromTanDbOrderBy(orderBy),
 }
+
+// Convenience — handles where, cursor, limit, orderBy in one call
+const data = fromTanDb<TShape>(meta?.loadSubsetOptions)
 ```
 
 ## db0
