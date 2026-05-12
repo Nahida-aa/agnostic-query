@@ -9,7 +9,7 @@
 **数据流：**
 
 ```
-TanStack DB  ──fromTanDbWhere──>  QuerySchema  ──toDrizzle──>  Drizzle
+TanStack DB  ──fromTanDb──>  QuerySchema  ──toDrizzle──>  Drizzle
 aq 构建器    ──.toJSON()──────>  QuerySchema  ──toKysely──>  Kysely
 Kysely 查询  ──fromKysely─────>  QuerySchema  ──toSql──────>  原生 SQL
 ```

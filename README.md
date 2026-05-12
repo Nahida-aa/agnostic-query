@@ -9,7 +9,7 @@ TanStack DB on the client, Drizzle on the server. The same user action — searc
 **How it works:**
 
 ```
-TanStack DB  ──fromTanDbWhere──>  QuerySchema  ──toDrizzle──>  Drizzle
+TanStack DB  ──fromTanDb──>  QuerySchema  ──toDrizzle──>  Drizzle
 aq builder   ──.toJSON()──────>  QuerySchema  ──toKysely──>  Kysely
 Kysely query ──fromKysely─────>  QuerySchema  ──toSql──────>  Raw SQL
 ```
