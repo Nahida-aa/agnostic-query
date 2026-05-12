@@ -1,5 +1,11 @@
 # agnostic-query
 
+## 1.8.0
+
+### Minor Changes
+
+- [`ddd3509`](https://github.com/Nahida-aa/agnostic-query/commit/ddd350935d5c71f6b0698fb1319c2798a026cc50) Thanks [@Nahida-aa](https://github.com/Nahida-aa)! - docs: highlight zero runtime dependencies and tree-shakeable adapters in README and homepage
+
 ## 1.7.0
 
 ### Minor Changes
