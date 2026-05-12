@@ -41,7 +41,7 @@ describe('toSqlWhere', () => {
 		expect(
 			toSqlWhere({ field: ['name'], op: 'like', value: '%test%' }),
 		).toEqual({
-			sql: '"name" LIKE ?',
+			sql: '"name" like ?',
 			params: ['%test%'],
 		});
 	});
@@ -50,7 +50,7 @@ describe('toSqlWhere', () => {
 		expect(
 			toSqlWhere({ field: ['name'], op: 'ilike', value: '%Test%' }),
 		).toEqual({
-			sql: '"name" ILIKE ?',
+			sql: '"name" ilike ?',
 			params: ['%Test%'],
 		});
 	});
@@ -154,7 +154,7 @@ describe('toSqlWhere', () => {
 			],
 		});
 		expect(result).toEqual({
-			sql: '(("name" LIKE ? OR NOT ("age" = ?)) AND "id" IN (?, ?))',
+			sql: '(("name" like ? OR NOT ("age" = ?)) AND "id" IN (?, ?))',
 			params: ['%test%', 0, 'a', 'b'],
 		});
 	});

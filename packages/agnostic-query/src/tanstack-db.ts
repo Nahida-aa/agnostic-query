@@ -59,6 +59,10 @@ export const fromTanDbWhere = <TShape extends SchemaShape>(
 				field,
 				op: 'is null',
 			}),
+			isUndefined: (field) => ({
+				field,
+				op: 'is null',
+			}),
 			and: (...conditions) => ({
 				op: 'and',
 				conditions,

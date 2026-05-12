@@ -58,7 +58,7 @@ const build = (where: QueryWhere): SqlResult | undefined => {
 		return { sql: `${fieldStr} IS NULL`, params: [] };
 	}
 
-	return { sql: `${fieldStr} ${where.op.toUpperCase()} ?`, params: [where.value] };
+	return { sql: `${fieldStr} ${where.op} ?`, params: [where.value] };
 };
 
 export const toSqlWhere = (

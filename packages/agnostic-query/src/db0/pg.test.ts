@@ -29,12 +29,12 @@ describe('toDb0Where', () => {
 
 	it('should handle like', () => {
 		const result = toDb0Where({ field: ['name'], op: 'like', value: '%test%' });
-		expect(result).toEqual({ sql: '"name" LIKE ?', params: ['%test%'] });
+		expect(result).toEqual({ sql: '"name" like ?', params: ['%test%'] });
 	});
 
 	it('should handle ilike', () => {
 		const result = toDb0Where({ field: ['name'], op: 'ilike', value: '%Test%' });
-		expect(result).toEqual({ sql: '"name" ILIKE ?', params: ['%Test%'] });
+		expect(result).toEqual({ sql: '"name" ilike ?', params: ['%Test%'] });
 	});
 
 	it('should handle is null', () => {
@@ -107,7 +107,7 @@ describe('toDb0Where', () => {
 			],
 		});
 		expect(result).toEqual({
-			sql: '(("name" LIKE ? OR NOT ("age" = ?)) AND "id" IN (?, ?))',
+			sql: '(("name" like ? OR NOT ("age" = ?)) AND "id" IN (?, ?))',
 			params: ['%test%', 0, 'a', 'b'],
 		});
 	});
