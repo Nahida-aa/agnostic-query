@@ -1,5 +1,11 @@
 # agnostic-query
 
+## 1.8.1
+
+### Patch Changes
+
+- [`40bc098`](https://github.com/Nahida-aa/agnostic-query/commit/40bc09841855a4cbbbf7cf6b756d7bc00d2e4fcb) Thanks [@Nahida-aa](https://github.com/Nahida-aa)! - cleanup: remove stale v0/ and play/ directories; setup @tanstack/intent skills pipeline with query and adapters skills
+
 ## 1.8.0
 
 ### Minor Changes
