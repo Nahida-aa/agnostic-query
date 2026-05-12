@@ -13,7 +13,8 @@
     "postgresql",
     "sql",
     "schema",
-    "typescript"
+    "typescript",
+    "tanstack-intent"
   ],
   "license": "MIT",
   "type": "module",
@@ -21,7 +22,8 @@
     "src",
     "README.md",
     "LICENSE",
-    "package.json"
+    "package.json",
+    "skills"
   ],
   "main": "./src/index.ts",
   "types": "./src/index.ts",
@@ -91,6 +93,7 @@
   "devDependencies": {
     "@electric-sql/pglite": "^0.4.5",
     "@tanstack/db": "^0.6.5",
+    "@tanstack/intent": "^0.0.41",
     "@tanstack/query-db-collection": "latest",
     "drizzle-orm": "^0.45.2",
     "kysely": "^0.29.0",

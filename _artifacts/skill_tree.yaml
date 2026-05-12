@@ -1,0 +1,44 @@
+# skills/_artifacts/skill_tree.yaml
+library:
+  name: 'agnostic-query'
+  version: '1.7.0'
+  repository: 'https://github.com/Nahida-aa/agnostic-query'
+  description: 'Portable QuerySchema bridge between TanStack DB (client) and Drizzle/Kysely/SQL (server)'
+generated_from:
+  domain_map: '_artifacts/domain_map.yaml'
+  skill_spec: '_artifacts/skill_spec.md'
+generated_at: '2026-05-12'
+
+skills:
+  - name: 'Build a query'
+    slug: 'query'
+    type: 'core'
+    domain: 'query-building'
+    path: 'skills/query/SKILL.md'
+    description: 'Construct a portable QuerySchema with the aq builder, WHERE conditions, ordering, pagination, and runtime validation'
+    sources:
+      - 'Nahida-aa/agnostic-query:packages/agnostic-query/src/core/index.ts'
+      - 'Nahida-aa/agnostic-query:packages/agnostic-query/src/core/where.ts'
+      - 'Nahida-aa/agnostic-query:docs/src/content/docs/guides/builder.md'
+      - 'Nahida-aa/agnostic-query:docs/src/content/docs/guides/where.md'
+    subsystems: []
+
+  - name: 'Translate between ORMs'
+    slug: 'adapters'
+    type: 'core'
+    domain: 'adapters'
+    path: 'skills/adapters/SKILL.md'
+    description: 'Convert a QuerySchema to/from Drizzle, Kysely, TanStack DB, db0, or raw SQL using tree-shakeable adapters'
+    sources:
+      - 'Nahida-aa/agnostic-query:docs/src/content/docs/guides/adapters.md'
+      - 'Nahida-aa/agnostic-query:packages/agnostic-query/src/drizzle/pg.ts'
+      - 'Nahida-aa/agnostic-query:packages/agnostic-query/src/kysely/pg.ts'
+      - 'Nahida-aa/agnostic-query:packages/agnostic-query/src/tanstack-db.ts'
+      - 'Nahida-aa/agnostic-query:packages/agnostic-query/src/db0/pg.ts'
+      - 'Nahida-aa/agnostic-query:packages/agnostic-query/src/sql/pg.ts'
+    subsystems:
+      - 'Drizzle adapter'
+      - 'Kysely adapter'
+      - 'TanStack DB adapter'
+      - 'db0 adapter'
+      - 'Raw SQL adapter'
