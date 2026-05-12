@@ -37,8 +37,8 @@ interface UserShape {
 }
 
 const schema = aq<UserShape>()
-  .where('name', 'eq', 'Alice')
-  .where('age', 'gte', 18)
+  .where('name', '=', 'Alice')
+  .where('age', '>=', 18)
   .where('status', 'in', ['active', 'pending'])
   .orderBy('name', 'asc')
   .limit(20)
@@ -48,8 +48,8 @@ const schema = aq<UserShape>()
 //     where: {
 //       op: 'and',
 //       conditions: [
-//         { field: ['name'], op: 'eq', value: 'Alice' },
-//         { field: ['age'], op: 'gte', value: 18 },
+//         { field: ['name'], op: '=', value: 'Alice' },
+//         { field: ['age'], op: '>=', value: 18 },
 //         { field: ['status'], op: 'in', values: ['active', 'pending'] },
 //       ],
 //     },
@@ -63,14 +63,18 @@ const schema = aq<UserShape>()
 
 | Operator | Description |
 |----------|-------------|
-| `eq`     | Exact match |
-| `gt`     | Greater than |
-| `gte`    | Greater than or equal |
-| `lt`     | Less than |
-| `lte`    | Less than or equal |
+| `=`      | Exact match |
+| `>`      | Greater than |
+| `>=`     | Greater than or equal |
+| `<`      | Less than |
+| `<=`     | Less than or equal |
 | `like`   | SQL `LIKE` |
 | `ilike`  | Case-insensitive `LIKE` |
 | `in`     | Value in array (outputs `values` field) |
+| `is null`| Null check (2-argument form: `.where('field', 'is null')`) |
+| `@>`     | Array contains (PostgreSQL) |
+| `<@`     | Array contained by (PostgreSQL) |
+| `&&`     | Array overlaps (PostgreSQL) |
 
 ### Logical operators nesting (callbacks)
 
@@ -80,9 +84,9 @@ For complex logic (`and`, `or`, `not`), pass a callback to `.where()`:
 const schema = aq<UserShape>()
   .where(({ or, where, not }) =>
     or([
-      where('role', 'eq', 'admin'),
-      where('role', 'eq', 'moderator'),
-      not(where('status', 'eq', 'banned')),
+      where('role', '=', 'admin'),
+      where('role', '=', 'moderator'),
+      not(where('status', '=', 'banned')),
     ]),
   )
   .toJSON()
@@ -90,9 +94,9 @@ const schema = aq<UserShape>()
 //     where: {
 //       op: 'or',
 //       conditions: [
-//         { field: ['role'], op: 'eq', value: 'admin' },
-//         { field: ['role'], op: 'eq', value: 'moderator' },
-//         { op: 'not', condition: { field: ['status'], op: 'eq', value: 'banned' } },
+//         { field: ['role'], op: '=', value: 'admin' },
+//         { field: ['role'], op: '=', value: 'moderator' },
+//         { op: 'not', condition: { field: ['status'], op: '=', value: 'banned' } },
 //       ],
 //     },
 //   }
@@ -104,7 +108,7 @@ JSONB paths and array indices work the same as raw `QuerySchema`:
 
 ```ts
 aq<UserShape>()
-  .where(['address', 'city', 'name'], 'eq', 'Berlin')
+  .where(['address', 'city', 'name'], '=', 'Berlin')
   .where(['tags', 0, 'name'], 'like', '%tech%')
   .orderBy(['address', 'city', 'name'], 'desc')
 ```
@@ -116,20 +120,20 @@ Pass a pre-built `QueryWhere` directly to `.where()` — useful when reusing con
 ```ts
 const roleWhere: QuerySchema<UserShape>['where'] = {
   field: ['role'],
-  op: 'eq',
+  op: '=',
   value: 'admin',
 }
 
 const schema = aq<UserShape>()
-  .where('name', 'eq', 'Alice')
+  .where('name', '=', 'Alice')
   .where(roleWhere)
   .toJSON()
 // → {
 //     where: {
 //       op: 'and',
 //       conditions: [
-//         { field: ['name'], op: 'eq', value: 'Alice' },
-//         { field: ['role'], op: 'eq', value: 'admin' },
+//         { field: ['name'], op: '=', value: 'Alice' },
+//         { field: ['role'], op: '=', value: 'admin' },
 //       ],
 //     },
 //   }
@@ -140,15 +144,15 @@ This also works inside callbacks for combining builder and raw conditions:
 ```ts
 const schema = aq<UserShape>()
   .where(({ or, where }) =>
-    or([where('name', 'eq', 'Alice'), where(roleWhere)]),
+    or([where('name', '=', 'Alice'), where(roleWhere)]),
   )
   .toJSON()
 // → {
 //     where: {
 //       op: 'or',
 //       conditions: [
-//         { field: ['name'], op: 'eq', value: 'Alice' },
-//         { field: ['role'], op: 'eq', value: 'admin' },
+//         { field: ['name'], op: '=', value: 'Alice' },
+//         { field: ['role'], op: '=', value: 'admin' },
 //       ],
 //     },
 //   }
@@ -183,10 +187,10 @@ interface User {
   address: { city: { name: string } }
 }
 
-aq<User>().where(['tags', 0, 'name'], 'eq', 'tech')         // ✓
-aq<User>().where(['tags', 0, 'name'], 'eq', 42)              // ✗ string ≠ number
-aq<User>().where(['address', 'city', 'name'], 'eq', 'Berlin') // ✓
-aq<User>().where(['address', 'city', 'zip'], 'eq', '12345')   // ✗ no 'zip' on city
+aq<User>().where(['tags', 0, 'name'], '=', 'tech')         // ✓
+aq<User>().where(['tags', 0, 'name'], '=', 42)              // ✗ string ≠ number
+aq<User>().where(['address', 'city', 'name'], '=', 'Berlin') // ✓
+aq<User>().where(['address', 'city', 'zip'], '=', '12345')   // ✗ no 'zip' on city
 ```
 
 ## Usage
@@ -260,7 +264,7 @@ const schema: QuerySchema<UserShape> = {
   where: {
     op: 'and',
     conditions: [
-      { field: ['age'], op: 'gte', value: 18 },
+      { field: ['age'], op: '>=', value: 18 },
       { field: ['status'], op: 'in', values: ['active', 'pending'] },
     ],
   },
@@ -277,12 +281,12 @@ import { findWhere } from 'agnostic-query'
 const where = {
   op: 'and',
   conditions: [
-    { field: ['name'], op: 'eq', value: 'Alice' },
+    { field: ['name'], op: '=', value: 'Alice' },
     {
       op: 'or',
       conditions: [
-        { field: ['age'], op: 'lt', value: 30 },
-        { field: ['role'], op: 'eq', value: 'admin' },
+        { field: ['age'], op: '<', value: 30 },
+        { field: ['role'], op: '=', value: 'admin' },
       ],
     },
   ],
@@ -290,9 +294,9 @@ const where = {
 
 const searcher = findWhere(where)
 
-searcher.find(['age'])            // { field: ['age'], op: 'lt', value: 30 }
-searcher.find(['role'], 'eq')     // { field: ['role'], op: 'eq', value: 'admin' }
-searcher.eq(['name'])             // { field: ['name'], op: 'eq', value: 'Alice' }
+searcher.find(['age'])            // { field: ['age'], op: '<', value: 30 }
+searcher.find(['role'], '=')     // { field: ['role'], op: '=', value: 'admin' }
+searcher.eq(['name'])             // { field: ['name'], op: '=', value: 'Alice' }
 searcher.in(['role'])             // undefined
 ```
 
@@ -310,8 +314,8 @@ interface User {
   tags: { id: number; name: string }[]
 }
 
-const nameEq = newComparisonWhere<User>()('name', 'eq', 'Alice')
-// → { field: ['name'], op: 'eq', value: 'Alice' }
+const nameEq = newComparisonWhere<User>()('name', '=', 'Alice')
+// → { field: ['name'], op: '=', value: 'Alice' }
 
 const statusIn = newComparisonWhere<User>()('status', 'in', ['active', 'pending'])
 // → { field: ['status'], op: 'in', values: ['active', 'pending'] }
@@ -337,14 +341,14 @@ Build a `QueryWhere` independently of a full `QuerySchema` — useful when you w
 import { newWhere } from 'agnostic-query'
 
 const w = newWhere<User>()
-  .where('name', 'eq', 'Alice')
-  .where('age', 'gte', 18)
+  .where('name', '=', 'Alice')
+  .where('age', '>=', 18)
   .toJSON()
 // → {
 //     op: 'and',
 //     conditions: [
-//       { field: ['name'], op: 'eq', value: 'Alice' },
-//       { field: ['age'], op: 'gte', value: 18 },
+//       { field: ['name'], op: '=', value: 'Alice' },
+//       { field: ['age'], op: '>=', value: 18 },
 //     ],
 //   }
 ```
@@ -352,13 +356,13 @@ const w = newWhere<User>()
 Accepts an initial `QueryWhere` to extend, with all the same overloads as `aq().where()`:
 
 ```ts
-const base = newWhere<User>({ field: ['status'], op: 'eq', value: 'active' })
+const base = newWhere<User>({ field: ['status'], op: '=', value: 'active' })
 
 const full = base
   .where(({ or, and, where }) =>
     or([
-      and([where('role', 'eq', 'admin'), where('age', 'gte', 18)]),
-      where('role', 'eq', 'moderator'),
+      and([where('role', '=', 'admin'), where('age', '>=', 18)]),
+      where('role', '=', 'moderator'),
     ]),
   )
   .toJSON()
@@ -381,10 +385,10 @@ const schema: QuerySchema<User> = {
 
 ```ts
 // JSONB nested field → "address"->'city'->>'name' = ?
-{ field: ['address', 'city', 'name'], op: 'eq', value: 'Berlin' }
+{ field: ['address', 'city', 'name'], op: '=', value: 'Berlin' }
 
 // PG array element → "category"[1] = ?
-{ field: ['category', 0], op: 'eq', value: 'electronics' }
+{ field: ['category', 0], op: '=', value: 'electronics' }
 
 // Nested array of objects → "tags"->0->>'name' LIKE ?
 { field: ['tags', 0, 'name'], op: 'like', value: '%tech%' }
@@ -488,7 +492,7 @@ import { aq } from 'agnostic-query'
 import type { Project } from '#/features/project/project.schema.ts'
 
 const schema = aq<Project>({ table: 'project' })
-  .where('age', 'gte', 18)
+  .where('age', '>=', 18)
   .where('status', 'in', ['active', 'pending'])
   .orderBy('name', 'asc')
   .limit(20)
@@ -511,7 +515,7 @@ export const listProject = createServerFn({ method: 'GET' })
     const { userId } = getCurrentUser()
 
     // Inject tenant isolation — reuse aq builder with existing schema
-    const enriched = aq(data).where('user_id', 'eq', userId).toJSON()
+    const enriched = aq(data).where('user_id', '=', userId).toJSON()
 
     return await toDrizzle(db, projectTable, data)
   })

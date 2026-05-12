@@ -1,8 +1,10 @@
 import z from 'zod';
 import type { FieldPathByShape, SchemaShape } from './core/schema.ts';
 import {
-	multiComparisonOp,
 	multiLogicalWhereOps,
+	predicateOps,
+	setComparisonOps,
+	toMultiComparisonOps,
 	type QueryWhere,
 	unaryComparisonOps,
 } from './core/where.ts';
@@ -22,14 +24,27 @@ export const createWhereSchema = <TShape extends SchemaShape>() => {
 
 	const multiComparisonSchema = z.object({
 		field: createFieldPathSchema<TShape>(),
-		op: z.literal(multiComparisonOp),
+		op: z.literal(toMultiComparisonOps[0]),
 		values: z.array(z.any()),
+	});
+
+	const predicateSchema = z.object({
+		field: createFieldPathSchema<TShape>(),
+		op: z.enum(predicateOps),
+	});
+
+	const setComparisonSchema = z.object({
+		field: createFieldPathSchema<TShape>(),
+		op: z.enum(setComparisonOps),
+		value: z.any(),
 	});
 
 	type Out = QueryWhere<TShape, any>;
 	const schema: z.ZodType<Out, Out> = z.lazy(() =>
 		z.union([
 			unaryComparisonSchema,
+			predicateSchema,
+			setComparisonSchema,
 			multiComparisonSchema,
 			z.object({
 				op: z.enum(multiLogicalWhereOps),

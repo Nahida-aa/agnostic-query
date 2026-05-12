@@ -123,31 +123,31 @@ describe('fromKysely: where', () => {
 	it('extracts eq', () => {
 		const q = db.selectFrom('user').selectAll().where('name', '=', 'Alice');
 		const schema = fromKysely(q);
-		expect(schema.where).toEqual({ field: ['name'], op: 'eq', value: 'Alice' });
+		expect(schema.where).toEqual({ field: ['name'], op: '=', value: 'Alice' });
 	});
 
 	it('extracts gt', () => {
 		const q = db.selectFrom('user').selectAll().where('age', '>', 18);
 		const schema = fromKysely(q);
-		expect(schema.where).toEqual({ field: ['age'], op: 'gt', value: 18 });
+		expect(schema.where).toEqual({ field: ['age'], op: '>', value: 18 });
 	});
 
 	it('extracts gte', () => {
 		const q = db.selectFrom('user').selectAll().where('age', '>=', 18);
 		const schema = fromKysely(q);
-		expect(schema.where).toEqual({ field: ['age'], op: 'gte', value: 18 });
+		expect(schema.where).toEqual({ field: ['age'], op: '>=', value: 18 });
 	});
 
 	it('extracts lt', () => {
 		const q = db.selectFrom('user').selectAll().where('age', '<', 18);
 		const schema = fromKysely(q);
-		expect(schema.where).toEqual({ field: ['age'], op: 'lt', value: 18 });
+		expect(schema.where).toEqual({ field: ['age'], op: '<', value: 18 });
 	});
 
 	it('extracts lte', () => {
 		const q = db.selectFrom('user').selectAll().where('age', '<=', 18);
 		const schema = fromKysely(q);
-		expect(schema.where).toEqual({ field: ['age'], op: 'lte', value: 18 });
+		expect(schema.where).toEqual({ field: ['age'], op: '<=', value: 18 });
 	});
 
 	it('extracts like', () => {
@@ -193,8 +193,8 @@ describe('fromKysely: where', () => {
 		expect(schema.where).toEqual({
 			op: 'and',
 			conditions: [
-				{ field: ['name'], op: 'eq', value: 'Alice' },
-				{ field: ['age'], op: 'gt', value: 18 },
+				{ field: ['name'], op: '=', value: 'Alice' },
+				{ field: ['age'], op: '>', value: 18 },
 			],
 		});
 	});
@@ -208,8 +208,8 @@ describe('fromKysely: where', () => {
 		expect(schema.where).toEqual({
 			op: 'and',
 			conditions: [
-				{ field: ['name'], op: 'eq', value: 'Alice' },
-				{ field: ['age'], op: 'gt', value: 18 },
+				{ field: ['name'], op: '=', value: 'Alice' },
+				{ field: ['age'], op: '>', value: 18 },
 			],
 		});
 	});
@@ -223,8 +223,8 @@ describe('fromKysely: where', () => {
 		expect(schema.where).toEqual({
 			op: 'or',
 			conditions: [
-				{ field: ['name'], op: 'eq', value: 'Alice' },
-				{ field: ['age'], op: 'gt', value: 18 },
+				{ field: ['name'], op: '=', value: 'Alice' },
+				{ field: ['age'], op: '>', value: 18 },
 			],
 		});
 	});
@@ -237,7 +237,7 @@ describe('fromKysely: where', () => {
 		const schema = fromKysely(q);
 		expect(schema.where).toEqual({
 			op: 'not',
-			condition: { field: ['age'], op: 'lt', value: 18 },
+			condition: { field: ['age'], op: '<', value: 18 },
 		});
 	});
 
@@ -259,7 +259,7 @@ describe('fromKysely: where', () => {
 					op: 'or',
 					conditions: [
 						{ field: ['name'], op: 'like', value: '%test%' },
-						{ op: 'not', condition: { field: ['age'], op: 'eq', value: 0 } },
+						{ op: 'not', condition: { field: ['age'], op: '=', value: 0 } },
 					],
 				},
 				{ field: ['id'], op: 'in', values: ['a', 'b'] },
@@ -278,8 +278,8 @@ describe('fromKysely: where', () => {
 		expect(schema.where).toEqual({
 			op: 'and',
 			conditions: [
-				{ field: ['name'], op: 'eq', value: 'Alice' },
-				{ field: ['age'], op: 'gt', value: 18 },
+				{ field: ['name'], op: '=', value: 'Alice' },
+				{ field: ['age'], op: '>', value: 18 },
 				{ field: ['id'], op: 'in', values: ['1'] },
 			],
 		});

@@ -2,7 +2,7 @@ import type { QuerySchema } from '../core';
 import type { QueryOrderBy } from '../core/order-by.ts';
 import type { QueryWhere } from '../core/where.ts';
 import { isComparisonWhere } from '../core/where.ts';
-import { fieldToStr, sqlOpMap, toSql } from '../sql/pg.ts';
+import { fieldToStr, toSql } from '../sql/pg.ts';
 import type { SqlResult } from '../sql/types.ts';
 
 const build = (where: QueryWhere): SqlResult | undefined => {
@@ -35,9 +35,11 @@ const build = (where: QueryWhere): SqlResult | undefined => {
 		return { sql: `${fieldStr} IN (${placeholders})`, params: where.values };
 	}
 
-	const op = sqlOpMap[where.op];
-	if (!op) return;
-	return { sql: `${fieldStr} ${op} ?`, params: [where.value] };
+	if (where.op === 'is null') {
+		return { sql: `${fieldStr} IS NULL`, params: [] };
+	}
+
+	return { sql: `${fieldStr} ${where.op.toUpperCase()} ?`, params: [where.value] };
 };
 
 export const toDb0Where = (

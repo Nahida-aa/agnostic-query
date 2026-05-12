@@ -3,27 +3,27 @@ import { toDb0Where } from './pg.ts';
 
 describe('toDb0Where', () => {
 	it('should handle eq', () => {
-		const result = toDb0Where({ field: ['name'], op: 'eq', value: 'Alice' });
+		const result = toDb0Where({ field: ['name'], op: '=', value: 'Alice' });
 		expect(result).toEqual({ sql: '"name" = ?', params: ['Alice'] });
 	});
 
 	it('should handle gt', () => {
-		const result = toDb0Where({ field: ['age'], op: 'gt', value: 18 });
+		const result = toDb0Where({ field: ['age'], op: '>', value: 18 });
 		expect(result).toEqual({ sql: '"age" > ?', params: [18] });
 	});
 
 	it('should handle gte', () => {
-		const result = toDb0Where({ field: ['age'], op: 'gte', value: 18 });
+		const result = toDb0Where({ field: ['age'], op: '>=', value: 18 });
 		expect(result).toEqual({ sql: '"age" >= ?', params: [18] });
 	});
 
 	it('should handle lt', () => {
-		const result = toDb0Where({ field: ['age'], op: 'lt', value: 18 });
+		const result = toDb0Where({ field: ['age'], op: '<', value: 18 });
 		expect(result).toEqual({ sql: '"age" < ?', params: [18] });
 	});
 
 	it('should handle lte', () => {
-		const result = toDb0Where({ field: ['age'], op: 'lte', value: 18 });
+		const result = toDb0Where({ field: ['age'], op: '<=', value: 18 });
 		expect(result).toEqual({ sql: '"age" <= ?', params: [18] });
 	});
 
@@ -37,6 +37,26 @@ describe('toDb0Where', () => {
 		expect(result).toEqual({ sql: '"name" ILIKE ?', params: ['%Test%'] });
 	});
 
+	it('should handle is null', () => {
+		const result = toDb0Where({ field: ['name'], op: 'is null' });
+		expect(result).toEqual({ sql: '"name" IS NULL', params: [] });
+	});
+
+	it('should handle @> (contains)', () => {
+		const result = toDb0Where({ field: ['tags'], op: '@>', value: ['admin'] });
+		expect(result).toEqual({ sql: '"tags" @> ?', params: [['admin']] });
+	});
+
+	it('should handle <@ (contained by)', () => {
+		const result = toDb0Where({ field: ['tags'], op: '<@', value: ['admin', 'user'] });
+		expect(result).toEqual({ sql: '"tags" <@ ?', params: [['admin', 'user']] });
+	});
+
+	it('should handle && (overlaps)', () => {
+		const result = toDb0Where({ field: ['tags'], op: '&&', value: ['admin'] });
+		expect(result).toEqual({ sql: '"tags" && ?', params: [['admin']] });
+	});
+
 	it('should handle in', () => {
 		const result = toDb0Where({ field: ['id'], op: 'in', values: ['1', '2', '3'] });
 		expect(result).toEqual({ sql: '"id" IN (?, ?, ?)', params: ['1', '2', '3'] });
@@ -46,8 +66,8 @@ describe('toDb0Where', () => {
 		const result = toDb0Where({
 			op: 'and',
 			conditions: [
-				{ field: ['name'], op: 'eq', value: 'Alice' },
-				{ field: ['age'], op: 'gt', value: 18 },
+				{ field: ['name'], op: '=', value: 'Alice' },
+				{ field: ['age'], op: '>', value: 18 },
 			],
 		});
 		expect(result).toEqual({ sql: '("name" = ? AND "age" > ?)', params: ['Alice', 18] });
@@ -57,8 +77,8 @@ describe('toDb0Where', () => {
 		const result = toDb0Where({
 			op: 'or',
 			conditions: [
-				{ field: ['name'], op: 'eq', value: 'Alice' },
-				{ field: ['name'], op: 'eq', value: 'Bob' },
+				{ field: ['name'], op: '=', value: 'Alice' },
+				{ field: ['name'], op: '=', value: 'Bob' },
 			],
 		});
 		expect(result).toEqual({ sql: '("name" = ? OR "name" = ?)', params: ['Alice', 'Bob'] });
@@ -67,7 +87,7 @@ describe('toDb0Where', () => {
 	it('should handle not', () => {
 		const result = toDb0Where({
 			op: 'not',
-			condition: { field: ['age'], op: 'lt', value: 18 },
+			condition: { field: ['age'], op: '<', value: 18 },
 		});
 		expect(result).toEqual({ sql: 'NOT ("age" < ?)', params: [18] });
 	});
@@ -80,7 +100,7 @@ describe('toDb0Where', () => {
 					op: 'or',
 					conditions: [
 						{ field: ['name'], op: 'like', value: '%test%' },
-						{ op: 'not', condition: { field: ['age'], op: 'eq', value: 0 } },
+						{ op: 'not', condition: { field: ['age'], op: '=', value: 0 } },
 					],
 				},
 				{ field: ['id'], op: 'in', values: ['a', 'b'] },
@@ -103,7 +123,7 @@ describe('toDb0Where', () => {
 	it('should handle multi-segment JSON path', () => {
 		const result = toDb0Where({
 			field: ['data', 'address', 'city'],
-			op: 'eq',
+			op: '=',
 			value: 'NYC',
 		});
 		expect(result).toEqual({
@@ -115,7 +135,7 @@ describe('toDb0Where', () => {
 	it('should handle PG array subscript path', () => {
 		const result = toDb0Where({
 			field: ['categories', 0],
-			op: 'eq',
+			op: '=',
 			value: 'foo',
 		});
 		expect(result).toEqual({

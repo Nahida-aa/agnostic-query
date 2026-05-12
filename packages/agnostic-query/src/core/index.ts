@@ -10,6 +10,7 @@ import {
 	type ComparisonWhereValue,
 	createExpr,
 	newComparisonWhere,
+	type PredicateOp,
 	type QueryWhere,
 	type UnaryComparisonOp,
 	type WhereComparisonOp,
@@ -39,6 +40,13 @@ interface AgnosticQuery<TShape extends SchemaShape = SchemaShape> {
 		op: Op,
 		value: ComparisonWhereValue<TShape, Col, Op>,
 	): AgnosticQuery<TShape>;
+	where<
+		Col extends FieldPathByShape<TShape> | (keyof TShape & string),
+		Op extends PredicateOp,
+	>(
+		col: Col,
+		op: Op,
+	): AgnosticQuery<TShape>;
 	where(where?: QueryWhere<TShape> | null): AgnosticQuery<TShape>;
 	orderBy<Col extends FieldPathByShape<TShape> | (keyof TShape & string)>(
 		col: Col,
@@ -62,7 +70,9 @@ export const aq = <TShape extends SchemaShape = SchemaShape>(
 	) => {
 		const field = Array.isArray(col) ? col : [col];
 		const inputWhere =
-			op === 'in' ? { field, op, values: value } : { field, op, value };
+			op === 'in' ? { field, op, values: value } :
+			op === 'is null' ? { field, op } :
+			{ field, op, value };
 		const oldWheres =
 			state?.where?.op === 'and'
 				? state.where.conditions || []
@@ -125,27 +135,27 @@ export const aq = <TShape extends SchemaShape = SchemaShape>(
 	};
 };
 
-type DemoShape = {
-	id: number;
-	name: string;
-	tags: { id: number; name: string }[];
-	category: string[];
-	address: {
-		city: {
-			name: string;
-		};
-	};
-};
-const where5 = newComparisonWhere<DemoShape>()('name', 'eq', '5');
-aq<DemoShape>()
-	.where(['address', 'city', 'name'], 'eq', '1')
-	.where(['tags', 0, 'name'], 'eq', '2')
-	.where('id', 'in', [1])
-	.where(({ and, where, or, not }) =>
-		or([where('name', 'eq', '3'), where('name', 'eq', '4'), where(where5)]),
-	)
-	.where()
-	.orderBy('name')
-	.orderBy('id', 'desc')
-	.limit(31)
-	.offset(0);
+// type DemoShape = {
+// 	id: number;
+// 	name: string;
+// 	tags: { id: number; name: string }[];
+// 	category: string[];
+// 	address: {
+// 		city: {
+// 			name: string;
+// 		};
+// 	};
+// };
+// const where5 = newComparisonWhere<DemoShape>()('name', '=', '5');
+// aq<DemoShape>()
+// 	.where(['address', 'city', 'name'], '=', '1')
+// 	.where(['tags', 0, 'name'], '=', '2')
+// 	.where('id', 'in', [1])
+// 	.where(({ and, where, or, not }) =>
+// 		or([where('name', '=', '3'), where('name', '=', '4'), where(where5)]),
+// 	)
+// 	.where()
+// 	.orderBy('name')
+// 	.orderBy('id', 'desc')
+// 	.limit(31)
+// 	.offset(0);

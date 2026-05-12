@@ -12,7 +12,7 @@ describe('createWhereSchema', () => {
 	const fullSchema = createWhereSchema<UserShape>();
 
 	it('should parse valid UnaryComparisonWhere', () => {
-		const result = fullSchema.safeParse({ field: ['name'], op: 'eq', value: 'Alice' });
+		const result = fullSchema.safeParse({ field: ['name'], op: '=', value: 'Alice' });
 		expect(result.success).toBe(true);
 		if (result.success) expect((result.data as any)?.value).toBe('Alice');
 	});
@@ -21,8 +21,8 @@ describe('createWhereSchema', () => {
 		const data = {
 			op: 'and' as const,
 			conditions: [
-				{ field: ['name'], op: 'eq', value: 'Alice' },
-				{ field: ['age'], op: 'gt', value: 18 },
+				{ field: ['name'], op: '=', value: 'Alice' },
+				{ field: ['age'], op: '>', value: 18 },
 			],
 		};
 		const result = fullSchema.safeParse(data);
@@ -41,7 +41,7 @@ describe('createWhereSchema', () => {
 	it('should parse valid UnaryLogicalWhere (not)', () => {
 		const data = {
 			op: 'not' as const,
-			condition: { field: ['age'], op: 'lt', value: 18 },
+			condition: { field: ['age'], op: '<', value: 18 },
 		};
 		const result = fullSchema.safeParse(data);
 		expect(result.success).toBe(true);
@@ -55,7 +55,7 @@ describe('createWhereSchema', () => {
 					op: 'or' as const,
 					conditions: [
 						{ field: ['name'], op: 'like', value: '%test%' },
-						{ op: 'not', condition: { field: ['age'], op: 'eq', value: 0 } },
+						{ op: 'not', condition: { field: ['age'], op: '=', value: 0 } },
 					],
 				},
 				{ field: ['id'], op: 'in', values: ['a', 'b'] },
@@ -66,7 +66,27 @@ describe('createWhereSchema', () => {
 	});
 
 	it('should accept string field (auto-convert to tuple)', () => {
-		const result = fullSchema.safeParse({ field: 'name', op: 'eq', value: 'test' });
+		const result = fullSchema.safeParse({ field: 'name', op: '=', value: 'test' });
+		expect(result.success).toBe(true);
+	});
+
+	it('should parse is null', () => {
+		const result = fullSchema.safeParse({ field: ['name'], op: 'is null' });
+		expect(result.success).toBe(true);
+	});
+
+	it('should parse @> (contains)', () => {
+		const result = fullSchema.safeParse({ field: ['tags'], op: '@>', value: ['admin'] });
+		expect(result.success).toBe(true);
+	});
+
+	it('should parse <@ (contained by)', () => {
+		const result = fullSchema.safeParse({ field: ['tags'], op: '<@', value: ['admin', 'user'] });
+		expect(result.success).toBe(true);
+	});
+
+	it('should parse && (overlaps)', () => {
+		const result = fullSchema.safeParse({ field: ['tags'], op: '&&', value: ['admin'] });
 		expect(result.success).toBe(true);
 	});
 

@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'bun:test';
 import { aq, type QuerySchema } from './index.ts';
+import type { QueryWhere } from './where.ts';
+import { findWhere } from './where.ts';
 
 type DemoShape = {
 	id: number;
@@ -7,6 +9,13 @@ type DemoShape = {
 	age: number;
 	status: string;
 	role: string;
+	tags: { id: number; name: string }[];
+	category: string[];
+	address: {
+		city: {
+			name: string;
+		};
+	};
 };
 
 describe('aq builder', () => {
@@ -17,20 +26,28 @@ describe('aq builder', () => {
 	});
 
 	it('string shorthand where', () => {
-		const result = aq<DemoShape>().where('name', 'eq', 'Alice').toJSON();
+		const result = aq<DemoShape>().where('name', '=', 'Alice').toJSON();
 		expect(result.where).toEqual({
 			field: ['name'],
-			op: 'eq',
+			op: '=',
 			value: 'Alice',
 		});
 	});
 
 	it('tuple path where', () => {
-		const result = aq<DemoShape>().where(['name'], 'eq', 'Bob').toJSON();
+		const result = aq<DemoShape>().where(['name'], '=', 'Bob').toJSON();
 		expect(result.where).toEqual({
 			field: ['name'],
-			op: 'eq',
+			op: '=',
 			value: 'Bob',
+		});
+	});
+
+	it('where with is null operator', () => {
+		const result = aq<DemoShape>().where('name', 'is null').toJSON();
+		expect(result.where).toEqual({
+			field: ['name'],
+			op: 'is null',
 		});
 	});
 
@@ -45,30 +62,30 @@ describe('aq builder', () => {
 
 	it('chaining wheres creates AND', () => {
 		const result = aq<DemoShape>()
-			.where('name', 'eq', 'Alice')
-			.where('age', 'gt', 18)
+			.where('name', '=', 'Alice')
+			.where('age', '>', 18)
 			.toJSON();
 		expect(result.where).toEqual({
 			op: 'and',
 			conditions: [
-				{ field: ['name'], op: 'eq', value: 'Alice' },
-				{ field: ['age'], op: 'gt', value: 18 },
+				{ field: ['name'], op: '=', value: 'Alice' },
+				{ field: ['age'], op: '>', value: 18 },
 			],
 		});
 	});
 
 	it('three chained wheres flatten into single AND', () => {
 		const result = aq<DemoShape>()
-			.where('name', 'eq', 'Alice')
-			.where('age', 'gt', 18)
-			.where('status', 'eq', 'active')
+			.where('name', '=', 'Alice')
+			.where('age', '>', 18)
+			.where('status', '=', 'active')
 			.toJSON();
 		expect(result.where).toEqual({
 			op: 'and',
 			conditions: [
-				{ field: ['name'], op: 'eq', value: 'Alice' },
-				{ field: ['age'], op: 'gt', value: 18 },
-				{ field: ['status'], op: 'eq', value: 'active' },
+				{ field: ['name'], op: '=', value: 'Alice' },
+				{ field: ['age'], op: '>', value: 18 },
+				{ field: ['status'], op: '=', value: 'active' },
 			],
 		});
 	});
@@ -76,14 +93,14 @@ describe('aq builder', () => {
 	it('callbacks: or', () => {
 		const result = aq<DemoShape>()
 			.where(({ or, where }) =>
-				or([where('name', 'eq', '3'), where('name', 'eq', '4')]),
+				or([where('name', '=', '3'), where('name', '=', '4')]),
 			)
 			.toJSON();
 		expect(result.where).toEqual({
 			op: 'or',
 			conditions: [
-				{ field: ['name'], op: 'eq', value: '3' },
-				{ field: ['name'], op: 'eq', value: '4' },
+				{ field: ['name'], op: '=', value: '3' },
+				{ field: ['name'], op: '=', value: '4' },
 			],
 		});
 	});
@@ -91,44 +108,44 @@ describe('aq builder', () => {
 	it('callbacks: and', () => {
 		const result = aq<DemoShape>()
 			.where(({ and, where }) =>
-				and([where('age', 'gte', 18), where('age', 'lt', 65)]),
+				and([where('age', '>=', 18), where('age', '<', 65)]),
 			)
 			.toJSON();
 		expect(result.where).toEqual({
 			op: 'and',
 			conditions: [
-				{ field: ['age'], op: 'gte', value: 18 },
-				{ field: ['age'], op: 'lt', value: 65 },
+				{ field: ['age'], op: '>=', value: 18 },
+				{ field: ['age'], op: '<', value: 65 },
 			],
 		});
 	});
 
 	it('callbacks: not', () => {
 		const result = aq<DemoShape>()
-			.where(({ not, where }) => not(where('role', 'eq', 'banned')))
+			.where(({ not, where }) => not(where('role', '=', 'banned')))
 			.toJSON();
 		expect(result.where).toEqual({
 			op: 'not',
-			condition: { field: ['role'], op: 'eq', value: 'banned' },
+			condition: { field: ['role'], op: '=', value: 'banned' },
 		});
 	});
 
 	it('mix simple and callback', () => {
 		const result = aq<DemoShape>()
-			.where('status', 'eq', 'active')
+			.where('status', '=', 'active')
 			.where(({ or, where }) =>
-				or([where('name', 'eq', 'admin'), where('name', 'eq', 'mod')]),
+				or([where('name', '=', 'admin'), where('name', '=', 'mod')]),
 			)
 			.toJSON();
 		expect(result.where).toEqual({
 			op: 'and',
 			conditions: [
-				{ field: ['status'], op: 'eq', value: 'active' },
+				{ field: ['status'], op: '=', value: 'active' },
 				{
 					op: 'or',
 					conditions: [
-						{ field: ['name'], op: 'eq', value: 'admin' },
-						{ field: ['name'], op: 'eq', value: 'mod' },
+						{ field: ['name'], op: '=', value: 'admin' },
+						{ field: ['name'], op: '=', value: 'mod' },
 					],
 				},
 			],
@@ -138,9 +155,9 @@ describe('aq builder', () => {
 	it('callback first then simple where', () => {
 		const result = aq<DemoShape>()
 			.where(({ or, where }) =>
-				or([where('name', 'eq', 'x'), where('name', 'eq', 'y')]),
+				or([where('name', '=', 'x'), where('name', '=', 'y')]),
 			)
-			.where('age', 'gte', 10)
+			.where('age', '>=', 10)
 			.toJSON();
 		expect(result.where).toEqual({
 			op: 'and',
@@ -148,11 +165,11 @@ describe('aq builder', () => {
 				{
 					op: 'or',
 					conditions: [
-						{ field: ['name'], op: 'eq', value: 'x' },
-						{ field: ['name'], op: 'eq', value: 'y' },
+						{ field: ['name'], op: '=', value: 'x' },
+						{ field: ['name'], op: '=', value: 'y' },
 					],
 				},
-				{ field: ['age'], op: 'gte', value: 10 },
+				{ field: ['age'], op: '>=', value: 10 },
 			],
 		});
 	});
@@ -161,8 +178,8 @@ describe('aq builder', () => {
 		const result = aq<DemoShape>()
 			.where(({ or, and, where }) =>
 				or([
-					and([where('role', 'eq', 'admin'), where('status', 'eq', 'active')]),
-					where('age', 'gt', 30),
+					and([where('role', '=', 'admin'), where('status', '=', 'active')]),
+					where('age', '>', 30),
 				]),
 			)
 			.toJSON();
@@ -172,11 +189,11 @@ describe('aq builder', () => {
 				{
 					op: 'and',
 					conditions: [
-						{ field: ['role'], op: 'eq', value: 'admin' },
-						{ field: ['status'], op: 'eq', value: 'active' },
+						{ field: ['role'], op: '=', value: 'admin' },
+						{ field: ['status'], op: '=', value: 'active' },
 					],
 				},
-				{ field: ['age'], op: 'gt', value: 30 },
+				{ field: ['age'], op: '>', value: 30 },
 			],
 		});
 	});
@@ -186,10 +203,10 @@ describe('aq builder', () => {
 			.where(({ or, and, where }) =>
 				and([
 					or([
-						and([where('name', 'eq', 'a'), where('status', 'eq', 'x')]),
-						and([where('name', 'eq', 'b'), where('status', 'eq', 'y')]),
+						and([where('name', '=', 'a'), where('status', '=', 'x')]),
+						and([where('name', '=', 'b'), where('status', '=', 'y')]),
 					]),
-					where('age', 'gte', 18),
+					where('age', '>=', 18),
 				]),
 			)
 			.toJSON();
@@ -202,20 +219,20 @@ describe('aq builder', () => {
 						{
 							op: 'and',
 							conditions: [
-								{ field: ['name'], op: 'eq', value: 'a' },
-								{ field: ['status'], op: 'eq', value: 'x' },
+								{ field: ['name'], op: '=', value: 'a' },
+								{ field: ['status'], op: '=', value: 'x' },
 							],
 						},
 						{
 							op: 'and',
 							conditions: [
-								{ field: ['name'], op: 'eq', value: 'b' },
-								{ field: ['status'], op: 'eq', value: 'y' },
+								{ field: ['name'], op: '=', value: 'b' },
+								{ field: ['status'], op: '=', value: 'y' },
 							],
 						},
 					],
 				},
-				{ field: ['age'], op: 'gte', value: 18 },
+				{ field: ['age'], op: '>=', value: 18 },
 			],
 		});
 	});
@@ -224,8 +241,8 @@ describe('aq builder', () => {
 		const result = aq<DemoShape>()
 			.where(({ or, and, not, where }) =>
 				or([
-					and([not(where('status', 'eq', 'banned')), where('age', 'gte', 18)]),
-					where('role', 'eq', 'admin'),
+					and([not(where('status', '=', 'banned')), where('age', '>=', 18)]),
+					where('role', '=', 'admin'),
 				]),
 			)
 			.toJSON();
@@ -235,11 +252,11 @@ describe('aq builder', () => {
 				{
 					op: 'and',
 					conditions: [
-						{ op: 'not', condition: { field: ['status'], op: 'eq', value: 'banned' } },
-						{ field: ['age'], op: 'gte', value: 18 },
+						{ op: 'not', condition: { field: ['status'], op: '=', value: 'banned' } },
+						{ field: ['age'], op: '>=', value: 18 },
 					],
 				},
-				{ field: ['role'], op: 'eq', value: 'admin' },
+				{ field: ['role'], op: '=', value: 'admin' },
 			],
 		});
 	});
@@ -247,14 +264,14 @@ describe('aq builder', () => {
 	it('double not: not(not(...))', () => {
 		const result = aq<DemoShape>()
 			.where(({ not, where }) =>
-				not(not(where('status', 'eq', 'active'))),
+				not(not(where('status', '=', 'active'))),
 			)
 			.toJSON();
 		expect(result.where).toEqual({
 			op: 'not',
 			condition: {
 				op: 'not',
-				condition: { field: ['status'], op: 'eq', value: 'active' },
+				condition: { field: ['status'], op: '=', value: 'active' },
 			},
 		});
 	});
@@ -262,14 +279,14 @@ describe('aq builder', () => {
 	it('in operator in callback', () => {
 		const result = aq<DemoShape>()
 			.where(({ or, where }) =>
-				or([where('status', 'in', ['a', 'b']), where('status', 'eq', 'c')]),
+				or([where('status', 'in', ['a', 'b']), where('status', '=', 'c')]),
 			)
 			.toJSON();
 		expect(result.where).toEqual({
 			op: 'or',
 			conditions: [
 				{ field: ['status'], op: 'in', values: ['a', 'b'] },
-				{ field: ['status'], op: 'eq', value: 'c' },
+				{ field: ['status'], op: '=', value: 'c' },
 			],
 		});
 	});
@@ -281,11 +298,11 @@ describe('aq builder', () => {
 			orderBy: [{ field: ['name'], direction: 'asc' }],
 		};
 
-		const result = aq<DemoShape>(schema).where('name', 'eq', 'test').toJSON();
+		const result = aq<DemoShape>(schema).where('name', '=', 'test').toJSON();
 		expect(result.limit).toBe(10);
 		expect(result.offset).toBe(0);
 		expect(result.orderBy).toEqual([{ field: ['name'], direction: 'asc' }]);
-		expect(result.where).toEqual({ field: ['name'], op: 'eq', value: 'test' });
+		expect(result.where).toEqual({ field: ['name'], op: '=', value: 'test' });
 	});
 
 	it('orderBy is undefined when not set', () => {
@@ -327,40 +344,40 @@ describe('aq builder', () => {
 
 	it('where and orderBy can be chained together', () => {
 		const result = aq<DemoShape>()
-			.where('name', 'eq', 'Alice')
+			.where('name', '=', 'Alice')
 			.orderBy('age', 'desc')
 			.toJSON();
-		expect(result.where).toEqual({ field: ['name'], op: 'eq', value: 'Alice' });
+		expect(result.where).toEqual({ field: ['name'], op: '=', value: 'Alice' });
 		expect(result.orderBy).toEqual([{ field: ['age'], direction: 'desc' }]);
 	});
 
 	it('where accepts a QueryWhere object directly', () => {
 		const where: QuerySchema<DemoShape>['where'] = {
 			field: ['name'],
-			op: 'eq',
+			op: '=',
 			value: 'Alice',
 		};
 		const result = aq<DemoShape>().where(where).toJSON();
-		expect(result.where).toEqual({ field: ['name'], op: 'eq', value: 'Alice' });
+		expect(result.where).toEqual({ field: ['name'], op: '=', value: 'Alice' });
 	});
 
 	it('where with QueryWhere object appends via AND', () => {
 		const existing: QuerySchema<DemoShape>['where'] = {
 			field: ['name'],
-			op: 'eq',
+			op: '=',
 			value: 'Alice',
 		};
 		const extra: QuerySchema<DemoShape>['where'] = {
 			field: ['age'],
-			op: 'gt',
+			op: '>',
 			value: 18,
 		};
 		const result = aq<DemoShape>().where(existing).where(extra).toJSON();
 		expect(result.where).toEqual({
 			op: 'and',
 			conditions: [
-				{ field: ['name'], op: 'eq', value: 'Alice' },
-				{ field: ['age'], op: 'gt', value: 18 },
+				{ field: ['name'], op: '=', value: 'Alice' },
+				{ field: ['age'], op: '>', value: 18 },
 			],
 		});
 	});
@@ -368,19 +385,19 @@ describe('aq builder', () => {
 	it('where with QueryWhere in callback', () => {
 		const roleWhere: QuerySchema<DemoShape>['where'] = {
 			field: ['role'],
-			op: 'eq',
+			op: '=',
 			value: 'admin',
 		};
 		const result = aq<DemoShape>()
 			.where(({ or, where }) =>
-				or([where('name', 'eq', 'Alice'), where(roleWhere)]),
+				or([where('name', '=', 'Alice'), where(roleWhere)]),
 			)
 			.toJSON();
 		expect(result.where).toEqual({
 			op: 'or',
 			conditions: [
-				{ field: ['name'], op: 'eq', value: 'Alice' },
-				{ field: ['role'], op: 'eq', value: 'admin' },
+				{ field: ['name'], op: '=', value: 'Alice' },
+				{ field: ['role'], op: '=', value: 'admin' },
 			],
 		});
 	});
@@ -402,18 +419,18 @@ describe('aq builder', () => {
 	it('where mix QueryWhere object and simple where', () => {
 		const nameWhere: QuerySchema<DemoShape>['where'] = {
 			field: ['name'],
-			op: 'eq',
+			op: '=',
 			value: 'Alice',
 		};
 		const result = aq<DemoShape>()
 			.where(nameWhere)
-			.where('age', 'gt', 18)
+			.where('age', '>', 18)
 			.toJSON();
 		expect(result.where).toEqual({
 			op: 'and',
 			conditions: [
-				{ field: ['name'], op: 'eq', value: 'Alice' },
-				{ field: ['age'], op: 'gt', value: 18 },
+				{ field: ['name'], op: '=', value: 'Alice' },
+				{ field: ['age'], op: '>', value: 18 },
 			],
 		});
 	});
@@ -421,39 +438,39 @@ describe('aq builder', () => {
 	it('where(null) is a no-op', () => {
 		const result = aq<DemoShape>()
 			.where(null)
-			.where('name', 'eq', 'Alice')
+			.where('name', '=', 'Alice')
 			.toJSON();
-		expect(result.where).toEqual({ field: ['name'], op: 'eq', value: 'Alice' });
+		expect(result.where).toEqual({ field: ['name'], op: '=', value: 'Alice' });
 	});
 
 	it('where(undefined) is a no-op', () => {
 		const result = aq<DemoShape>()
 			.where(undefined)
-			.where('name', 'eq', 'Alice')
+			.where('name', '=', 'Alice')
 			.toJSON();
-		expect(result.where).toEqual({ field: ['name'], op: 'eq', value: 'Alice' });
+		expect(result.where).toEqual({ field: ['name'], op: '=', value: 'Alice' });
 	});
 
 	it('where() with no args is a no-op', () => {
 		const result = aq<DemoShape>()
 			.where()
-			.where('name', 'eq', 'Alice')
+			.where('name', '=', 'Alice')
 			.toJSON();
-		expect(result.where).toEqual({ field: ['name'], op: 'eq', value: 'Alice' });
+		expect(result.where).toEqual({ field: ['name'], op: '=', value: 'Alice' });
 	});
 
 	it('null/undefined where does not break chaining', () => {
 		const result = aq<DemoShape>()
-			.where('status', 'eq', 'active')
+			.where('status', '=', 'active')
 			.where(null)
-			.where('age', 'gt', 18)
+			.where('age', '>', 18)
 			.where(undefined)
 			.toJSON();
 		expect(result.where).toEqual({
 			op: 'and',
 			conditions: [
-				{ field: ['status'], op: 'eq', value: 'active' },
-				{ field: ['age'], op: 'gt', value: 18 },
+				{ field: ['status'], op: '=', value: 'active' },
+				{ field: ['age'], op: '>', value: 18 },
 			],
 		});
 	});
@@ -467,3 +484,43 @@ describe('aq builder', () => {
 		expect(result.where).toBeUndefined();
 	});
 });
+
+// === Compile-time overload resolution tests ===
+// These are never executed — only typechecked by tsgo --noEmit
+
+function expectType<T>(_v: T): void {}
+
+function _typeTests() {
+	// 2-arg 'is null' compiles
+	aq<DemoShape>().where('name', 'is null');
+
+	// 3-arg 'is null' should error (PredicateOp → never in ComparisonWhereValue)
+	// @ts-expect-error
+	aq<DemoShape>().where('name', 'is null', 'x');
+
+	// 'in' on array field should error
+	// @ts-expect-error
+	aq<DemoShape>().where('tags', 'in', [[1]]);
+
+	// 'in' on array field via tuple path should error
+	// @ts-expect-error
+	aq<DemoShape>().where(['tags'], 'in', [[1]]);
+
+	// findWhere find('address', '=')?.value → { city: { name: string } } | undefined
+	const where2 = {} as QueryWhere<DemoShape>;
+	expectType<{ city: { name: string } } | undefined>(
+		findWhere(where2).find('address', '=')?.value,
+	);
+	// findWhere find('tags', '@>')?.value → { id: number; name: string }[] | undefined
+	expectType<{ id: number; name: string }[] | undefined>(
+		findWhere(where2).find('tags', '@>')?.value,
+	);
+	// findWhere find('id', 'in')?.values → number[] | undefined
+	expectType<number[] | undefined>(
+		findWhere(where2).find('id', 'in')?.values,
+	);
+	// findWhere find('name', 'like') returns UnaryComparisonWhere (has .value)
+	expectType<string | undefined>(
+		findWhere(where2).find('name', 'like')?.value,
+	);
+}

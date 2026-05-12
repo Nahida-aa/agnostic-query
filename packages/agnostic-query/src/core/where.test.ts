@@ -10,53 +10,51 @@ type UserShape = {
 
 const base: QueryWhere<UserShape> = {
 	field: ['name'],
-	op: 'eq',
+	op: '=',
 	value: 'Alice',
 };
 
 const multi: QueryWhere<UserShape> = {
 	op: 'and',
 	conditions: [
-		{ field: ['name'], op: 'eq', value: 'Alice' },
-		{ field: ['age'], op: 'gt', value: 18 },
+		{ field: ['name'], op: '=', value: 'Alice' },
+		{ field: ['age'], op: '>', value: 18 },
 	],
 };
 
 const unary: QueryWhere<UserShape> = {
 	op: 'not',
-	condition: { field: ['age'], op: 'lt', value: 18 },
+	condition: { field: ['age'], op: '<', value: 18 },
 };
 
 describe('findWhere', () => {
 	it('should find comparison in UnaryComparisonWhere', () => {
 		const result = findWhere(base).eq(['name']);
-		expect((result as any)?.value).toBe('Alice');
+		expect(result?.value).toBe('Alice');
 	});
 
 	it('should find comparison in MultiLogicalWhere (and)', () => {
 		const resultName = findWhere(multi).eq(['name']);
-		const resultAge = findWhere(multi).find(['age'], 'gt');
-		expect((resultName as any)?.value).toBe('Alice');
-		expect((resultAge as any)?.value).toBe(18);
+		const resultAge = findWhere(multi).find(['age'], '>');
+		expect(resultName?.value).toBe('Alice');
+		expect(resultAge?.value).toBe(18);
 	});
 
 	it('should find comparison in MultiLogicalWhere (or)', () => {
 		const orWhere: QueryWhere<UserShape> = {
 			op: 'or',
 			conditions: [
-				{ field: ['id'], op: 'eq', value: '1' },
+				{ field: ['id'], op: '=', value: '1' },
 				{ field: ['name'], op: 'like', value: '%admin%' },
 			],
 		};
-		expect((findWhere(orWhere).eq(['id']) as any)?.value).toBe('1');
-		expect((findWhere(orWhere).find(['name'], 'like') as any)?.value).toBe(
-			'%admin%',
-		);
+		expect(findWhere(orWhere).eq(['id'])?.value).toBe('1');
+		expect(findWhere(orWhere).find(['name'], 'like')?.value).toBe('%admin%');
 	});
 
 	it('should find comparison in UnaryLogicalWhere (not)', () => {
-		const result = findWhere(unary).find(['age'], 'lt');
-		expect((result as any)?.value).toBe(18);
+		const result = findWhere(unary).find(['age'], '<');
+		expect(result?.value).toBe(18);
 	});
 
 	it('should return undefined if field not found', () => {
@@ -76,17 +74,17 @@ describe('findWhere', () => {
 				{
 					op: 'or',
 					conditions: [
-						{ field: ['name'], op: 'eq', value: 'Deep' },
-						{ op: 'not', condition: { field: ['age'], op: 'lt', value: 0 } },
+						{ field: ['name'], op: '=', value: 'Deep' },
+						{ op: 'not', condition: { field: ['age'], op: '<', value: 0 } },
 					],
 				},
-				{ field: ['tags'], op: 'in', values: ['a', 'b'] },
+				{ field: ['id'], op: 'in', values: ['a', 'b'] },
 			],
 		};
-		expect((findWhere(deep).eq(['name']) as any)?.value).toBe('Deep');
-		expect((findWhere(deep).find(['age'], 'lt') as any)?.value).toBe(0);
-		const tagsNode = findWhere(deep).in(['tags']);
-		expect((tagsNode as any)?.values).toEqual(['a', 'b']);
+		expect(findWhere(deep).eq(['name'])?.value).toBe('Deep');
+		expect(findWhere(deep).find(['age'], '<')?.value).toBe(0);
+		const idNode = findWhere(deep).in(['id']);
+		expect(idNode?.values).toEqual(['a', 'b']);
 	});
 });
 
@@ -105,24 +103,24 @@ describe('newWhere builder', () => {
 	});
 
 	it('where with col/op/value', () => {
-		const result = newWhere<Shape>().where('name', 'eq', 'Alice').toJSON();
+		const result = newWhere<Shape>().where('name', '=', 'Alice').toJSON();
 		expect(result).toEqual({
 			field: ['name'],
-			op: 'eq',
+			op: '=',
 			value: 'Alice',
 		});
 	});
 
 	it('chaining wheres creates AND', () => {
 		const result = newWhere<Shape>()
-			.where('name', 'eq', 'Alice')
-			.where('age', 'gt', 18)
+			.where('name', '=', 'Alice')
+			.where('age', '>', 18)
 			.toJSON();
 		expect(result).toEqual({
 			op: 'and',
 			conditions: [
-				{ field: ['name'], op: 'eq', value: 'Alice' },
-				{ field: ['age'], op: 'gt', value: 18 },
+				{ field: ['name'], op: '=', value: 'Alice' },
+				{ field: ['age'], op: '>', value: 18 },
 			],
 		});
 	});
@@ -139,30 +137,30 @@ describe('newWhere builder', () => {
 	it('where(null) is a no-op', () => {
 		const result = newWhere<Shape>()
 			.where(null)
-			.where('name', 'eq', 'Alice')
+			.where('name', '=', 'Alice')
 			.toJSON();
-		expect(result).toEqual({ field: ['name'], op: 'eq', value: 'Alice' });
+		expect(result).toEqual({ field: ['name'], op: '=', value: 'Alice' });
 	});
 
 	it('where(undefined) is a no-op', () => {
 		const result = newWhere<Shape>()
 			.where(undefined)
-			.where('name', 'eq', 'Alice')
+			.where('name', '=', 'Alice')
 			.toJSON();
-		expect(result).toEqual({ field: ['name'], op: 'eq', value: 'Alice' });
+		expect(result).toEqual({ field: ['name'], op: '=', value: 'Alice' });
 	});
 
 	it('callback: or', () => {
 		const result = newWhere<Shape>()
 			.where(({ or, where }) =>
-				or([where('name', 'eq', 'a'), where('name', 'eq', 'b')]),
+				or([where('name', '=', 'a'), where('name', '=', 'b')]),
 			)
 			.toJSON();
 		expect(result).toEqual({
 			op: 'or',
 			conditions: [
-				{ field: ['name'], op: 'eq', value: 'a' },
-				{ field: ['name'], op: 'eq', value: 'b' },
+				{ field: ['name'], op: '=', value: 'a' },
+				{ field: ['name'], op: '=', value: 'b' },
 			],
 		});
 	});
@@ -170,25 +168,25 @@ describe('newWhere builder', () => {
 	it('callback: and', () => {
 		const result = newWhere<Shape>()
 			.where(({ and, where }) =>
-				and([where('age', 'gte', 18), where('age', 'lt', 65)]),
+				and([where('age', '>=', 18), where('age', '<', 65)]),
 			)
 			.toJSON();
 		expect(result).toEqual({
 			op: 'and',
 			conditions: [
-				{ field: ['age'], op: 'gte', value: 18 },
-				{ field: ['age'], op: 'lt', value: 65 },
+				{ field: ['age'], op: '>=', value: 18 },
+				{ field: ['age'], op: '<', value: 65 },
 			],
 		});
 	});
 
 	it('callback: not', () => {
 		const result = newWhere<Shape>()
-			.where(({ not, where }) => not(where('role', 'eq', 'banned')))
+			.where(({ not, where }) => not(where('role', '=', 'banned')))
 			.toJSON();
 		expect(result).toEqual({
 			op: 'not',
-			condition: { field: ['role'], op: 'eq', value: 'banned' },
+			condition: { field: ['role'], op: '=', value: 'banned' },
 		});
 	});
 
@@ -196,8 +194,8 @@ describe('newWhere builder', () => {
 		const result = newWhere<Shape>()
 			.where(({ or, and, where }) =>
 				or([
-					and([where('role', 'eq', 'admin'), where('status', 'eq', 'active')]),
-					where('age', 'gt', 30),
+					and([where('role', '=', 'admin'), where('status', '=', 'active')]),
+					where('age', '>', 30),
 				]),
 			)
 			.toJSON();
@@ -207,11 +205,11 @@ describe('newWhere builder', () => {
 				{
 					op: 'and',
 					conditions: [
-						{ field: ['role'], op: 'eq', value: 'admin' },
-						{ field: ['status'], op: 'eq', value: 'active' },
+						{ field: ['role'], op: '=', value: 'admin' },
+						{ field: ['status'], op: '=', value: 'active' },
 					],
 				},
-				{ field: ['age'], op: 'gt', value: 30 },
+				{ field: ['age'], op: '>', value: 30 },
 			],
 		});
 	});
@@ -219,18 +217,19 @@ describe('newWhere builder', () => {
 	it('accepts QueryWhere object', () => {
 		const roleWhere: QueryWhere<Shape> = {
 			field: ['role'],
-			op: 'eq',
+			op: '=',
+
 			value: 'admin',
 		};
 		const result = newWhere<Shape>()
 			.where(roleWhere)
-			.where('name', 'eq', 'Alice')
+			.where('name', '=', 'Alice')
 			.toJSON();
 		expect(result).toEqual({
 			op: 'and',
 			conditions: [
-				{ field: ['role'], op: 'eq', value: 'admin' },
-				{ field: ['name'], op: 'eq', value: 'Alice' },
+				{ field: ['role'], op: '=', value: 'admin' },
+				{ field: ['name'], op: '=', value: 'Alice' },
 			],
 		});
 	});
@@ -238,15 +237,15 @@ describe('newWhere builder', () => {
 	it('initial state + chaining', () => {
 		const initWhere: QueryWhere<Shape> = {
 			field: ['status'],
-			op: 'eq',
+			op: '=',
 			value: 'active',
 		};
-		const result = newWhere<Shape>(initWhere).where('age', 'gt', 18).toJSON();
+		const result = newWhere<Shape>(initWhere).where('age', '>', 18).toJSON();
 		expect(result).toEqual({
 			op: 'and',
 			conditions: [
-				{ field: ['status'], op: 'eq', value: 'active' },
-				{ field: ['age'], op: 'gt', value: 18 },
+				{ field: ['status'], op: '=', value: 'active' },
+				{ field: ['age'], op: '>', value: 18 },
 			],
 		});
 	});
@@ -255,38 +254,38 @@ describe('newWhere builder', () => {
 		const initWhere: QueryWhere<Shape> = {
 			op: 'and',
 			conditions: [
-				{ field: ['name'], op: 'eq', value: 'Alice' },
-				{ field: ['status'], op: 'eq', value: 'active' },
+				{ field: ['name'], op: '=', value: 'Alice' },
+				{ field: ['status'], op: '=', value: 'active' },
 			],
 		};
-		const result = newWhere<Shape>(initWhere).where('age', 'gt', 18).toJSON();
+		const result = newWhere<Shape>(initWhere).where('age', '>', 18).toJSON();
 		expect(result).toEqual({
 			op: 'and',
 			conditions: [
-				{ field: ['name'], op: 'eq', value: 'Alice' },
-				{ field: ['status'], op: 'eq', value: 'active' },
-				{ field: ['age'], op: 'gt', value: 18 },
+				{ field: ['name'], op: '=', value: 'Alice' },
+				{ field: ['status'], op: '=', value: 'active' },
+				{ field: ['age'], op: '>', value: 18 },
 			],
 		});
 	});
 
 	it('multiple chaining from null init', () => {
 		const result = newWhere<Shape>(null)
-			.where('name', 'eq', 'Alice')
-			.where('age', 'gt', 18)
+			.where('name', '=', 'Alice')
+			.where('age', '>', 18)
 			.toJSON();
 		expect(result).toEqual({
 			op: 'and',
 			conditions: [
-				{ field: ['name'], op: 'eq', value: 'Alice' },
-				{ field: ['age'], op: 'gt', value: 18 },
+				{ field: ['name'], op: '=', value: 'Alice' },
+				{ field: ['age'], op: '>', value: 18 },
 			],
 		});
 	});
 
 	it('tuple path where', () => {
-		const result = newWhere<Shape>().where(['name'], 'eq', 'Bob').toJSON();
-		expect(result).toEqual({ field: ['name'], op: 'eq', value: 'Bob' });
+		const result = newWhere<Shape>().where(['name'], '=', 'Bob').toJSON();
+		expect(result).toEqual({ field: ['name'], op: '=', value: 'Bob' });
 	});
 
 	it('deeply nested', () => {
@@ -294,10 +293,10 @@ describe('newWhere builder', () => {
 			.where(({ or, and, where }) =>
 				and([
 					or([
-						and([where('name', 'eq', 'a'), where('status', 'eq', 'x')]),
-						and([where('name', 'eq', 'b'), where('status', 'eq', 'y')]),
+						and([where('name', '=', 'a'), where('status', '=', 'x')]),
+						and([where('name', '=', 'b'), where('status', '=', 'y')]),
 					]),
-					where('age', 'gte', 18),
+					where('age', '>=', 18),
 				]),
 			)
 			.toJSON();
@@ -310,20 +309,20 @@ describe('newWhere builder', () => {
 						{
 							op: 'and',
 							conditions: [
-								{ field: ['name'], op: 'eq', value: 'a' },
-								{ field: ['status'], op: 'eq', value: 'x' },
+								{ field: ['name'], op: '=', value: 'a' },
+								{ field: ['status'], op: '=', value: 'x' },
 							],
 						},
 						{
 							op: 'and',
 							conditions: [
-								{ field: ['name'], op: 'eq', value: 'b' },
-								{ field: ['status'], op: 'eq', value: 'y' },
+								{ field: ['name'], op: '=', value: 'b' },
+								{ field: ['status'], op: '=', value: 'y' },
 							],
 						},
 					],
 				},
-				{ field: ['age'], op: 'gte', value: 18 },
+				{ field: ['age'], op: '>=', value: 18 },
 			],
 		});
 	});

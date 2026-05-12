@@ -2,20 +2,28 @@ import type { ExpressionBuilder, SelectQueryBuilder, SqlBool } from 'kysely';
 import { type ExpressionWrapper, sql } from 'kysely';
 import type { QueryOrderBy } from '../core/order-by.ts';
 import type { SchemaShape } from '../core/schema.ts';
-import type { QueryWhere } from '../core/where.ts';
+import type {
+	ComparisonWhere,
+	QueryWhere,
+	SetComparisonOp,
+	UnaryComparisonOp,
+} from '../core/where.ts';
 import { isComparisonWhere } from '../core/where.ts';
 import { fieldToStr } from '../sql/pg.ts';
 import type { TSelectQueryBuilder } from './types.ts';
 
 const kyselyOpMap = {
-	eq: '=',
-	gt: '>',
-	gte: '>=',
-	lt: '<',
-	lte: '<=',
+	'=': '=',
+	'>': '>',
+	'>=': '>=',
+	'<': '<',
+	'<=': '<=',
 	like: 'like',
 	ilike: 'ilike',
-} as const;
+	'<@': '<@',
+	'@>': '@>',
+	'&&': '&&',
+} as const satisfies Record<UnaryComparisonOp | SetComparisonOp, string>;
 
 type Expression<TShape, TableName extends string> = ExpressionBuilder<
 	{ [k in TableName]: TShape },
@@ -49,7 +57,11 @@ const build = <TShape extends SchemaShape, TableName extends string>(
 	}
 
 	if (!isComparisonWhere(where)) return emptyExp(exp);
+
 	const target = sql.raw(fieldToStr(where.field));
+	if (where.op === 'is null') {
+		return exp.eb(target, 'is', null);
+	}
 	if (where.op === 'in') {
 		return exp.eb(target, 'in', where.values);
 	}

@@ -10,9 +10,13 @@ agnostic-query provides a comprehensive WHERE system that covers simple comparis
 The simplest form — a field, an operator, and a value:
 
 ```ts
-aq<User>().where('name', 'eq', 'Alice')
-aq<User>().where('age', 'gte', 18)
+aq<User>().where('name', '=', 'Alice')
+aq<User>().where('age', '>=', 18)
 aq<User>().where('status', 'in', ['active', 'pending'])
+aq<User>().where('name', 'is null')        // 2-argument form (no value)
+aq<User>().where('tags', '@>', ['admin'])  // array contains
+aq<User>().where('tags', '<@', ['admin'])  // array contained by
+aq<User>().where('tags', '&&', ['admin'])  // array overlaps
 ```
 
 ## Logical Nesting
@@ -24,11 +28,11 @@ aq<User>()
   .where(({ or, and, where, not }) =>
     or([
       and([
-        where('role', 'eq', 'admin'),
-        where('age', 'gte', 18),
+        where('role', '=', 'admin'),
+        where('age', '>=', 18),
       ]),
-      where('role', 'eq', 'moderator'),
-      not(where('status', 'eq', 'banned')),
+      where('role', '=', 'moderator'),
+      not(where('status', '=', 'banned')),
     ]),
   )
   .toJSON()
@@ -43,11 +47,11 @@ Pass a pre-built `QueryWhere` object:
 ```ts
 const roleWhere: QuerySchema<User>['where'] = {
   field: ['role'],
-  op: 'eq',
+  op: '=',
   value: 'admin',
 }
 
-aq<User>().where('name', 'eq', 'Alice').where(roleWhere).toJSON()
+aq<User>().where('name', '=', 'Alice').where(roleWhere).toJSON()
 ```
 
 ## newWhere: Standalone WHERE Builder
@@ -58,14 +62,14 @@ Build a `QueryWhere` independently of a full `QuerySchema`:
 import { newWhere } from 'agnostic-query'
 
 const w = newWhere<User>()
-  .where('name', 'eq', 'Alice')
-  .where('age', 'gte', 18)
+  .where('name', '=', 'Alice')
+  .where('age', '>=', 18)
   .toJSON()
 // → {
 //     op: 'and',
 //     conditions: [
-//       { field: ['name'], op: 'eq', value: 'Alice' },
-//       { field: ['age'], op: 'gte', value: 18 },
+//       { field: ['name'], op: '=', value: 'Alice' },
+//       { field: ['age'], op: '>=', value: 18 },
 //     ],
 //   }
 ```
@@ -73,13 +77,13 @@ const w = newWhere<User>()
 Accepts an initial `QueryWhere` to extend:
 
 ```ts
-const base = newWhere<User>({ field: ['status'], op: 'eq', value: 'active' })
+const base = newWhere<User>({ field: ['status'], op: '=', value: 'active' })
 
 const full = base
   .where(({ or, and, where }) =>
     or([
-      and([where('role', 'eq', 'admin'), where('age', 'gte', 18)]),
-      where('role', 'eq', 'moderator'),
+      and([where('role', '=', 'admin'), where('age', '>=', 18)]),
+      where('role', '=', 'moderator'),
     ]),
   )
   .toJSON()
@@ -105,9 +109,11 @@ Create a reusable `ComparisonWhere` object with full type inference:
 ```ts
 import { newComparisonWhere } from 'agnostic-query'
 
-const nameEq = newComparisonWhere<User>()('name', 'eq', 'Alice')
+const nameEq = newComparisonWhere<User>()('name', '=', 'Alice')
 const statusIn = newComparisonWhere<User>()('status', 'in', ['active', 'pending'])
 const tagName = newComparisonWhere<User>()(['tags', 0, 'name'], 'like', '%tech%')
+const nameIsNull = newComparisonWhere<User>()('name', 'is null')
+const tagsContain = newComparisonWhere<User>()('tags', '@>', ['admin'])
 ```
 
 Pass the result directly to `.where()`:
@@ -129,12 +135,12 @@ import { findWhere } from 'agnostic-query'
 const where = {
   op: 'and',
   conditions: [
-    { field: ['name'], op: 'eq', value: 'Alice' },
+    { field: ['name'], op: '=', value: 'Alice' },
     {
       op: 'or',
       conditions: [
-        { field: ['age'], op: 'lt', value: 30 },
-        { field: ['role'], op: 'eq', value: 'admin' },
+        { field: ['age'], op: '<', value: 30 },
+        { field: ['role'], op: '=', value: 'admin' },
       ],
     },
   ],
@@ -142,8 +148,8 @@ const where = {
 
 const searcher = findWhere(where)
 
-searcher.find(['age'])            // { field: ['age'], op: 'lt', value: 30 }
-searcher.find(['role'], 'eq')     // { field: ['role'], op: 'eq', value: 'admin' }
-searcher.eq(['name'])             // { field: ['name'], op: 'eq', value: 'Alice' }
+searcher.find(['age'])            // { field: ['age'], op: '<', value: 30 }
+searcher.find(['role'], '=')      // { field: ['role'], op: '=', value: 'admin' }
+searcher.eq(['name'])             // { field: ['name'], op: '=', value: 'Alice' }
 searcher.in(['role'])             // undefined
 ```

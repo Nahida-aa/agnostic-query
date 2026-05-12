@@ -5,7 +5,13 @@ import { queryCollectionOptions } from '@tanstack/query-db-collection';
 import {
 	BasicIndex,
 	createCollection,
+	eq,
 	type InitialQueryBuilder,
+	inArray,
+	isNull,
+	isUndefined,
+	not,
+	Query,
 } from '@tanstack/react-db';
 import { aq, newWhere, type QuerySchema } from 'agnostic-query';
 import {
@@ -36,16 +42,14 @@ export const projectCollect = createCollection(
 				whereCurrent: meta?.loadSubsetOptions?.cursor?.whereCurrent,
 				cursor: meta?.loadSubsetOptions?.cursor?.whereFrom,
 				queryKey,
+				where: meta?.loadSubsetOptions?.where,
 				offset: meta?.loadSubsetOptions?.offset,
 				data,
 			});
 
-			const result = await listProject({
+			return await listProject({
 				data,
 			});
-			console.log('[infinite] result count:', result.length);
-
-			return result;
 		},
 		onInsert: async () => {},
 		onUpdate: async () => {},
@@ -54,4 +58,10 @@ export const projectCollect = createCollection(
 );
 
 export const infiniteProjectQuery = (q: InitialQueryBuilder) =>
-	q.from({ p: projectCollect }).orderBy(({ p }) => p.created_at, 'desc');
+	q
+		.from({ p: projectCollect })
+		// .where(({ p }) => inArray(p.tags, [['test']])) // in 操作 不属于 text[] 类型
+		// .where(({ p }) => not(isNull(p.tags)))
+		.where(({ p }) => eq(p.tags, ['test']))
+		.orderBy(({ p }) => p.created_at, 'desc');
+// .limit(10);

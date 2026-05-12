@@ -9,13 +9,36 @@ const dialect = new PGliteDialect({ pglite: new PGlite() });
 const db = new Kysely<DB>({ dialect });
 
 describe('toKyselyWhere', () => {
-	it('eq', () => {
-		const expr = toKyselyWhere({ field: ['name'], op: 'eq', value: 'Alice' });
+	it('=', () => {
+		const expr = toKyselyWhere({ field: ['name'], op: '=', value: 'Alice' });
 		expect(expr).toBeDefined();
 	});
 
-	it('gt', () => {
-		const expr = toKyselyWhere({ field: ['age'], op: 'gt', value: 18 });
+	it('>', () => {
+		const expr = toKyselyWhere({ field: ['age'], op: '>', value: 18 });
+		expect(expr).toBeDefined();
+	});
+
+	it('is null', () => {
+		const expr = toKyselyWhere({ field: ['name'], op: 'is null' });
+		expect(expr).toBeDefined();
+	});
+
+	it('@> (contains)', () => {
+		const where: any = { field: ['tags'], op: '@>', value: ['admin'] };
+		const expr = toKyselyWhere(where);
+		expect(expr).toBeDefined();
+	});
+
+	it('<@ (contained by)', () => {
+		const where: any = { field: ['tags'], op: '<@', value: ['admin'] };
+		const expr = toKyselyWhere(where);
+		expect(expr).toBeDefined();
+	});
+
+	it('&& (overlaps)', () => {
+		const where: any = { field: ['tags'], op: '&&', value: ['admin'] };
+		const expr = toKyselyWhere(where);
 		expect(expr).toBeDefined();
 	});
 
@@ -28,8 +51,8 @@ describe('toKyselyWhere', () => {
 		const expr = toKyselyWhere({
 			op: 'and',
 			conditions: [
-				{ field: ['name'], op: 'eq', value: 'Alice' },
-				{ field: ['age'], op: 'gt', value: 18 },
+				{ field: ['name'], op: '=', value: 'Alice' },
+				{ field: ['age'], op: '>', value: 18 },
 			],
 		});
 		expect(expr).toBeDefined();
@@ -39,8 +62,8 @@ describe('toKyselyWhere', () => {
 		const expr = toKyselyWhere({
 			op: 'or',
 			conditions: [
-				{ field: ['id'], op: 'eq', value: '1' },
-				{ field: ['id'], op: 'eq', value: '2' },
+				{ field: ['id'], op: '=', value: '1' },
+				{ field: ['id'], op: '=', value: '2' },
 			],
 		});
 		expect(expr).toBeDefined();
@@ -49,7 +72,7 @@ describe('toKyselyWhere', () => {
 	it('not', () => {
 		const expr = toKyselyWhere({
 			op: 'not',
-			condition: { field: ['age'], op: 'lt', value: 18 },
+			condition: { field: ['age'], op: '<', value: 18 },
 		});
 		expect(expr).toBeDefined();
 	});
@@ -62,7 +85,7 @@ describe('toKyselyWhere', () => {
 					op: 'or',
 					conditions: [
 						{ field: ['name'], op: 'like', value: '%test%' },
-						{ op: 'not', condition: { field: ['age'], op: 'eq', value: 0 } },
+						{ op: 'not', condition: { field: ['age'], op: '=', value: 0 } },
 					],
 				},
 				{ field: ['id'], op: 'in', values: ['a', 'b'] },

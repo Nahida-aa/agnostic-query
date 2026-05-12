@@ -9,11 +9,11 @@ import type { QueryWhere } from '../core/where';
 import type { TSelectQueryBuilder } from './types.ts';
 
 const opReverseMap = {
-	'=': 'eq',
-	'>': 'gt',
-	'>=': 'gte',
-	'<': 'lt',
-	'<=': 'lte',
+	'=': '=',
+	'>': '>',
+	'>=': '>=',
+	'<': '<',
+	'<=': '<=',
 	like: 'like',
 	ilike: 'ilike',
 	in: 'in',

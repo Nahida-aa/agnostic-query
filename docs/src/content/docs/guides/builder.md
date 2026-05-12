@@ -19,8 +19,8 @@ interface User {
 }
 
 const schema = aq<User>()
-  .where('name', 'eq', 'Alice')
-  .where('age', 'gte', 18)
+  .where('name', '=', 'Alice')
+  .where('age', '>=', 18)
   .orderBy('name', 'asc')
   .limit(20)
   .offset(0)
@@ -31,14 +31,18 @@ const schema = aq<User>()
 
 | Operator | Description |
 |----------|-------------|
-| `eq`     | Exact match |
-| `gt`     | Greater than |
-| `gte`    | Greater than or equal |
-| `lt`     | Less than |
-| `lte`    | Less than or equal |
+| `=`      | Exact match |
+| `>`      | Greater than |
+| `>=`     | Greater than or equal |
+| `<`      | Less than |
+| `<=`     | Less than or equal |
 | `like`   | SQL `LIKE` |
 | `ilike`  | Case-insensitive `LIKE` |
 | `in`     | Value in array (outputs `values` field) |
+| `is null`| Null check (2-argument form: `.where('field', 'is null')`) |
+| `@>`     | Array contains (PostgreSQL) |
+| `<@`     | Array contained by (PostgreSQL) |
+| `&&`     | Array overlaps (PostgreSQL) |
 
 ## Logical Nesting (callbacks)
 
@@ -48,9 +52,9 @@ For complex logic (`and`, `or`, `not`), pass a callback to `.where()`:
 const schema = aq<User>()
   .where(({ or, where, not }) =>
     or([
-      where('role', 'eq', 'admin'),
-      where('role', 'eq', 'moderator'),
-      not(where('status', 'eq', 'banned')),
+      where('role', '=', 'admin'),
+      where('role', '=', 'moderator'),
+      not(where('status', '=', 'banned')),
     ]),
   )
   .toJSON()
@@ -58,9 +62,9 @@ const schema = aq<User>()
 //     where: {
 //       op: 'or',
 //       conditions: [
-//         { field: ['role'], op: 'eq', value: 'admin' },
-//         { field: ['role'], op: 'eq', value: 'moderator' },
-//         { op: 'not', condition: { field: ['status'], op: 'eq', value: 'banned' } },
+//         { field: ['role'], op: '=', value: 'admin' },
+//         { field: ['role'], op: '=', value: 'moderator' },
+//         { op: 'not', condition: { field: ['status'], op: '=', value: 'banned' } },
 //       ],
 //     },
 //   }
@@ -73,12 +77,12 @@ Pass a pre-built `QueryWhere` directly to `.where()`:
 ```ts
 const roleWhere: QuerySchema<User>['where'] = {
   field: ['role'],
-  op: 'eq',
+  op: '=',
   value: 'admin',
 }
 
 const schema = aq<User>()
-  .where('name', 'eq', 'Alice')
+  .where('name', '=', 'Alice')
   .where(roleWhere)
   .toJSON()
 ```
@@ -88,7 +92,7 @@ This also works inside callbacks:
 ```ts
 aq<User>()
   .where(({ or, where }) =>
-    or([where('name', 'eq', 'Alice'), where(roleWhere)]),
+    or([where('name', '=', 'Alice'), where(roleWhere)]),
   )
   .toJSON()
 ```
@@ -99,7 +103,7 @@ JSONB paths and array indices work with tuple syntax:
 
 ```ts
 aq<User>()
-  .where(['address', 'city', 'name'], 'eq', 'Berlin')
+  .where(['address', 'city', 'name'], '=', 'Berlin')
   .where(['tags', 0, 'name'], 'like', '%tech%')
   .orderBy(['address', 'city', 'name'], 'desc')
 ```
@@ -133,10 +137,10 @@ interface User {
   address: { city: { name: string } }
 }
 
-aq<User>().where(['tags', 0, 'name'], 'eq', 'tech')         // ✓
-aq<User>().where(['tags', 0, 'name'], 'eq', 42)              // ✗ string ≠ number
-aq<User>().where(['address', 'city', 'name'], 'eq', 'Berlin') // ✓
-aq<User>().where(['address', 'city', 'zip'], 'eq', '12345')   // ✗ no 'zip' on city
+aq<User>().where(['tags', 0, 'name'], '=', 'tech')         // ✓
+aq<User>().where(['tags', 0, 'name'], '=', 42)              // ✗ string ≠ number
+aq<User>().where(['address', 'city', 'name'], '=', 'Berlin') // ✓
+aq<User>().where(['address', 'city', 'zip'], '=', '12345')   // ✗ no 'zip' on city
 ```
 
 ## Raw Schema (without builder)
@@ -153,7 +157,7 @@ const schema: QuerySchema<User> = {
   where: {
     op: 'and',
     conditions: [
-      { field: ['age'], op: 'gte', value: 18 },
+      { field: ['age'], op: '>=', value: 18 },
       { field: ['status'], op: 'in', values: ['active', 'pending'] },
     ],
   },

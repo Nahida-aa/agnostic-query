@@ -2,36 +2,36 @@ import { describe, expect, it } from 'bun:test';
 import { toSqlWhere } from './pg.ts';
 
 describe('toSqlWhere', () => {
-	it('eq', () => {
-		expect(toSqlWhere({ field: ['name'], op: 'eq', value: 'Alice' })).toEqual({
+	it('=', () => {
+		expect(toSqlWhere({ field: ['name'], op: '=', value: 'Alice' })).toEqual({
 			sql: '"name" = ?',
 			params: ['Alice'],
 		});
 	});
 
-	it('gt', () => {
-		expect(toSqlWhere({ field: ['age'], op: 'gt', value: 18 })).toEqual({
+	it('>', () => {
+		expect(toSqlWhere({ field: ['age'], op: '>', value: 18 })).toEqual({
 			sql: '"age" > ?',
 			params: [18],
 		});
 	});
 
-	it('gte', () => {
-		expect(toSqlWhere({ field: ['age'], op: 'gte', value: 18 })).toEqual({
+	it('>=', () => {
+		expect(toSqlWhere({ field: ['age'], op: '>=', value: 18 })).toEqual({
 			sql: '"age" >= ?',
 			params: [18],
 		});
 	});
 
-	it('lt', () => {
-		expect(toSqlWhere({ field: ['age'], op: 'lt', value: 18 })).toEqual({
+	it('<', () => {
+		expect(toSqlWhere({ field: ['age'], op: '<', value: 18 })).toEqual({
 			sql: '"age" < ?',
 			params: [18],
 		});
 	});
 
-	it('lte', () => {
-		expect(toSqlWhere({ field: ['age'], op: 'lte', value: 18 })).toEqual({
+	it('<=', () => {
+		expect(toSqlWhere({ field: ['age'], op: '<=', value: 18 })).toEqual({
 			sql: '"age" <= ?',
 			params: [18],
 		});
@@ -55,6 +55,42 @@ describe('toSqlWhere', () => {
 		});
 	});
 
+	it('is null', () => {
+		expect(
+			toSqlWhere({ field: ['name'], op: 'is null' }),
+		).toEqual({
+			sql: '"name" IS NULL',
+			params: [],
+		});
+	});
+
+	it('@> (contains)', () => {
+		expect(
+			toSqlWhere({ field: ['tags'], op: '@>', value: ['admin'] }),
+		).toEqual({
+			sql: '"tags" @> ?',
+			params: [['admin']],
+		});
+	});
+
+	it('<@ (contained by)', () => {
+		expect(
+			toSqlWhere({ field: ['tags'], op: '<@', value: ['admin', 'user'] }),
+		).toEqual({
+			sql: '"tags" <@ ?',
+			params: [['admin', 'user']],
+		});
+	});
+
+	it('&& (overlaps)', () => {
+		expect(
+			toSqlWhere({ field: ['tags'], op: '&&', value: ['admin'] }),
+		).toEqual({
+			sql: '"tags" && ?',
+			params: [['admin']],
+		});
+	});
+
 	it('in', () => {
 		expect(
 			toSqlWhere({ field: ['id'], op: 'in', values: ['1', '2', '3'] }),
@@ -68,8 +104,8 @@ describe('toSqlWhere', () => {
 		const result = toSqlWhere({
 			op: 'and',
 			conditions: [
-				{ field: ['name'], op: 'eq', value: 'Alice' },
-				{ field: ['age'], op: 'gt', value: 18 },
+				{ field: ['name'], op: '=', value: 'Alice' },
+				{ field: ['age'], op: '>', value: 18 },
 			],
 		});
 		expect(result).toEqual({
@@ -82,8 +118,8 @@ describe('toSqlWhere', () => {
 		const result = toSqlWhere({
 			op: 'or',
 			conditions: [
-				{ field: ['id'], op: 'eq', value: '1' },
-				{ field: ['id'], op: 'eq', value: '2' },
+				{ field: ['id'], op: '=', value: '1' },
+				{ field: ['id'], op: '=', value: '2' },
 			],
 		});
 		expect(result).toEqual({
@@ -95,7 +131,7 @@ describe('toSqlWhere', () => {
 	it('not', () => {
 		const result = toSqlWhere({
 			op: 'not',
-			condition: { field: ['age'], op: 'lt', value: 18 },
+			condition: { field: ['age'], op: '<', value: 18 },
 		});
 		expect(result).toEqual({
 			sql: 'NOT ("age" < ?)',
@@ -111,7 +147,7 @@ describe('toSqlWhere', () => {
 					op: 'or',
 					conditions: [
 						{ field: ['name'], op: 'like', value: '%test%' },
-						{ op: 'not', condition: { field: ['age'], op: 'eq', value: 0 } },
+						{ op: 'not', condition: { field: ['age'], op: '=', value: 0 } },
 					],
 				},
 				{ field: ['id'], op: 'in', values: ['a', 'b'] },
@@ -124,7 +160,7 @@ describe('toSqlWhere', () => {
 	});
 
 	it('handles special chars in strings', () => {
-		expect(toSqlWhere({ field: ['name'], op: 'eq', value: "O'Brien" })).toEqual(
+		expect(toSqlWhere({ field: ['name'], op: '=', value: "O'Brien" })).toEqual(
 			{
 				sql: '"name" = ?',
 				params: ["O'Brien"],
@@ -133,7 +169,7 @@ describe('toSqlWhere', () => {
 	});
 
 	it('handles null values', () => {
-		expect(toSqlWhere({ field: ['name'], op: 'eq', value: null })).toEqual({
+		expect(toSqlWhere({ field: ['name'], op: '=', value: null })).toEqual({
 			sql: '"name" = ?',
 			params: [null],
 		});
@@ -145,12 +181,12 @@ describe('toSqlWhere', () => {
 
 	it('handles JSON path with multi-segment field', () => {
 		expect(
-			toSqlWhere({ field: ['data', 'city'], op: 'eq', value: 'NYC' }),
+			toSqlWhere({ field: ['data', 'city'], op: '=', value: 'NYC' }),
 		).toEqual({ sql: '"data"->>\'city\' = ?', params: ['NYC'] });
 		expect(
 			toSqlWhere({
 				field: ['data', 'address', 'city'],
-				op: 'eq',
+				op: '=',
 				value: 'NYC',
 			}),
 		).toEqual({
@@ -158,16 +194,16 @@ describe('toSqlWhere', () => {
 			params: ['NYC'],
 		});
 		expect(
-			toSqlWhere({ field: ['tags', 0, 'name'], op: 'eq', value: 'main' }),
+			toSqlWhere({ field: ['tags', 0, 'name'], op: '=', value: 'main' }),
 		).toEqual({ sql: '"tags"->0->>\'name\' = ?', params: ['main'] });
 	});
 
 	it('handles PG array subscript path', () => {
 		expect(
-			toSqlWhere({ field: ['categories', 0], op: 'eq', value: 'foo' }),
+			toSqlWhere({ field: ['categories', 0], op: '=', value: 'foo' }),
 		).toEqual({ sql: '"categories"[1] = ?', params: ['foo'] });
 		expect(
-			toSqlWhere({ field: ['matrix', 0, 1] as any, op: 'eq', value: 42 }),
+			toSqlWhere({ field: ['matrix', 0, 1] as any, op: '=', value: 42 }),
 		).toEqual({ sql: '"matrix"[1][2] = ?', params: [42] });
 	});
 });

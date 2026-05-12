@@ -32,8 +32,8 @@ queryFn: async (ctx) => {
 
   parsed.filters.forEach(({ field, operator, value }) => {
     const fieldName = field.join('.')
-    if (operator === 'eq') params.set(fieldName, String(value))
-    if (operator === 'lt') params.set(`${fieldName}_lt`, String(value))
+    if (operator === '=') params.set(fieldName, String(value))
+    if (operator === '<') params.set(`${fieldName}_lt`, String(value))
     // ... handle every operator manually
   })
 

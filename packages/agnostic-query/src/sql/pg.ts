@@ -1,19 +1,13 @@
 import type { QuerySchema } from '../core';
 import type { QueryOrderBy } from '../core/order-by.ts';
 import type { FieldPath, SchemaShape } from '../core/schema.ts';
-import type { QueryWhere, UnaryComparisonOp } from '../core/where.ts';
+import type { QueryWhere } from '../core/where.ts';
 import { isComparisonWhere } from '../core/where.ts';
 import type { SqlResult } from './types.ts';
-export const sqlOpMap: Record<UnaryComparisonOp, string> = {
-	eq: '=',
-	gt: '>',
-	gte: '>=',
-	lt: '<',
-	lte: '<=',
-	like: 'LIKE',
-	ilike: 'ILIKE',
-};
 
+/** PostgreSQL quoted identifier.
+ * - "users"   -> "users"
+ * - "user"name"  -> "user""name"  (双引号内 `""` 转义一个 `"`) */
 const quoteIdent = (s: string) => `"${s.replace(/"/g, '""')}"`;
 
 export const fieldToStr = (field: FieldPath): string => {
@@ -60,9 +54,11 @@ const build = (where: QueryWhere): SqlResult | undefined => {
 		return { sql: `${fieldStr} IN (${placeholders})`, params: where.values };
 	}
 
-	const sqlOp = sqlOpMap[where.op];
-	if (!sqlOp) return;
-	return { sql: `${fieldStr} ${sqlOp} ?`, params: [where.value] };
+	if (where.op === 'is null') {
+		return { sql: `${fieldStr} IS NULL`, params: [] };
+	}
+
+	return { sql: `${fieldStr} ${where.op.toUpperCase()} ?`, params: [where.value] };
 };
 
 export const toSqlWhere = (

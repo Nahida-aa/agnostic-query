@@ -5,4 +5,5 @@ export const projectTable = pgTable('project', (t) => ({
 	...timeIdWithTimestamps,
 	order: integer().default(0),
 	name: text().notNull(),
+	tags: text().array().default([]),
 }));

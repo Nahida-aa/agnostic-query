@@ -17,27 +17,27 @@ export const fromTanDbWhere = <TShape extends SchemaShape>(
 		handlers: {
 			eq: (field, value) => ({
 				field,
-				op: 'eq',
+				op: '=',
 				value,
 			}),
 			lt: (field, value) => ({
 				field,
-				op: 'lt',
+				op: '<',
 				value,
 			}),
 			lte: (field, value) => ({
 				field,
-				op: 'lte',
+				op: '<=',
 				value,
 			}),
 			gt: (field, value) => ({
 				field,
-				op: 'gt',
+				op: '>',
 				value,
 			}),
 			gte: (field, value) => ({
 				field,
-				op: 'gte',
+				op: '>=',
 				value,
 			}),
 			like: (field, value) => ({
@@ -54,6 +54,10 @@ export const fromTanDbWhere = <TShape extends SchemaShape>(
 				field,
 				op: 'in',
 				values,
+			}),
+			isNull: (field) => ({
+				field,
+				op: 'is null',
 			}),
 			and: (...conditions) => ({
 				op: 'and',

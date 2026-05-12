@@ -69,8 +69,8 @@ interface User {
 }
 
 const schema = aq<User>()
-  .where('name', 'eq', 'Alice')
-  .where('age', 'gte', 18)
+  .where('name', '=', 'Alice')
+  .where('age', '>=', 18)
   .orderBy('name', 'asc')
   .limit(20)
   .toJSON()

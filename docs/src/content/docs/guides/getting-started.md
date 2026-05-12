@@ -38,8 +38,8 @@ type User = {
 }
 
 const schema = aq<User>()
-  .where('name', 'eq', 'Alice')
-  .where('age', 'gte', 18)
+  .where('name', '=', 'Alice')
+  .where('age', '>=', 18)
   .where('status', 'in', ['active', 'pending'])
   .orderBy('name', 'asc')
   .limit(20)
@@ -53,8 +53,8 @@ The output is a plain JSON object:
 //   where: {
 //     op: 'and',
 //     conditions: [
-//       { field: ['name'], op: 'eq', value: 'Alice' },
-//       { field: ['age'], op: 'gte', value: 18 },
+//       { field: ['name'], op: '=', value: 'Alice' },
+//       { field: ['age'], op: '>=', value: 18 },
 //       { field: ['status'], op: 'in', values: ['active', 'pending'] },
 //     ],
 //   },

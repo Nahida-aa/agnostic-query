@@ -35,15 +35,14 @@ type QueryWhere<TShape> =
 
 ### ComparisonWhere
 
-A single field comparison.
+A discriminated union of four comparison variants:
 
 ```ts
-interface ComparisonWhere<TShape> {
-  field: FieldPathByShape<TShape>
-  op: WhereComparisonOp
-  value?: unknown
-  values?: unknown[]
-}
+type ComparisonWhere<TShape, TField = FieldPathByShape<TShape>> =
+  | UnaryComparisonWhere<TShape, TField>   // op: '=' | '>' | '>=' | '<' | '<=' | 'like' | 'ilike'
+  | SetComparisonWhere<TShape, TField>     // op: '@>' | '<@' | '&&'
+  | ToMultiComparisonWhere<TShape, TField> // op: 'in'  (uses `values` instead of `value`)
+  | PredicateWhere<TShape, TField>         // op: 'is null'  (no value field)
 ```
 
 ### CompoundWhere

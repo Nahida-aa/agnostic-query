@@ -14,7 +14,7 @@ import { aq } from 'agnostic-query'
 import type { Project } from '#/features/project/project.schema.ts'
 
 const schema = aq<Project>({ table: 'project' })
-  .where('age', 'gte', 18)
+  .where('age', '>=', 18)
   .where('status', 'in', ['active', 'pending'])
   .orderBy('name', 'asc')
   .limit(20)
@@ -36,7 +36,7 @@ export const listProject = createServerFn({ method: 'GET' })
   .handler(async ({ data }) => {
     const { userId } = getCurrentUser()
 
-    const enriched = aq(data).where('user_id', 'eq', userId).toJSON()
+    const enriched = aq(data).where('user_id', '=', userId).toJSON()
 
     return await toDrizzle(db, projectTable, data)
   })

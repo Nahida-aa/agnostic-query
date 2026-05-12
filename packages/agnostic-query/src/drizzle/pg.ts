@@ -1,5 +1,8 @@
 import {
 	and,
+	arrayContained,
+	arrayContains,
+	arrayOverlaps,
 	asc,
 	type ColumnsSelection,
 	desc,
@@ -8,6 +11,7 @@ import {
 	gte,
 	ilike,
 	inArray,
+	isNull,
 	like,
 	lt,
 	lte,
@@ -33,19 +37,28 @@ import type { SelectMode } from 'drizzle-orm/query-builders/select.types';
 import type { QuerySchema } from '../core/index.ts';
 import type { QueryOrderBy } from '../core/order-by.ts';
 import type { SchemaShape } from '../core/schema';
-import type { QueryWhere, UnaryComparisonOp } from '../core/where.ts';
+import type {
+	QueryWhere,
+	SetComparisonOp,
+	UnaryComparisonOp,
+} from '../core/where.ts';
 import { isComparisonWhere } from '../core/where.ts';
 import { fieldToStr } from '../sql/pg.ts';
 
-export const drizzleOps = {
-	eq,
-	gt,
-	gte,
-	lt,
-	lte,
+export const opMap = {
+	'=': eq,
+	'>': gt,
+	'>=': gte,
+	'<': lt,
+	'<=': lte,
 	like,
 	ilike,
 } satisfies Record<UnaryComparisonOp, (column: any, value: any) => SQL>;
+const setOps = {
+	'@>': arrayContains,
+	'<@': arrayContained,
+	'&&': arrayOverlaps,
+};
 
 const _toDrizzleWhere = (
 	table: any,
@@ -76,25 +89,17 @@ const _toDrizzleWhere = (
 		return;
 	}
 
-	let target: SQL;
-	if (segments.length === 0) {
-		target = column;
-	} else if (segments.every((p) => typeof p === 'number')) {
-		target = sql.raw(fieldToStr(where.field));
-	} else {
-		const parts = segments.map((p) =>
-			typeof p === 'number' ? String(p) : `'${p}'`,
-		);
-		const last = parts.pop()!;
-		const prefix = parts.join('->');
-		target =
-			parts.length > 0
-				? sql`${column}->${sql.raw(prefix)}->>${sql.raw(last)}`
-				: sql`${column}->>${sql.raw(last)}`;
-	}
+	const target =
+		segments.length === 0 ? column : sql.raw(fieldToStr(where.field));
 
 	if (where.op === 'in') return inArray(target, where.values);
-	const opFn = drizzleOps[where.op];
+	if (where.op === 'is null') return isNull(target);
+	if (where.op in setOps) {
+		const opFn = setOps[where.op as SetComparisonOp];
+		if (!opFn) return;
+		return opFn(target, where.value);
+	}
+	const opFn = opMap[where.op as UnaryComparisonOp];
 	if (!opFn) return;
 	return opFn(target, where.value);
 };
@@ -126,8 +131,9 @@ export const toDrizzleOrderBy = <TShape extends Record<string, any>>(
 export const toDrizzle = <TShape extends SchemaShape>(
 	db: PgDatabase<PgQueryResultHKT, Record<string, any>>,
 	table: any,
-	querySchema: QuerySchema<TShape>,
+	querySchema?: QuerySchema<TShape>,
 ) => {
+	if (!querySchema) return db.select().from(table) as Promise<TShape[]>;
 	const query = db
 		.select()
 		.from(table)
