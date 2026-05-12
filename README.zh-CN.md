@@ -4,7 +4,7 @@
 
 查询只写一次——客户端和服务端共享，Drizzle、Kysely、原生 SQL 复用。
 
-如果你在客户端用 **TanStack DB**，服务端用 **Drizzle** 或 **Kysely**，一定知道这个痛点——同一个 `WHERE age >= 18` 要用两套不同的 API 写两遍。`agnostic-query` 用可移植的 `QuerySchema`（纯 JSON 格式）将它们桥接起来，适配器双向转换。
+客户端用 TanStack DB，服务端用 Drizzle。同一个用户操作——搜索、筛选、翻页——在客户端产生 `LoadSubsetOptions`，在服务端需要 Drizzle 条件。`agnostic-query` 用可移植的 `QuerySchema` 将它们桥接起来。
 
 **数据流：**
 

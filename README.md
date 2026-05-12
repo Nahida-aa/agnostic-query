@@ -4,7 +4,7 @@
 
 Write your query once — share it between client and server, reuse across Drizzle, Kysely, and raw SQL.
 
-If you use **TanStack DB** on the client and **Drizzle** or **Kysely** on the server, you know the pain: the same `WHERE age >= 18` has to be written twice in two different APIs. `agnostic-query` bridges them with a portable `QuerySchema` — a plain JSON format that adapters convert in both directions.
+TanStack DB on the client, Drizzle on the server. The same user action — search, filter, paginate — produces `LoadSubsetOptions` on one end and needs Drizzle conditions on the other. `agnostic-query` bridges them with a portable `QuerySchema`.
 
 **How it works:**
 

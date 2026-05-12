@@ -18,7 +18,7 @@ import { Card, CardGrid } from '@astrojs/starlight/components';
 
 ## Why Agnostic Query?
 
-You use **TanStack DB** on the client and **Drizzle** or **Kysely** on the server. The same `WHERE age >= 18` has to be written twice in two different APIs. `agnostic-query` bridges them with a portable `QuerySchema` — a plain JSON format that adapters convert in both directions.
+TanStack DB on the client, Drizzle on the server. The same user action — search, filter, paginate — produces `LoadSubsetOptions` on one end and needs Drizzle conditions on the other. `agnostic-query` bridges them with a portable `QuerySchema`.
 
 ```
 TanStack DB  ──fromTanDb──>  QuerySchema  ──toDrizzle──>  Drizzle

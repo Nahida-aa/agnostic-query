@@ -5,7 +5,7 @@ description: The problem agnostic-query solves and how it fits into your stack.
 
 ## The Problem
 
-You use **TanStack DB** to build queries on the client, and **Drizzle** to execute them on the server. But they speak different query languages — the same `WHERE age >= 18` has to be expressed twice in two different APIs, and there's no serialisable format to pass it across the wire.
+You use **TanStack DB** to build queries on the client, and **Drizzle** to execute them on the server. But they speak different query languages — the client produces `LoadSubsetOptions`, the server expects Drizzle conditions, and there's no serialisable format to pass the query across the wire.
 
 The result:
 
