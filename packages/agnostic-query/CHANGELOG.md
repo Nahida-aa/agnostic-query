@@ -1,5 +1,11 @@
 # agnostic-query
 
+## 1.7.0
+
+### Minor Changes
+
+- [`c54a7a6`](https://github.com/Nahida-aa/agnostic-query/commit/c54a7a68a5fbb0707fd8a16b70826db6799e8883) Thanks [@Nahida-aa](https://github.com/Nahida-aa)! - docs: update landing description to use realistic "search, filter, paginate" example instead of SQL `WHERE age >= 18`; sync across README, README.zh-CN, homepage, and Why page
+
 ## 1.6.0
 
 ### Minor Changes
