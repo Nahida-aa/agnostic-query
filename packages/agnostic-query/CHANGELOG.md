@@ -1,5 +1,11 @@
 # agnostic-query
 
+## 1.9.1
+
+### Patch Changes
+
+- [`b7e9eea`](https://github.com/Nahida-aa/agnostic-query/commit/b7e9eeac8d7725871fd92c0e106da06e424eca8b) Thanks [@Nahida-aa](https://github.com/Nahida-aa)! - docs: fix @> / <@ / && descriptions to match source comments
+
 ## 1.9.0
 
 ### Minor Changes
