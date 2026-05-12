@@ -40,9 +40,9 @@ const schema = aq<User>()
 | `ilike`  | Case-insensitive `LIKE` |
 | `in`     | Value in array (outputs `values` field) |
 | `is null`| Null check (2-argument form: `.where('field', 'is null')`) |
-| `@>`     | Array contains (PostgreSQL) |
-| `<@`     | Array contained by (PostgreSQL) |
-| `&&`     | Array overlaps (PostgreSQL) |
+| `@>`     | A contains B, eg `[1, 2, 3] @> [2, 3]` |
+| `<@`     | B contains A, eg `[2, 3] <@ [1, 2, 3]` |
+| `&&`     | Overlap, eg `[1, 2] && [2, 3]` |
 
 ## Logical Nesting (callbacks)
 

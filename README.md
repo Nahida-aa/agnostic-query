@@ -63,18 +63,18 @@ const schema = aq<UserShape>()
 
 | Operator | Description |
 |----------|-------------|
-| `=`      | Exact match |
-| `>`      | Greater than |
-| `>=`     | Greater than or equal |
-| `<`      | Less than |
-| `<=`     | Less than or equal |
+| `=`      | eq, Exact match |
+| `>`      | gt, Greater than |
+| `>=`     | gte, Greater than or equal |
+| `<`      | lt, Less than |
+| `<=`     | lte, Less than or equal |
 | `like`   | SQL `LIKE` |
 | `ilike`  | Case-insensitive `LIKE` |
 | `in`     | Value in array (outputs `values` field) |
 | `is null`| Null check (2-argument form: `.where('field', 'is null')`) |
-| `@>`     | Array contains (PostgreSQL) |
-| `<@`     | Array contained by (PostgreSQL) |
-| `&&`     | Array overlaps (PostgreSQL) |
+| `@>`     | A contains B, eg `[1, 2, 3] @> [2, 3]` |
+| `<@`     | B contains A, eg `[2, 3] <@ [1, 2, 3]` |
+| `&&`     | Overlap, eg `[1, 2] && [2, 3]` |
 
 ### Logical operators nesting (callbacks)
 
