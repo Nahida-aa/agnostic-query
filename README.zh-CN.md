@@ -18,6 +18,8 @@ Kysely 查询  ──fromKysely─────>  QuerySchema  ──toSql──�
 
 **数据库无关** — 同一个 `QuerySchema` 可驱动 Drizzle、Kysely、原生 SQL（PostgreSQL），或任何未来的适配器。
 
+**零依赖、可摇树** — 核心无运行时依赖；可选的 peer 依赖仅在你导入对应适配器时才加载。未使用的适配器会被打包工具消除。
+
 ## 流式构建器 API
 
 使用 `aq` 构建器通过类型安全的方法链构造 `QuerySchema`：

@@ -18,6 +18,8 @@ Kysely query ──fromKysely─────>  QuerySchema  ──toSql───
 
 **Database-agnostic** — the same `QuerySchema` drives Drizzle, Kysely, raw SQL (PostgreSQL), or any future adapter.
 
+**Zero dependencies, tree-shakeable** — the core has no runtime dependencies; optional peer deps are only loaded when you import that adapter. Unused adapters are eliminated by your bundler.
+
 
 
 ## Fluent Builder API
