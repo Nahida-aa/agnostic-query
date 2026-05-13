@@ -1,5 +1,11 @@
 # agnostic-query
 
+## 1.9.2
+
+### Patch Changes
+
+- [`98656cf`](https://github.com/Nahida-aa/agnostic-query/commit/98656cf58e92e03116c4d1debba305d25d91b37a) Thanks [@Nahida-aa](https://github.com/Nahida-aa)! - fix: make `findWhere` `where` parameter optional
+
 ## 1.9.1
 
 ### Patch Changes
