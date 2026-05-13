@@ -309,7 +309,7 @@ const isComparisonNode = <TField extends readonly any[]>(
 ): node is ComparisonWhere => 'field' in node && fieldEqual(node.field, field);
 
 export const findWhere = <TShape extends SchemaShape>(
-	where: QueryWhere<TShape> | null,
+	where?: QueryWhere<TShape> | null,
 ) => {
 	const search = <
 		TField extends FieldPathByShape<TShape> | (keyof TShape & string),
