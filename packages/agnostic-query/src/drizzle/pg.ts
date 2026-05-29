@@ -34,6 +34,7 @@ import type { PgSelectBuilder } from 'drizzle-orm/pg-core/query-builders';
 import type { PgTable, TableConfig } from 'drizzle-orm/pg-core/table';
 import type { PgliteDatabase } from 'drizzle-orm/pglite';
 import type { SelectMode } from 'drizzle-orm/query-builders/select.types';
+import type { BaseSQLiteDatabase } from 'drizzle-orm/sqlite-core';
 import type { QuerySchema } from '../core/index.ts';
 import type { QueryOrderBy } from '../core/order-by.ts';
 import type { SchemaShape } from '../core/schema';
@@ -129,12 +130,12 @@ export const toDrizzleOrderBy = <TShape extends Record<string, any>>(
 };
 
 export const toDrizzle = <TShape extends SchemaShape>(
-	db: PgDatabase<PgQueryResultHKT, Record<string, any>>,
+	db: any,
 	table: any,
 	querySchema?: QuerySchema<TShape>,
 ) => {
 	if (!querySchema) return db.select().from(table) as Promise<TShape[]>;
-	const query = db
+	const query = (db as PgDatabase<PgQueryResultHKT, Record<string, any>>)
 		.select()
 		.from(table)
 		.where(toDrizzleWhere(table, querySchema.where))
