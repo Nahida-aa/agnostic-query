@@ -27,19 +27,50 @@ describe('sqlite.toSqlWhere', () => {
 			params: ['NYC'],
 		});
 	});
+
+	it('returns undefined for null input', () => {
+		expect(toSqlWhere(null)).toBeUndefined();
+	});
+
+	it('supports nested logical conditions', () => {
+		const res = toSqlWhere({
+			op: 'and',
+			conditions: [
+				{ field: ['name'], op: '=', value: 'Alice' },
+				{
+					op: 'or',
+					conditions: [
+						{ field: ['age'], op: '>', value: 18 },
+						{ op: 'not', condition: { field: ['id'], op: 'is null' } },
+					],
+				},
+			],
+		});
+		expect(res).toEqual({
+			sql: '("name" = ? AND ("age" > ? OR NOT ("id" IS NULL)))',
+			params: ['Alice', 18],
+		});
+	});
 });
 
 describe('sqlite.toSql', () => {
-	it('builds SELECT with WHERE and OFFSET/LIMIT', () => {
+	it('builds SELECT with WHERE, ORDER BY, OFFSET/LIMIT', () => {
 		const json = {
 			table: 't',
 			where: { field: ['id'], op: '=', value: 'x' },
+			orderBy: [{ field: ['name'], direction: 'desc' }],
 			limit: 1,
 			offset: 2,
 		} as any;
 		const result = toSql(json as any);
 		expect(result.sql).toContain('SELECT * FROM "t"');
+		expect(result.sql).toContain('ORDER BY "name" DESC');
 		expect(result.sql).toContain('LIMIT 1');
+		expect(result.sql).toContain('OFFSET 2');
 		expect(result.params).toEqual(['x']);
+	});
+
+	it('throws when table is missing', () => {
+		expect(() => toSql({} as any)).toThrow('Table name is required');
 	});
 });

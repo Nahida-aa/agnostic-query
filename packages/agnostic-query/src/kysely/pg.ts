@@ -56,6 +56,10 @@ const build = <TShape extends SchemaShape, TableName extends string>(
 		return where.op === 'and' ? exp.and(parts) : exp.or(parts);
 	}
 
+	// TS 的 discriminated union narrowing 限制：
+	// 经过前两次 `op === 'not'` 和 `op === 'and' | 'or'` 的 return 后，
+	// TS 仍无法将 `where` 自动收窄到 `ComparisonWhere<TShape>`。
+	// 必须用 isComparisonWhere 类型守卫手动缩小。
 	if (!isComparisonWhere(where)) return emptyExp(exp);
 
 	const target = sql.raw(fieldToStr(where.field));

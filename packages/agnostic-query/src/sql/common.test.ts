@@ -54,13 +54,28 @@ describe('common.buildWhere', () => {
 			params: [1, 2, 3],
 		});
 	});
+
+	it('returns undefined for empty logical branches', () => {
+		const res = buildWhere(
+			{
+				op: 'and',
+				conditions: [],
+			} as any,
+			(f: any) => `"${f[0]}"`,
+			(i) => `$${i}`,
+		);
+		expect(res).toBeUndefined();
+	});
 });
 
 describe('common.toSql', () => {
-	it('builds full SELECT with WHERE and LIMIT', () => {
+	it('builds full SELECT with WHERE, ORDER BY, LIMIT, and OFFSET', () => {
 		const json = {
 			table: 't',
 			where: { field: ['id'], op: '=', value: 'x' },
+			orderBy: [{ field: ['name'], direction: 'asc' }],
+			limit: 10,
+			offset: 5,
 		} as any;
 		const result = toSql(
 			json,
@@ -72,7 +87,24 @@ describe('common.toSql', () => {
 					(i) => `$${i}`,
 				),
 		);
-		expect(result.sql).toMatch(/^SELECT \* FROM "/);
+		expect(result.sql).toBe(
+			'SELECT * FROM "t" WHERE "id" = $1 ORDER BY "name" ASC LIMIT 10 OFFSET 5',
+		);
 		expect(result.params).toEqual(['x']);
+	});
+
+	it('throws when table name is missing', () => {
+		expect(() =>
+			toSql(
+				{} as any,
+				(f: any) => `"${f[0]}"`,
+				(w: any) =>
+					buildWhere(
+						w,
+						(f: any) => `"${f[0]}"`,
+						(i) => `$${i}`,
+					),
+			),
+		).toThrow('Table name is required');
 	});
 });

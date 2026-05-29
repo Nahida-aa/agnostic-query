@@ -6,7 +6,7 @@ description: >
   builders, and Zod/Valibot runtime validation with createQuerySchema.
 type: core
 library: agnostic-query
-library_version: '1.7.0'
+library_version: '1.9.4'
 sources:
   - 'Nahida-aa/agnostic-query:packages/agnostic-query/src/core/index.ts'
   - 'Nahida-aa/agnostic-query:packages/agnostic-query/src/core/where.ts'
@@ -36,8 +36,8 @@ interface User {
 
 ```ts
 const schema = aq<User>()
-  .where('name', 'eq', 'Alice')
-  .where('age', 'gte', 18)
+  .where('name', '=', 'Alice')
+  .where('age', '>=', 18)
   .orderBy('name', 'asc')
   .limit(20)
   .offset(0)
@@ -54,10 +54,10 @@ Use the callback overload for logical grouping:
 const schema = aq<User>()
   .where((eb) =>
     eb.and([
-      eb.where('age', 'gte', 18),
+      eb.where('age', '>=', 18),
       eb.or([
-        eb.where('status', 'eq', 'active'),
-        eb.where('status', 'eq', 'premium'),
+        eb.where('status', '=', 'active'),
+        eb.where('status', '=', 'premium'),
       ]),
     ]),
   )
@@ -72,8 +72,8 @@ const schema = aq<User>()
 
 ```ts
 const w = newWhere<User>()
-  .where('name', 'eq', 'Alice')
-  .where('age', 'gte', 18)
+  .where('name', '=', 'Alice')
+  .where('age', '>=', 18)
   .toJSON()
 // → { op: 'and', conditions: [...] }
 ```
@@ -81,8 +81,8 @@ const w = newWhere<User>()
 `newComparisonWhere` creates a single comparison:
 
 ```ts
-const cw = newComparisonWhere<User>()('name', 'eq', 'Alice')
-// → { field: ['name'], op: 'eq', value: 'Alice' }
+const cw = newComparisonWhere<User>()('name', '=', 'Alice')
+// → { field: ['name'], op: '=', value: 'Alice' }
 ```
 
 ### Validate a QuerySchema at runtime
@@ -90,7 +90,7 @@ const cw = newComparisonWhere<User>()('name', 'eq', 'Alice')
 ```ts
 import { createQuerySchema } from 'agnostic-query/zod'
 
-const schema = aq<User>().where('name', 'eq', 'Alice').toJSON()
+const schema = aq<User>().where('name', '=', 'Alice').toJSON()
 const parsed = createQuerySchema<User>().parse(schema)
 // throws if schema is malformed
 ```
@@ -102,7 +102,7 @@ Also available from `agnostic-query/valibot`.
 `.where()` accepts a raw `QueryWhere<T>` object for cases where conditions are built dynamically:
 
 ```ts
-const dynamicWhere: QueryWhere<User> = { field: ['name'], op: 'eq', value: 'Bob' }
+const dynamicWhere: QueryWhere<User> = { field: ['name'], op: '=', value: 'Bob' }
 const schema = aq<User>().where(dynamicWhere).toJSON()
 ```
 
@@ -114,14 +114,14 @@ Wrong — bypasses TypeScript field path validation:
 
 ```ts
 const schema: QuerySchema<User> = {
-  where: { field: ['name'], op: 'eq', value: 'Alice' },
+  where: { field: ['name'], op: '=', value: 'Alice' },
 }
 ```
 
 Correct — use the builder:
 
 ```ts
-const schema = aq<User>().where('name', 'eq', 'Alice').toJSON()
+const schema = aq<User>().where('name', '=', 'Alice').toJSON()
 ```
 
 TypeScript validates that `'name'` is a valid field on `User` and `'Alice'` has the correct type (`string`).

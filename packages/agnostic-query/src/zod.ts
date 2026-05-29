@@ -4,7 +4,7 @@ import {
 	multiLogicalWhereOps,
 	predicateOps,
 	setComparisonOps,
-	toMultiComparisonOps,
+	multiComparisonOps,
 	type QueryWhere,
 	unaryComparisonOps,
 } from './core/where.ts';
@@ -24,7 +24,7 @@ export const createWhereSchema = <TShape extends SchemaShape>() => {
 
 	const multiComparisonSchema = z.object({
 		field: createFieldPathSchema<TShape>(),
-		op: z.literal(toMultiComparisonOps[0]),
+		op: z.literal(multiComparisonOps[0]),
 		values: z.array(z.any()),
 	});
 

@@ -1,4 +1,4 @@
-import type { FieldPathByShape, GetPathType, SchemaShape } from './schema.ts';
+import type { FieldPath, FieldPathByShape, GetPathType, SchemaShape } from './schema.ts';
 
 export const unaryComparisonOps = [
 	'=', // eq, equal
@@ -11,7 +11,7 @@ export const unaryComparisonOps = [
 ] as const;
 export type UnaryComparisonOp = (typeof unaryComparisonOps)[number];
 
-export const toMultiComparisonOps = ['in'] as const;
+export const multiComparisonOps = ['in'] as const;
 
 export const setComparisonOps = [
 	'@>', // a contains b, eg: [1, 2, 3] @> [2, 3]; meta contains { "key": "value" }
@@ -96,6 +96,16 @@ export type ComparisonWhereValue<
 				? 'in is not allowed on array fields'
 				: GetPathType<TShape, Col>[]
 			: never
+	: Op extends SetComparisonOp
+		? Col extends keyof TShape & string
+			? TShape[Col] extends readonly any[]
+				? TShape[Col]
+				: 'set ops require array fields'
+			: Col extends FieldPathByShape<TShape>
+				? GetPathType<TShape, Col> extends readonly any[]
+					? GetPathType<TShape, Col>
+					: 'set ops require array fields'
+				: never
 	: Op extends PredicateOp
 		? never
 		: Col extends keyof TShape & string
@@ -112,12 +122,29 @@ export const newComparisonWhere =
 		col: Col,
 		op: Op,
 		value: ComparisonWhereValue<TShape, Col, Op>,
-	) => {
-		const field = Array.isArray(col) ? col : [col];
-		const inputWhere =
-			op === 'in' ? { field, op, values: value } : { field, op, value };
-		return inputWhere as ComparisonWhere<TShape>;
-	};
+	) => buildInputWhere<TShape>(col, op, value);
+
+export const buildInputWhere = <TShape extends SchemaShape>(
+	col: string | readonly any[],
+	op: string,
+	value: unknown,
+): ComparisonWhere<TShape> => {
+	const field = (Array.isArray(col) ? col : [col]) as FieldPath;
+	if (op === 'in') return { field, op, values: value } as ComparisonWhere<TShape>;
+	if (op === 'is null') return { field, op } as ComparisonWhere<TShape>;
+	return { field, op, value } as ComparisonWhere<TShape>;
+};
+
+export const mergeWhere = <TShape extends SchemaShape>(
+	existing: QueryWhere<TShape> | null | undefined,
+	next: ComparisonWhere<TShape>,
+): QueryWhere<TShape> => {
+	if (!existing) return next;
+	if (existing.op === 'and') {
+		return { op: 'and', conditions: [...(existing.conditions || []), next] } as QueryWhere<TShape>;
+	}
+	return { op: 'and', conditions: [existing, next] } as QueryWhere<TShape>;
+};
 
 /**
  * 类型守卫：将 `QueryWhere` 收窄为 `ComparisonWhere`。
@@ -255,23 +282,9 @@ export const newWhere = <TShape extends SchemaShape>(
 		op: Op,
 		value: ComparisonWhereValue<TShape, Col, Op>,
 	) => {
-		const field = Array.isArray(col) ? col : [col];
-		const inputWhere =
-			op === 'in'
-				? { field, op, values: value }
-				: op === 'is null'
-					? { field, op }
-					: { field, op, value };
-		const oldWheres =
-			state?.op === 'and' ? state.conditions || [] : state ? [state] : [];
-
-		const changedWhere = state
-			? {
-					op: 'and',
-					conditions: [...oldWheres, inputWhere],
-				}
-			: inputWhere;
-		return newWhere<TShape>(changedWhere as QueryWhere<TShape>);
+		const inputWhere = buildInputWhere<TShape>(col, op, value);
+		const changedWhere = mergeWhere(state, inputWhere);
+		return newWhere<TShape>(changedWhere);
 	};
 	return {
 		toJSON: () => state,

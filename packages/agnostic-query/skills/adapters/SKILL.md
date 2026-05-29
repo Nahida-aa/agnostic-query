@@ -49,6 +49,11 @@ const rows = await toDrizzle(db, users, schema)
 
 `toDrizzleWhere` and `toDrizzleOrderBy` are also available for custom Drizzle queries.
 
+Note on SQLite and Postgres-specific ops:
+
+- `ilike` is not a native SQLite operator; the SQLite adapter emulates it as `LOWER(col) LIKE LOWER(?)` which provides case-insensitive matching but may have different performance characteristics compared to Postgres `ILIKE`.
+- Postgres array/set operators (`@>`, `<@`, `&&`) are not directly supported in SQLite. If you store arrays as JSON in SQLite you can emulate some behaviors using `json_each`/`json_extract` or multiple `EXISTS` checks, but these are more complex and typically slower than Postgres native array ops. For production workloads that rely heavily on array/set operators, prefer Postgres or implement server-side emulation with awareness of performance trade-offs.
+
 ### Translate from TanStack DB
 
 `fromTanDb` handles where, cursor, limit, and orderBy from `LoadSubsetOptions` in one call:

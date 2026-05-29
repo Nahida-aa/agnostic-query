@@ -5,6 +5,7 @@ import {
 	eq,
 	gt,
 	gte,
+	inArray,
 	like,
 	lt,
 	lte,
@@ -58,9 +59,12 @@ const _toDrizzleWhere = (
 	const target =
 		segments.length === 0 ? column : sql.raw(fieldToStr(where.field));
 
-	if (where.op === 'in')
-		return sql`${target} IN (${where.values.map((v) => sql`${v}`)})` as unknown as SQL;
+	if (where.op === 'in') return inArray(target, where.values);
 	if (where.op === 'is null') return sql`${target} IS NULL` as unknown as SQL;
+	// ilike: emulate with LOWER(...) LIKE LOWER(...) on SQLite
+	if (where.op === 'ilike') {
+		return sql`LOWER(${target}) LIKE LOWER(${where.value})` as unknown as SQL;
+	}
 	// set ops and array ops not supported on SQLite here
 	if (where.op === '@>' || where.op === '<@' || where.op === '&&') {
 		console.warn(`Operator ${where.op} not supported for SQLite adapter`);

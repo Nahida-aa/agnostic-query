@@ -1,4 +1,39 @@
 import { describe, expect, it } from 'bun:test';
+import { aq } from '../core/index.ts';
+import { toDb0 } from './pg.ts';
+
+describe('toDb0', () => {
+	it('passes SQL and params to prepare().all()', async () => {
+		let receivedSql = '';
+		let receivedParams: unknown[] = [];
+		const db = {
+			prepare: (sql: string) => {
+				receivedSql = sql;
+				return {
+					all: async (...params: unknown[]) => {
+						receivedParams = params;
+						return [{ ok: true }];
+					},
+				};
+			},
+		};
+
+		const schema = aq<{ name: string; age: number }>({ table: 'users' })
+			.where('name', '=', 'Alice')
+			.where('age', '>', 18)
+			.limit(10)
+			.offset(5)
+			.toJSON();
+
+		const rows = await toDb0(db, schema);
+		expect(receivedSql).toBe(
+			'SELECT * FROM "users" WHERE ("name" = $1 AND "age" > $2) LIMIT 10 OFFSET 5',
+		);
+		expect(receivedParams).toEqual(['Alice', 18]);
+		expect(rows).toEqual([{ ok: true }] as any);
+	});
+});
+
 import { toDb0Where } from './pg.ts';
 
 describe('toDb0Where', () => {
@@ -33,7 +68,11 @@ describe('toDb0Where', () => {
 	});
 
 	it('should handle ilike', () => {
-		const result = toDb0Where({ field: ['name'], op: 'ilike', value: '%Test%' });
+		const result = toDb0Where({
+			field: ['name'],
+			op: 'ilike',
+			value: '%Test%',
+		});
 		expect(result).toEqual({ sql: '"name" ilike ?', params: ['%Test%'] });
 	});
 
@@ -48,7 +87,11 @@ describe('toDb0Where', () => {
 	});
 
 	it('should handle <@ (contained by)', () => {
-		const result = toDb0Where({ field: ['tags'], op: '<@', value: ['admin', 'user'] });
+		const result = toDb0Where({
+			field: ['tags'],
+			op: '<@',
+			value: ['admin', 'user'],
+		});
 		expect(result).toEqual({ sql: '"tags" <@ ?', params: [['admin', 'user']] });
 	});
 
@@ -58,8 +101,15 @@ describe('toDb0Where', () => {
 	});
 
 	it('should handle in', () => {
-		const result = toDb0Where({ field: ['id'], op: 'in', values: ['1', '2', '3'] });
-		expect(result).toEqual({ sql: '"id" IN (?, ?, ?)', params: ['1', '2', '3'] });
+		const result = toDb0Where({
+			field: ['id'],
+			op: 'in',
+			values: ['1', '2', '3'],
+		});
+		expect(result).toEqual({
+			sql: '"id" IN (?, ?, ?)',
+			params: ['1', '2', '3'],
+		});
 	});
 
 	it('should handle and', () => {
@@ -70,7 +120,10 @@ describe('toDb0Where', () => {
 				{ field: ['age'], op: '>', value: 18 },
 			],
 		});
-		expect(result).toEqual({ sql: '("name" = ? AND "age" > ?)', params: ['Alice', 18] });
+		expect(result).toEqual({
+			sql: '("name" = ? AND "age" > ?)',
+			params: ['Alice', 18],
+		});
 	});
 
 	it('should handle or', () => {
@@ -81,7 +134,10 @@ describe('toDb0Where', () => {
 				{ field: ['name'], op: '=', value: 'Bob' },
 			],
 		});
-		expect(result).toEqual({ sql: '("name" = ? OR "name" = ?)', params: ['Alice', 'Bob'] });
+		expect(result).toEqual({
+			sql: '("name" = ? OR "name" = ?)',
+			params: ['Alice', 'Bob'],
+		});
 	});
 
 	it('should handle not', () => {
@@ -149,9 +205,7 @@ import { toDb0OrderBy } from './pg.ts';
 
 describe('toDb0OrderBy', () => {
 	it('single clause', () => {
-		const result = toDb0OrderBy([
-			{ field: ['name'], direction: 'asc' },
-		]);
+		const result = toDb0OrderBy([{ field: ['name'], direction: 'asc' }]);
 		expect(result).toEqual({ sql: '"name" ASC', params: [] });
 	});
 

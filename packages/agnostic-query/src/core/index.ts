@@ -6,9 +6,11 @@ import type {
 	SchemaShape,
 } from './schema.ts';
 import {
+	buildInputWhere,
 	type ComparisonWhere,
 	type ComparisonWhereValue,
 	createExpr,
+	mergeWhere,
 	newComparisonWhere,
 	type PredicateOp,
 	type QueryWhere,
@@ -68,28 +70,9 @@ export const aq = <TShape extends SchemaShape = SchemaShape>(
 		op: Op,
 		value: ComparisonWhereValue<TShape, Col, Op>,
 	) => {
-		const field = Array.isArray(col) ? col : [col];
-		const inputWhere =
-			op === 'in' ? { field, op, values: value } :
-			op === 'is null' ? { field, op } :
-			{ field, op, value };
-		const oldWheres =
-			state?.where?.op === 'and'
-				? state.where.conditions || []
-				: state?.where
-					? [state.where]
-					: [];
-
-		const newWhere = state?.where
-			? {
-					op: 'and',
-					conditions: [...oldWheres, inputWhere],
-				}
-			: inputWhere;
-		return aq<TShape>({
-			...state,
-			where: newWhere as QueryWhere<TShape>,
-		});
+		const inputWhere = buildInputWhere<TShape>(col, op, value);
+		const newWhere = mergeWhere(state?.where, inputWhere);
+		return aq<TShape>({ ...state, where: newWhere });
 	};
 	return {
 		toJSON: () => state || {},
