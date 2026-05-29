@@ -1,5 +1,11 @@
 # agnostic-query
 
+## 1.9.4
+
+### Patch Changes
+
+- [#14](https://github.com/Nahida-aa/agnostic-query/pull/14) [`6af7cb3`](https://github.com/Nahida-aa/agnostic-query/commit/6af7cb3b9b1834b1e69a3c2a88cfb7bf006b3c84) Thanks [@Nahida-aa](https://github.com/Nahida-aa)! - Document schema vs runtime database responsibilities and guidance for validation.
+
 ## 1.9.3
 
 ### Patch Changes
