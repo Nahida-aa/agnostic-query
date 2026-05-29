@@ -1,5 +1,11 @@
 # agnostic-query
 
+## 1.9.5
+
+### Patch Changes
+
+- [`1fe8b9e`](https://github.com/Nahida-aa/agnostic-query/commit/1fe8b9ee8fac5f7719c43778334d06b9b273ac82) Thanks [@Nahida-aa](https://github.com/Nahida-aa)! - refactor: extract shared where building logic, add SetComparisonOp type guard, update skill docs
+
 ## 1.9.4
 
 ### Patch Changes
