@@ -65,17 +65,48 @@ expectType<QuerySchema<DemoShape>>(
 		.toJSON(),
 );
 
+// Built-in where should keep the correct schema shape
+expectType<QuerySchema<DemoShape>>(
+	aq<DemoShape>()
+		.where(({ where }) => where(['tags', 0, 'name'], '=', 'tag1'))
+		.toJSON(),
+);
+
+// set ops on array fields should work
+expectType<QuerySchema<DemoShape>>(
+	aq<DemoShape>().where('tags', '@>', [{ id: 1, name: 'admin' }]).toJSON(),
+);
+expectType<QuerySchema<DemoShape>>(
+	aq<DemoShape>().where('category', '<@', ['admin', 'user']).toJSON(),
+);
+expectType<QuerySchema<DemoShape>>(
+	aq<DemoShape>().where('tags', '&&', [{ id: 2, name: 'mod' }]).toJSON(),
+);
+
+// 'is null' 2-arg form should work
+expectType<QuerySchema<DemoShape>>(
+	aq<DemoShape>().where('name', 'is null').toJSON(),
+);
+
+// 'in' on deep scalar path should work (not an array field)
+expectType<QuerySchema<DemoShape>>(
+	aq<DemoShape>().where(['address', 'city', 'name'], 'in', ['Paris', 'London']).toJSON(),
+);
+
 // Invalid overloads / value combinations should be rejected
 // @ts-expect-error - 'is null' operator should not accept a value
 expectError(aq<DemoShape>().where('name', 'is null', 'x'));
-// @ts-expect-error - in is not allowed on array fields
-expectError(aq<DemoShape>().where('tags', 'in', [[{
-        id: 1,
-        name: '1'
-    }]]));
+// @ts-expect-error - trap overload: 'in' on array field → error on op
+expectError(aq<DemoShape>().where('tags', 'in', [[{ id: 1, name: 'tag1' }]]));
+// @ts-expect-error - trap overload: 'in' on array field (category)
+expectError(aq<DemoShape>().where('category', 'in', ['a', 'b']));
+// @ts-expect-error - set ops on scalar field → should error
+expectError(aq<DemoShape>().where('name', '@>', ['admin']));
+// @ts-expect-error - set ops on scalar deep path → should error
+expectError(aq<DemoShape>().where(['address', 'city', 'name'], '@>', ['NYC']));
 // @ts-expect-error - 不能将类型“[number]”分配给类型“number”
 expectError(aq<DemoShape>().where(['tags', 0, 'id'], 'in', [[1]]));
-// @ts-expect-error - 类型“"missing"”的参数不能赋给类型“"address" | "age" | "category" | "id" | "name" | "role" | "status" | "tags" | ["address"] | ["age"] | ["category"] | ["id"] | ["name"] | ["role"] | ["status"] | ["tags"] | ["address", "city"] | ... 4 more ... | [...]”的参数。
+// @ts-expect-error - 类型“"missing"”的参数不能赋给类型"address" | "age" | ...
 expectError(aq<DemoShape>().orderBy('missing'));
 
 // No-op calls should still type-check and preserve builder chaining

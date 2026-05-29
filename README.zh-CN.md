@@ -35,8 +35,8 @@ interface UserShape {
 }
 
 const schema = aq<UserShape>()
-  .where('name', 'eq', 'Alice')
-  .where('age', 'gte', 18)
+  .where('name', '=', 'Alice')
+  .where('age', '>=', 18)
   .where('status', 'in', ['active', 'pending'])
   .orderBy('name', 'asc')
   .limit(20)
@@ -46,8 +46,8 @@ const schema = aq<UserShape>()
 //     where: {
 //       op: 'and',
 //       conditions: [
-//         { field: ['name'], op: 'eq', value: 'Alice' },
-//         { field: ['age'], op: 'gte', value: 18 },
+//         { field: ['name'], op: '=', value: 'Alice' },
+//         { field: ['age'], op: '>=', value: 18 },
 //         { field: ['status'], op: 'in', values: ['active', 'pending'] },
 //       ],
 //     },
@@ -61,14 +61,18 @@ const schema = aq<UserShape>()
 
 | 操作符 | 说明 |
 |----------|-------------|
-| `eq`     | 精确匹配 |
-| `gt`     | 大于 |
-| `gte`    | 大于等于 |
-| `lt`     | 小于 |
-| `lte`    | 小于等于 |
+| `=`      | 精确匹配 |
+| `>`      | 大于 |
+| `>=`     | 大于等于 |
+| `<`      | 小于 |
+| `<=`     | 小于等于 |
 | `like`   | SQL `LIKE` |
 | `ilike`  | 大小写不敏感的 `LIKE` |
 | `in`     | 值在数组中（输出 `values` 字段） |
+| `is null`| 空值检查（2 参数形式：`.where('field', 'is null')`） |
+| `@>`     | A 包含 B，例如 `[1, 2, 3] @> [2, 3]` |
+| `<@`     | B 包含 A，例如 `[2, 3] <@ [1, 2, 3]` |
+| `&&`     | 重叠，例如 `[1, 2] && [2, 3]` |
 
 ### 逻辑嵌套（回调）
 
@@ -78,9 +82,9 @@ const schema = aq<UserShape>()
 const schema = aq<UserShape>()
   .where(({ or, where, not }) =>
     or([
-      where('role', 'eq', 'admin'),
-      where('role', 'eq', 'moderator'),
-      not(where('status', 'eq', 'banned')),
+      where('role', '=', 'admin'),
+      where('role', '=', 'moderator'),
+      not(where('status', '=', 'banned')),
     ]),
   )
   .toJSON()
@@ -88,9 +92,9 @@ const schema = aq<UserShape>()
 //     where: {
 //       op: 'or',
 //       conditions: [
-//         { field: ['role'], op: 'eq', value: 'admin' },
-//         { field: ['role'], op: 'eq', value: 'moderator' },
-//         { op: 'not', condition: { field: ['status'], op: 'eq', value: 'banned' } },
+//         { field: ['role'], op: '=', value: 'admin' },
+//         { field: ['role'], op: '=', value: 'moderator' },
+//         { op: 'not', condition: { field: ['status'], op: '=', value: 'banned' } },
 //       ],
 //     },
 //   }
@@ -102,7 +106,7 @@ JSONB 路径和数组索引与原始 `QuerySchema` 的用法一致：
 
 ```ts
 aq<UserShape>()
-  .where(['address', 'city', 'name'], 'eq', 'Berlin')
+  .where(['address', 'city', 'name'], '=', 'Berlin')
   .where(['tags', 0, 'name'], 'like', '%tech%')
   .orderBy(['address', 'city', 'name'], 'desc')
 ```
@@ -114,20 +118,20 @@ aq<UserShape>()
 ```ts
 const roleWhere: QuerySchema<UserShape>['where'] = {
   field: ['role'],
-  op: 'eq',
+  op: '=',
   value: 'admin',
 }
 
 const schema = aq<UserShape>()
-  .where('name', 'eq', 'Alice')
+  .where('name', '=', 'Alice')
   .where(roleWhere)
   .toJSON()
 // → {
 //     where: {
 //       op: 'and',
 //       conditions: [
-//         { field: ['name'], op: 'eq', value: 'Alice' },
-//         { field: ['role'], op: 'eq', value: 'admin' },
+//         { field: ['name'], op: '=', value: 'Alice' },
+//         { field: ['role'], op: '=', value: 'admin' },
 //       ],
 //     },
 //   }
@@ -138,15 +142,15 @@ const schema = aq<UserShape>()
 ```ts
 const schema = aq<UserShape>()
   .where(({ or, where }) =>
-    or([where('name', 'eq', 'Alice'), where(roleWhere)]),
+    or([where('name', '=', 'Alice'), where(roleWhere)]),
   )
   .toJSON()
 // → {
 //     where: {
 //       op: 'or',
 //       conditions: [
-//         { field: ['name'], op: 'eq', value: 'Alice' },
-//         { field: ['role'], op: 'eq', value: 'admin' },
+//         { field: ['name'], op: '=', value: 'Alice' },
+//         { field: ['role'], op: '=', value: 'admin' },
 //       ],
 //     },
 //   }
@@ -181,10 +185,10 @@ interface User {
   address: { city: { name: string } }
 }
 
-aq<User>().where(['tags', 0, 'name'], 'eq', 'tech')         // ✓
-aq<User>().where(['tags', 0, 'name'], 'eq', 42)              // ✗ string ≠ number
-aq<User>().where(['address', 'city', 'name'], 'eq', 'Berlin') // ✓
-aq<User>().where(['address', 'city', 'zip'], 'eq', '12345')   // ✗ 不存在 'zip' 字段
+aq<User>().where(['tags', 0, 'name'], '=', 'tech')         // ✓
+aq<User>().where(['tags', 0, 'name'], '=', 42)              // ✗ string ≠ number
+aq<User>().where(['address', 'city', 'name'], '=', 'Berlin') // ✓
+aq<User>().where(['address', 'city', 'zip'], '=', '12345')   // ✗ 不存在 'zip' 字段
 ```
 
 ## 使用方法
@@ -258,7 +262,7 @@ const schema: QuerySchema<UserShape> = {
   where: {
     op: 'and',
     conditions: [
-      { field: ['age'], op: 'gte', value: 18 },
+      { field: ['age'], op: '>=', value: 18 },
       { field: ['status'], op: 'in', values: ['active', 'pending'] },
     ],
   },
@@ -275,12 +279,12 @@ import { findWhere } from 'agnostic-query'
 const where = {
   op: 'and',
   conditions: [
-    { field: ['name'], op: 'eq', value: 'Alice' },
+    { field: ['name'], op: '=', value: 'Alice' },
     {
       op: 'or',
       conditions: [
-        { field: ['age'], op: 'lt', value: 30 },
-        { field: ['role'], op: 'eq', value: 'admin' },
+        { field: ['age'], op: '<', value: 30 },
+        { field: ['role'], op: '=', value: 'admin' },
       ],
     },
   ],
@@ -288,9 +292,9 @@ const where = {
 
 const searcher = findWhere(where)
 
-searcher.find(['age'])            // { field: ['age'], op: 'lt', value: 30 }
-searcher.find(['role'], 'eq')     // { field: ['role'], op: 'eq', value: 'admin' }
-searcher.eq(['name'])             // { field: ['name'], op: 'eq', value: 'Alice' }
+searcher.find(['age'])            // { field: ['age'], op: '<', value: 30 }
+searcher.find(['role'], '=')     // { field: ['role'], op: '=', value: 'admin' }
+searcher.eq(['name'])             // { field: ['name'], op: '=', value: 'Alice' }
 searcher.in(['role'])             // undefined
 ```
 
@@ -308,8 +312,8 @@ interface User {
   tags: { id: number; name: string }[]
 }
 
-const nameEq = newComparisonWhere<User>()('name', 'eq', 'Alice')
-// → { field: ['name'], op: 'eq', value: 'Alice' }
+const nameEq = newComparisonWhere<User>()('name', '=', 'Alice')
+// → { field: ['name'], op: '=', value: 'Alice' }
 
 const statusIn = newComparisonWhere<User>()('status', 'in', ['active', 'pending'])
 // → { field: ['status'], op: 'in', values: ['active', 'pending'] }
@@ -335,14 +339,14 @@ const filter = aq<User>()
 import { newWhere } from 'agnostic-query'
 
 const w = newWhere<User>()
-  .where('name', 'eq', 'Alice')
-  .where('age', 'gte', 18)
+  .where('name', '=', 'Alice')
+  .where('age', '>=', 18)
   .toJSON()
 // → {
 //     op: 'and',
 //     conditions: [
-//       { field: ['name'], op: 'eq', value: 'Alice' },
-//       { field: ['age'], op: 'gte', value: 18 },
+//       { field: ['name'], op: '=', value: 'Alice' },
+//       { field: ['age'], op: '>=', value: 18 },
 //     ],
 //   }
 ```
@@ -350,13 +354,13 @@ const w = newWhere<User>()
 接受初始 `QueryWhere` 进行扩展，拥有与 `aq().where()` 相同的所有重载：
 
 ```ts
-const base = newWhere<User>({ field: ['status'], op: 'eq', value: 'active' })
+const base = newWhere<User>({ field: ['status'], op: '=', value: 'active' })
 
 const full = base
   .where(({ or, and, where }) =>
     or([
-      and([where('role', 'eq', 'admin'), where('age', 'gte', 18)]),
-      where('role', 'eq', 'moderator'),
+      and([where('role', '=', 'admin'), where('age', '>=', 18)]),
+      where('role', '=', 'moderator'),
     ]),
   )
   .toJSON()
@@ -379,10 +383,10 @@ const schema: QuerySchema<User> = {
 
 ```ts
 // JSONB 嵌套字段 → "address"->'city'->>'name' = ?
-{ field: ['address', 'city', 'name'], op: 'eq', value: 'Berlin' }
+{ field: ['address', 'city', 'name'], op: '=', value: 'Berlin' }
 
 // PG 数组元素 → "category"[1] = ?
-{ field: ['category', 0], op: 'eq', value: 'electronics' }
+{ field: ['category', 0], op: '=', value: 'electronics' }
 
 // 嵌套对象数组 → "tags"->0->>'name' LIKE ?
 { field: ['tags', 0, 'name'], op: 'like', value: '%tech%' }
@@ -486,7 +490,7 @@ import { aq } from 'agnostic-query'
 import type { Project } from '#/features/project/project.schema.ts'
 
 const schema = aq<Project>({ table: 'project' })
-  .where('age', 'gte', 18)
+  .where('age', '>=', 18)
   .where('status', 'in', ['active', 'pending'])
   .orderBy('name', 'asc')
   .limit(20)
@@ -509,7 +513,7 @@ export const listProject = createServerFn({ method: 'GET' })
     const { userId } = getCurrentUser()
 
     // 注入租户隔离 — 复用 aq 构建器处理已有 schema
-    const enriched = aq(data).where('user_id', 'eq', userId).toJSON()
+    const enriched = aq(data).where('user_id', '=', userId).toJSON()
 
     return await toDrizzle(db, projectTable, data)
   })

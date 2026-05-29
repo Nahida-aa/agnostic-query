@@ -1,6 +1,10 @@
 import type { Expect, Equal, ExpectExtends } from './test-utils.ts';
 import type {
+	ArrayKeyOf,
+	buildInputWhere,
+	ComparisonWhere,
 	ComparisonWhereValue,
+	mergeWhere,
 	PredicateWhere,
 	QueryWhere,
 	SetComparisonWhere,
@@ -61,6 +65,23 @@ type _t_predicate_op = Expect<
 type _t_multi_name = Expect<Equal<ToMultiComparisonWhere<DemoShape, ['name']>['values'], string[]>>;
 type _t_multi_id = Expect<Equal<ToMultiComparisonWhere<DemoShape, ['id']>['values'], number[]>>;
 
+// === ArrayKeyOf ===
+type _t_array_key = Expect<Equal<ArrayKeyOf<DemoShape>, 'tags' | 'category'>>;
+
+// === ComparisonWhereValue: in 在深层标量路径上 → 值数组 ===
+type _t_cv_in_deep_scalar = Expect<
+	Equal<
+		ComparisonWhereValue<DemoShape, ['address', 'city', 'name'], 'in'>,
+		string[]
+	>
+>;
+type _t_cv_in_array_element = Expect<
+	Equal<
+		ComparisonWhereValue<DemoShape, ['tags', 0, 'id'], 'in'>,
+		number[]
+	>
+>;
+
 // === ComparisonWhereValue: in 在数组字段上 → 错误信息 ===
 type _t_cv_in_tags = Expect<
 	Equal<
@@ -88,6 +109,26 @@ type _t_cv_gt = Expect<Equal<ComparisonWhereValue<DemoShape, 'age', '>'>, number
 type _t_cv_like = Expect<Equal<ComparisonWhereValue<DemoShape, 'name', 'like'>, string>>;
 type _t_cv_ilike = Expect<Equal<ComparisonWhereValue<DemoShape, 'name', 'ilike'>, string>>;
 
+// === ComparisonWhereValue: 集合操作符在标量字段上 → 错误 ===
+type _t_cv_contains_scalar = Expect<
+	Equal<
+		ComparisonWhereValue<DemoShape, 'name', '@>'>,
+		'set ops require array fields'
+	>
+>;
+type _t_cv_contained_scalar = Expect<
+	Equal<
+		ComparisonWhereValue<DemoShape, 'name', '<@'>,
+		'set ops require array fields'
+	>
+>;
+type _t_cv_overlaps_scalar = Expect<
+	Equal<
+		ComparisonWhereValue<DemoShape, 'name', '&&'>,
+		'set ops require array fields'
+	>
+>;
+
 // === ComparisonWhereValue: 集合操作符 → 原始字段类型（含数组） ===
 type _t_cv_contains = Expect<
 	Equal<
@@ -106,6 +147,16 @@ type _t_cv_overlaps = Expect<
 		ComparisonWhereValue<DemoShape, 'category', '&&'>,
 		string[]
 	>
+>;
+
+// === buildInputWhere 返回类型 ===
+type _t_build_input = Expect<
+	ExpectExtends<ComparisonWhere<DemoShape>, ReturnType<typeof buildInputWhere<DemoShape>>>
+>;
+
+// === mergeWhere 返回类型 ===
+type _t_merge_where = Expect<
+	ExpectExtends<QueryWhere<DemoShape>, ReturnType<typeof mergeWhere<DemoShape>>>
 >;
 
 // === QueryWhere 可区分联合 ===

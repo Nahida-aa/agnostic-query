@@ -252,7 +252,10 @@ describe('aq builder', () => {
 				{
 					op: 'and',
 					conditions: [
-						{ op: 'not', condition: { field: ['status'], op: '=', value: 'banned' } },
+						{
+							op: 'not',
+							condition: { field: ['status'], op: '=', value: 'banned' },
+						},
 						{ field: ['age'], op: '>=', value: 18 },
 					],
 				},
@@ -263,9 +266,7 @@ describe('aq builder', () => {
 
 	it('double not: not(not(...))', () => {
 		const result = aq<DemoShape>()
-			.where(({ not, where }) =>
-				not(not(where('status', '=', 'active'))),
-			)
+			.where(({ not, where }) => not(not(where('status', '=', 'active'))))
 			.toJSON();
 		expect(result.where).toEqual({
 			op: 'not',
@@ -452,10 +453,7 @@ describe('aq builder', () => {
 	});
 
 	it('where() with no args is a no-op', () => {
-		const result = aq<DemoShape>()
-			.where()
-			.where('name', '=', 'Alice')
-			.toJSON();
+		const result = aq<DemoShape>().where().where('name', '=', 'Alice').toJSON();
 		expect(result.where).toEqual({ field: ['name'], op: '=', value: 'Alice' });
 	});
 
@@ -477,50 +475,8 @@ describe('aq builder', () => {
 
 	it('not with null condition produces undefined where', () => {
 		const result = aq<DemoShape>()
-			.where(({ not, where }) =>
-				not(where(null!)),
-			)
+			.where(({ not, where }) => not(where(null!)))
 			.toJSON();
 		expect(result.where).toBeUndefined();
 	});
 });
-
-// === Compile-time overload resolution tests ===
-// These are never executed — only typechecked by tsgo --noEmit
-
-function expectType<T>(_v: T): void {}
-
-function _typeTests() {
-	// 2-arg 'is null' compiles
-	aq<DemoShape>().where('name', 'is null');
-
-	// 3-arg 'is null' should error (PredicateOp → never in ComparisonWhereValue)
-	// @ts-expect-error
-	aq<DemoShape>().where('name', 'is null', 'x');
-
-	// 'in' on array field should error
-	// @ts-expect-error
-	aq<DemoShape>().where('tags', 'in', [[1]]);
-
-	// 'in' on array field via tuple path should error
-	// @ts-expect-error
-	aq<DemoShape>().where(['tags'], 'in', [[1]]);
-
-	// findWhere find('address', '=')?.value → { city: { name: string } } | undefined
-	const where2 = {} as QueryWhere<DemoShape>;
-	expectType<{ city: { name: string } } | undefined>(
-		findWhere(where2).find('address', '=')?.value,
-	);
-	// findWhere find('tags', '@>')?.value → { id: number; name: string }[] | undefined
-	expectType<{ id: number; name: string }[] | undefined>(
-		findWhere(where2).find('tags', '@>')?.value,
-	);
-	// findWhere find('id', 'in')?.values → number[] | undefined
-	expectType<number[] | undefined>(
-		findWhere(where2).find('id', 'in')?.values,
-	);
-	// findWhere find('name', 'like') returns UnaryComparisonWhere (has .value)
-	expectType<string | undefined>(
-		findWhere(where2).find('name', 'like')?.value,
-	);
-}

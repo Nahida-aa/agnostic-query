@@ -18,6 +18,9 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
       - uses: oven-sh/setup-bun@v2
       - run: bun install
+      - name: Run type assertions (tsd)
+        run: bunx tsd
+        working-directory: packages/agnostic-query
       - run: bun test --coverage --coverage-reporter=lcov --coverage-dir=coverage || [ $? -eq 99 ]
         working-directory: packages/agnostic-query
       - uses: codecov/codecov-action@v5

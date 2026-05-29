@@ -1,4 +1,5 @@
-import type { FieldPath, FieldPathByShape, GetPathType, SchemaShape } from './schema.ts';
+import type { ArrayKeyOf, FieldPath, FieldPathByShape, GetPathType, SchemaShape } from './schema.ts';
+export type { ArrayKeyOf };
 
 export const unaryComparisonOps = [
 	'=', // eq, equal
@@ -188,6 +189,11 @@ export type QueryWhere<
 
 export interface WhereExpr<TShape extends SchemaShape> {
 	_q: QueryWhere<TShape> | null;
+	where<Col extends ArrayKeyOf<TShape>>(
+		col: Col,
+		op: "'in' is not allowed on array fields",
+		value?: never,
+	): WhereExpr<TShape>;
 	where<
 		Col extends FieldPathByShape<TShape> | (keyof TShape & string),
 		Op extends WhereComparisonOp,
@@ -257,6 +263,11 @@ export const createExpr = <TShape extends SchemaShape>(
 interface NewWhere<TShape extends SchemaShape = SchemaShape> {
 	toJSON(): QueryWhere<TShape> | null | undefined;
 	where(cb: (eb: WhereExpr<TShape>) => WhereExpr<TShape>): NewWhere<TShape>;
+	where<Col extends ArrayKeyOf<TShape>>(
+		col: Col,
+		op: "'in' is not allowed on array fields",
+		value?: never,
+	): NewWhere<TShape>;
 	where<
 		Col extends FieldPathByShape<TShape> | (keyof TShape & string),
 		Op extends WhereComparisonOp,

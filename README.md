@@ -398,6 +398,66 @@ All paths are fully type-checked against your shape.
 
 ## Adapter: Raw SQL (PostgreSQL)
 
+## Testing
+
+Overview: tests cover two concerns — runtime behavior (adapters, SQL generation, edge cases) and compile-time type contracts (TypeScript API guarantees).
+
+- Runtime tests: use `bun test` to run `*.test.ts` files under `src/`.
+- Type tests: use `tsd` to assert type-level guarantees via `.test-d.ts` files.
+
+Commands:
+
+```bash
+# Run runtime tests
+bun test
+
+# Run type (tsd) assertions
+bunx tsd
+```
+
+Key test files:
+
+- Type assertions: [packages/agnostic-query/test-d/aq.test-d.ts](packages/agnostic-query/test-d/aq.test-d.ts), [packages/agnostic-query/test-d/schema.test-d.ts](packages/agnostic-query/test-d/schema.test-d.ts)
+- Runtime adapter tests: [packages/agnostic-query/src/drizzle/pg.test.ts](packages/agnostic-query/src/drizzle/pg.test.ts), [packages/agnostic-query/src/drizzle/sqlite.test.ts](packages/agnostic-query/src/drizzle/sqlite.test.ts), [packages/agnostic-query/src/kysely/pg.test.ts](packages/agnostic-query/src/kysely/pg.test.ts), [packages/agnostic-query/src/db0/pg.test.ts](packages/agnostic-query/src/db0/pg.test.ts)
+- Core builder tests: [packages/agnostic-query/src/core/index.test.ts](packages/agnostic-query/src/core/index.test.ts), [packages/agnostic-query/src/sql/common.test.ts](packages/agnostic-query/src/sql/common.test.ts)
+
+CI recommendation:
+
+- Run both `bun test` and `bunx tsd` on PRs/merges. Treat `tsd` failures as test failures — they indicate regressions in the public type API.
+- Optionally collect coverage for runtime tests with a tool like `c8`/`nyc` if desired; coverage is a diagnostic, not a strict quality gate.
+
+Contributing tests:
+
+- For runtime behavior, add `*.test.ts` under `src/` and assert concrete SQL/params where applicable.
+- For types, add `.test-d.ts` under `test-d/` using `expectType` / `expectError` from `tsd` to document intended API contracts.
+
+
+## Schema vs Database — Responsibility & Checks
+
+Short version: schema correctness is primarily the user's responsibility. The library provides
+static typing and optional helpers, but it cannot guarantee the database itself matches your
+in-code types at runtime.
+
+- **Static (compile-time) checks**: Prefer passing a concrete `TShape` to `aq<T>()`, using
+  `newWhere<T>()` or `FieldPathByShape<T>` so TypeScript rejects incorrect field paths during
+  development. This is the most reliable early-warning mechanism.
+- **Runtime adapter hints**: Some adapters (e.g. `drizzle`) inspect the `table` object and
+  will warn when a referenced column is missing. This is a helpful developer convenience,
+  but it only reflects the `table` object passed to the adapter — not the live database.
+- **CI/database validation**: To ensure the live database schema matches your code, run a
+  validation step in CI that queries the database schema (e.g. `information_schema` for
+  Postgres or `PRAGMA table_info` for SQLite) and compares it with the expected columns.
+  This is the only way to detect drift between deployed databases and code.
+
+Recommendations:
+- Use TypeScript generics and `newWhere<T>()` for strict compile-time safety.
+- Keep migrations and schema changes as part of your deployment process; run a CI validation
+  step on PRs when possible.
+- Treat adapter runtime warnings (like Drizzle's) as developer convenience, not a safety net.
+
+If you'd like, this repo can provide an optional CI script for schema validation (Postgres
+and SQLite examples) — tell me and I can add it as a follow-up.
+
 ```ts
 import { toSql } from 'agnostic-query/sql/pg'
 

@@ -64,6 +64,13 @@ export type FieldPathByShape<TShape extends SchemaShape = SchemaShape> =
 // type DemoField = FieldPathByShape<DemoShape>;
 // type DemoField2 = FieldPathByShape<Record<string, any>>;
 
+/** 提取 TShape 中所有数组类型的根键名 */
+export type ArrayKeyOf<TShape extends SchemaShape> = {
+	[K in keyof TShape & string]: TShape[K] extends readonly any[]
+		? K
+		: never;
+}[keyof TShape & string];
+
 /** 根据完整路径提取对应位置的类型 */
 export type GetPathType<T, P extends readonly any[]> = P extends readonly [
 	infer First,

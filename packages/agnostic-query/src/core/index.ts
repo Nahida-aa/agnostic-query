@@ -1,5 +1,6 @@
 import type { QueryOrderBy } from './order-by.ts';
 import type {
+	ArrayKeyOf,
 	FieldPath,
 	FieldPathByShape,
 	GetPathType,
@@ -33,6 +34,11 @@ interface AgnosticQuery<TShape extends SchemaShape = SchemaShape> {
 	toJSON(): QuerySchema<TShape>;
 	where(
 		cb: (eb: WhereExpr<TShape>) => WhereExpr<TShape>,
+	): AgnosticQuery<TShape>;
+	where<Col extends ArrayKeyOf<TShape>>(
+		col: Col,
+		op: "'in' is not allowed on array fields",
+		value?: never,
 	): AgnosticQuery<TShape>;
 	where<
 		Col extends FieldPathByShape<TShape> | (keyof TShape & string),
