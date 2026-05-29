@@ -1,5 +1,13 @@
 # agnostic-query
 
+## 1.9.6
+
+### Patch Changes
+
+- [`a617723`](https://github.com/Nahida-aa/agnostic-query/commit/a61772369725b05e2b26fa875c2c1aa11ff850c2) Thanks [@Nahida-aa](https://github.com/Nahida-aa)! - docs: update README and Chinese README operator documentation to reflect current SQL operator names
+  feat: add compile-time trap overload banning `in` on array fields
+  feat: export `ArrayKeyOf` type for array-field detection
+
 ## 1.9.5
 
 ### Patch Changes
