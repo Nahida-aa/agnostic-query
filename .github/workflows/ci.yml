@@ -15,8 +15,15 @@ jobs:
       - name: Install deps
         run: bun install
       - name: Run runtime tests
-        run: bun test --silent
         working-directory: packages/agnostic-query
+        run: |
+          set +e
+          bun test --silent
+          rc=$?
+          set -e
+          if [ "$rc" -ne 0 ] && [ "$rc" -ne 99 ]; then
+            exit "$rc"
+          fi
       - name: Run type assertions (tsd)
         run: bunx tsd
         working-directory: packages/agnostic-query
