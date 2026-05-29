@@ -27,9 +27,6 @@
   ],
   "main": "./src/index.ts",
   "types": "./src/index.ts",
-  "publishConfig": {
-    "provenance": true
-  },
   "exports": {
     ".": {
       "import": "./src/index.ts",
