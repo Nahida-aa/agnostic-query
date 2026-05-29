@@ -66,14 +66,17 @@ expectType<QuerySchema<DemoShape>>(
 );
 
 // Invalid overloads / value combinations should be rejected
-expectError(aq<DemoShape>().where('name', 'is null'));
+// @ts-expect-error - 'is null' operator should not accept a value
+expectError(aq<DemoShape>().where('name', 'is null', 'x'));
 // @ts-expect-error - in is not allowed on array fields
 expectError(aq<DemoShape>().where('tags', 'in', [[{
         id: 1,
         name: '1'
     }]]));
-expectError(aq<DemoShape>().where(['tags', 0, 'id'], 'in', [1]));
-expectError(aq<DemoShape>().orderBy('missing' as never));
+// @ts-expect-error - 不能将类型“[number]”分配给类型“number”
+expectError(aq<DemoShape>().where(['tags', 0, 'id'], 'in', [[1]]));
+// @ts-expect-error - 类型“"missing"”的参数不能赋给类型“"address" | "age" | "category" | "id" | "name" | "role" | "status" | "tags" | ["address"] | ["age"] | ["category"] | ["id"] | ["name"] | ["role"] | ["status"] | ["tags"] | ["address", "city"] | ... 4 more ... | [...]”的参数。
+expectError(aq<DemoShape>().orderBy('missing'));
 
 // No-op calls should still type-check and preserve builder chaining
 expectType<QuerySchema<DemoShape>>(aq<DemoShape>().where(null).where().toJSON());
