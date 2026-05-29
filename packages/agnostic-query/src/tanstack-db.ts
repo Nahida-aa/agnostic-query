@@ -1,8 +1,12 @@
-import type { LoadSubsetOptions } from '@tanstack/db';
 import {
+	type LoadSubsetOptions,
 	parseOrderByExpression,
 	parseWhereExpression,
-} from '@tanstack/query-db-collection';
+} from '@tanstack/db';
+// import {
+// 	// parseOrderByExpression,
+// 	// parseWhereExpression,
+// } from '@tanstack/query-db-collection';
 import type { QuerySchema } from './core/index.ts';
 import type { QueryOrderBy } from './core/order-by.ts';
 import type { SchemaShape } from './core/schema.ts';
