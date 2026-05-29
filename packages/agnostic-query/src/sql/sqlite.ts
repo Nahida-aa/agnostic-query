@@ -11,27 +11,22 @@ import {
 } from './common.ts';
 import type { SqlResult } from './types.ts';
 
-export const fieldToStr = (field: FieldPath): string => {
+const fieldToStr = (field: FieldPath): string => {
 	if (field.length === 1) return quoteIdent(field[0]);
 	const [root, ...rest] = field;
-	if (rest.every((p) => typeof p === 'number')) {
-		return `${quoteIdent(root)}${rest.map((i) => `[${i + 1}]`).join('')}`;
-	}
-	const segStr = rest.map((p) =>
-		typeof p === 'number' ? String(p) : `'${p.replace(/'/g, "''")}'`,
-	);
-	const last = segStr.pop()!;
-	const prefix = segStr.join('->');
-	return prefix
-		? `${quoteIdent(root)}->${prefix}->>${last}`
-		: `${quoteIdent(root)}->>${last}`;
+	const path = rest
+		.map((p) =>
+			typeof p === 'number' ? `[${p}]` : `.${p.replace(/'/g, "''")}`,
+		)
+		.join('');
+	return `json_extract(${quoteIdent(root)}, '$${path}')`;
 };
 
 export const toSqlWhere = (
 	where?: QueryWhere | null,
 ): SqlResult | undefined => {
 	if (!where) return;
-	return commonBuildWhere(where, fieldToStr, (i) => `$${i}`);
+	return commonBuildWhere(where, fieldToStr, () => '?');
 };
 
 export const toSqlOrderBy = <TShape extends SchemaShape>(
@@ -42,5 +37,5 @@ export const toSql = <TShape extends SchemaShape>(
 	json: QuerySchema<TShape>,
 ): SqlResult =>
 	toSqlGeneric(json, fieldToStr, (w) =>
-		commonBuildWhere(w, fieldToStr, (i) => `$${i}`),
+		commonBuildWhere(w, fieldToStr, () => '?'),
 	);

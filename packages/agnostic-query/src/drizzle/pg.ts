@@ -20,21 +20,7 @@ import {
 	type SQL,
 	sql,
 } from 'drizzle-orm';
-import type { BuildColumns } from 'drizzle-orm/column-builder';
-import type { SelectedFields } from 'drizzle-orm/gel-core/query-builders/select.types';
-import type { NeonHttpDatabase } from 'drizzle-orm/neon-http';
-import {
-	type PgDatabase,
-	type PgQueryResultHKT,
-	PgSelectBase,
-	type PgTableWithColumns,
-} from 'drizzle-orm/pg-core';
-import type { PgColumnBuilderBase } from 'drizzle-orm/pg-core/columns/common';
-import type { PgSelectBuilder } from 'drizzle-orm/pg-core/query-builders';
-import type { PgTable, TableConfig } from 'drizzle-orm/pg-core/table';
-import type { PgliteDatabase } from 'drizzle-orm/pglite';
-import type { SelectMode } from 'drizzle-orm/query-builders/select.types';
-import type { BaseSQLiteDatabase } from 'drizzle-orm/sqlite-core';
+import type { PgDatabase, PgQueryResultHKT } from 'drizzle-orm/pg-core';
 import type { QuerySchema } from '../core/index.ts';
 import type { QueryOrderBy } from '../core/order-by.ts';
 import type { SchemaShape } from '../core/schema';

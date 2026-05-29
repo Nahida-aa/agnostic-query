@@ -60,6 +60,7 @@
   "scripts": {
     "typecheck": "tsgo --noEmit",
     "test": "bun test",
+    "type-test": "tsd",
     "prepublishOnly": "cp ../../README.md . && cp ../../LICENSE ."
   },
   "peerDependencies": {
@@ -98,6 +99,7 @@
     "drizzle-orm": "^0.45.2",
     "kysely": "^0.29.0",
     "rolldown": "^1.0.0",
+    "tsd": "^0.33.0",
     "valibot": "^1.4.0",
     "zod": "^4.4.3"
   },
