@@ -18,7 +18,7 @@ export type SchemaShape = Record<string, any>;
 /** （包含中间节点和叶子节点）
  * 但 目前在 在适配器层面 没有支持任意节点， 只支持 根节点和叶子节点
  */
-export type FieldPathByShape<TShape extends SchemaShape = SchemaShape> =
+type _FieldPathByShapeImpl<TShape extends SchemaShape> =
 	TShape extends SchemaShape
 		? {
 				[K in keyof TShape]: TShape[K] extends any[]
@@ -39,6 +39,15 @@ export type FieldPathByShape<TShape extends SchemaShape = SchemaShape> =
 						: [K];
 			}[keyof TShape]
 		: never;
+
+export type FieldPathByShape<TShape extends SchemaShape = SchemaShape> =
+	// When the generic is the default SchemaShape (i.e. user did not pass a specific shape),
+	// fall back to the permissive `FieldPath` type. Otherwise use the strict impl.
+	[TShape] extends [SchemaShape]
+		? [SchemaShape] extends [TShape]
+			? FieldPath
+			: _FieldPathByShapeImpl<TShape>
+		: _FieldPathByShapeImpl<TShape>;
 
 // demo
 // type DemoShape = {

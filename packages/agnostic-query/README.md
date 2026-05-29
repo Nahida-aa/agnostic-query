@@ -398,6 +398,32 @@ All paths are fully type-checked against your shape.
 
 ## Adapter: Raw SQL (PostgreSQL)
 
+## Schema vs Database — Responsibility & Checks
+
+Short version: schema correctness is primarily the user's responsibility. The library provides
+static typing and optional helpers, but it cannot guarantee the database itself matches your
+in-code types at runtime.
+
+- **Static (compile-time) checks**: Prefer passing a concrete `TShape` to `aq<T>()`, using
+  `newWhere<T>()` or `FieldPathByShape<T>` so TypeScript rejects incorrect field paths during
+  development. This is the most reliable early-warning mechanism.
+- **Runtime adapter hints**: Some adapters (e.g. `drizzle`) inspect the `table` object and
+  will warn when a referenced column is missing. This is a helpful developer convenience,
+  but it only reflects the `table` object passed to the adapter — not the live database.
+- **CI/database validation**: To ensure the live database schema matches your code, run a
+  validation step in CI that queries the database schema (e.g. `information_schema` for
+  Postgres or `PRAGMA table_info` for SQLite) and compares it with the expected columns.
+  This is the only way to detect drift between deployed databases and code.
+
+Recommendations:
+- Use TypeScript generics and `newWhere<T>()` for strict compile-time safety.
+- Keep migrations and schema changes as part of your deployment process; run a CI validation
+  step on PRs when possible.
+- Treat adapter runtime warnings (like Drizzle's) as developer convenience, not a safety net.
+
+If you'd like, this repo can provide an optional CI script for schema validation (Postgres
+and SQLite examples) — tell me and I can add it as a follow-up.
+
 ```ts
 import { toSql } from 'agnostic-query/sql/pg'
 
