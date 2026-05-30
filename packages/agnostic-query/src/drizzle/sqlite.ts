@@ -19,7 +19,7 @@ import type { QueryOrderBy } from '../core/order-by.ts';
 import type { SchemaShape } from '../core/schema';
 import type { QueryWhere, UnaryComparisonOp } from '../core/where.ts';
 import { isComparisonWhere } from '../core/where.ts';
-import { fieldToStr } from '../sql/pg.ts';
+import { fieldToStr } from '../sql/sqlite.ts';
 
 const opMap: Partial<
 	Record<UnaryComparisonOp, (column: any, value: any) => SQL>

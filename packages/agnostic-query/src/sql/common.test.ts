@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import { buildWhere, quoteIdent, toSql } from './common.ts';
+import { _toSql, buildWhere, quoteIdent } from './common.ts';
 
 describe('common.quoteIdent', () => {
 	it('quotes simple identifier', () => {
@@ -77,7 +77,7 @@ describe('common.toSql', () => {
 			limit: 10,
 			offset: 5,
 		} as any;
-		const result = toSql(
+		const result = _toSql(
 			json,
 			(f: any) => `"${f[0]}"`,
 			(w: any) =>
@@ -95,7 +95,7 @@ describe('common.toSql', () => {
 
 	it('throws when table name is missing', () => {
 		expect(() =>
-			toSql(
+			_toSql(
 				{} as any,
 				(f: any) => `"${f[0]}"`,
 				(w: any) =>

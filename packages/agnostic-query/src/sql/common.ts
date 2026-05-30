@@ -1,3 +1,4 @@
+import type { QuerySchema } from '#/core/index.ts';
 import type { QueryOrderBy } from '../core/order-by.ts';
 import type { FieldPath, SchemaShape } from '../core/schema.ts';
 import type { QueryWhere } from '../core/where.ts';
@@ -74,14 +75,8 @@ export const toSqlOrderBy = <TShape extends SchemaShape>(
 	};
 };
 
-export const toSql = <TShape extends SchemaShape>(
-	json: {
-		table?: string;
-		where?: QueryWhere | null;
-		orderBy?: QueryOrderBy<TShape>[];
-		limit?: number;
-		offset?: number;
-	},
+export const _toSql = <TShape extends SchemaShape>(
+	json: QuerySchema<TShape>,
 	fieldToStr: (f: FieldPath) => string,
 	buildWhereFn: (w: QueryWhere, start?: number) => SqlResult | undefined,
 ): SqlResult => {

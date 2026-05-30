@@ -4,14 +4,14 @@ import type { FieldPath, SchemaShape } from '../core/schema.ts';
 import type { QueryWhere } from '../core/where.ts';
 import { isComparisonWhere } from '../core/where.ts';
 import {
+	_toSql,
 	buildWhere as commonBuildWhere,
 	toSqlOrderBy as commonOrderBy,
 	quoteIdent,
-	toSql as toSqlGeneric,
 } from './common.ts';
 import type { SqlResult } from './types.ts';
 
-const fieldToStr = (field: FieldPath): string => {
+export const fieldToStr = (field: FieldPath): string => {
 	if (field.length === 1) return quoteIdent(field[0]);
 	const [root, ...rest] = field;
 	const path = rest
@@ -36,6 +36,4 @@ export const toSqlOrderBy = <TShape extends SchemaShape>(
 export const toSql = <TShape extends SchemaShape>(
 	json: QuerySchema<TShape>,
 ): SqlResult =>
-	toSqlGeneric(json, fieldToStr, (w) =>
-		commonBuildWhere(w, fieldToStr, () => '?'),
-	);
+	_toSql(json, fieldToStr, (w) => commonBuildWhere(w, fieldToStr, () => '?'));
