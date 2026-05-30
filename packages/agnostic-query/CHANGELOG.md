@@ -1,5 +1,11 @@
 # agnostic-query
 
+## 1.9.8
+
+### Patch Changes
+
+- [`810614f`](https://github.com/Nahida-aa/agnostic-query/commit/810614f7d45b369a9199c2bca6d4c8b2167df45a) Thanks [@Nahida-aa](https://github.com/Nahida-aa)! - Fix db0 adapter SQL generation for PostgreSQL and SQLite helpers after shared SQL builder refactors.
+
 ## 1.9.7
 
 ### Patch Changes
