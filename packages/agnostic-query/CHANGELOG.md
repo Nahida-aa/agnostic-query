@@ -1,5 +1,11 @@
 # agnostic-query
 
+## 1.9.10
+
+### Patch Changes
+
+- [`368a2f9`](https://github.com/Nahida-aa/agnostic-query/commit/368a2f9b5e696b60d68cbe485bfb9d886ceab836) Thanks [@Nahida-aa](https://github.com/Nahida-aa)! - Refine db0 adapter imports and package metadata by removing the package-level path alias, using local Db types, and dropping the unused @tanstack/query-db-collection dependency entry.
+
 ## 1.9.9
 
 ### Patch Changes
