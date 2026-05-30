@@ -26,10 +26,10 @@ export const toDb0OrderBy = <TShape extends Record<string, any>>(
 	};
 };
 
-export const toDb0 = async <T extends Record<string, any>, D extends Db>(
+export const toDb0 = <T extends Record<string, any>, D extends Db>(
 	db: D,
 	json: QuerySchema<T>,
-): Promise<T[]> => {
+): Promise<T[]> | T[] => {
 	const result = toSql(json);
 	if (!result) return [];
 	return db.prepare(result.sql).all(...result.params) as any as Promise<T[]>;
