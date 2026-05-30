@@ -1,5 +1,11 @@
 # agnostic-query
 
+## 1.9.9
+
+### Patch Changes
+
+- [`68e1699`](https://github.com/Nahida-aa/agnostic-query/commit/68e16999d12e3b73ab37efed63c874dc9d188be6) Thanks [@Nahida-aa](https://github.com/Nahida-aa)! - Exclude runtime and type test files from the published npm package so only library sources are shipped.
+
 ## 1.9.8
 
 ### Patch Changes
