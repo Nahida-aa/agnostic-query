@@ -1,5 +1,11 @@
 # agnostic-query
 
+## 1.9.11
+
+### Patch Changes
+
+- [`0b80fad`](https://github.com/Nahida-aa/agnostic-query/commit/0b80fad87101658f251327fb5a89e5cbae266a26) Thanks [@Nahida-aa](https://github.com/Nahida-aa)! - Tighten db0 adapter type signatures and keep the internal Db interface aligned with the current Promise-based result shape.
+
 ## 1.9.10
 
 ### Patch Changes
