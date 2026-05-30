@@ -15,6 +15,7 @@ Before substantial work:
 
 ## Commands
 - Focus on checking commands like `bun run typecheck`, `bun run lint`, etc.
+- [Release Workflow](.agents/workflow.md): Changeset-based automated publishing via GitHub Actions
 
 ## Essentials
 

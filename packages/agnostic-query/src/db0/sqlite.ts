@@ -32,5 +32,5 @@ export const toDb0 = <T extends Record<string, any>, D extends Db>(
 ): Promise<T[]> | T[] => {
 	const result = toSql(json);
 	if (!result) return [];
-	return db.prepare(result.sql).all(...result.params) as any as Promise<T[]>;
+	return db.prepare(result.sql).all<T>(...result.params);
 };

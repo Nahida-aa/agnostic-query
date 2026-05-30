@@ -479,6 +479,27 @@ const rows = await db
   .offset(data.offset ?? 0)
 ```
 
+## 适配器：db0
+
+以参数化 SQL 执行 `QuerySchema`。`toDb0` 兼容任何提供 `{ prepare, all }` 接口的驱动——不只 db0，Bun SQLite、better-sqlite3 等也可用。
+
+```ts
+import { toDb0 } from 'agnostic-query/db0/pg'
+import type { Db } from 'agnostic-query/db0/types'
+
+const rows = await toDb0(db, schema)
+```
+
+`Db` 类型已导出，可在你自己的签名中复用：
+
+```ts
+import type { Db } from 'agnostic-query/db0/types'
+
+function run<D extends Db>(db: D, sql: string) { ... }
+```
+
+使用 `agnostic-query/db0/pg` 获取 PostgreSQL 风格的 SQL（`->>` JSON 访问），或 `agnostic-query/db0/sqlite` 获取 SQLite 风格的 SQL（`json_extract`）。
+
 ## 端到端：aq → QuerySchema → HTTP → Drizzle
 
 客户端使用 `aq` 构建器构建查询，序列化 `QuerySchema` 后发送到服务端函数，然后通过 Drizzle 执行，全程类型安全。
