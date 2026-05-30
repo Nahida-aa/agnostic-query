@@ -1,5 +1,11 @@
 # agnostic-query
 
+## 1.9.7
+
+### Patch Changes
+
+- [`36bcd6d`](https://github.com/Nahida-aa/agnostic-query/commit/36bcd6d2f670a616b1a8ae6b6cf0bb1efb40b7b9) Thanks [@Nahida-aa](https://github.com/Nahida-aa)! - Fix SQL generation and SQLite adapter behavior for nested field paths, parameterized WHERE clauses, and `ilike`/set-operator handling.
+
 ## 1.9.6
 
 ### Patch Changes
