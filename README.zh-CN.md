@@ -227,7 +227,7 @@ import { createWhereSchema } from 'agnostic-query/valibot'
 // Drizzle 适配器 — 将 where 应用到 Drizzle 查询
 import { toDrizzle, toDrizzleWhere, toDrizzleOrderBy } from 'agnostic-query/drizzle/pg'
 
-// db0 适配器 — 通过 db0 以参数化 SQL 执行 schema
+// db0 适配器 — 以参数化 SQL 执行 schema（兼容任何 `{ prepare, all }` 驱动）
 import { toDb0 } from 'agnostic-query/db0/pg'
 
 // TanStack DB 适配器 — 将 TanStack 表达式解析为 QueryWhere

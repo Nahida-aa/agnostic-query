@@ -3,10 +3,8 @@ import type { QuerySchema } from '../core';
 import type { QueryOrderBy } from '../core/order-by.ts';
 import type { QueryWhere } from '../core/where.ts';
 import { buildWhere as commonBuildWhere } from '../sql/common.ts';
-import { fieldToStr, toSql } from '../sql/pg.ts';
-import type { Primitive, SqlResult } from '../sql/types.ts';
-
-// Reuse shared SQL builder but force `?` placeholders for db0 adapter
+import { fieldToStr, toSql } from '../sql/sqlite.ts';
+import type { SqlResult } from '../sql/types.ts';
 
 export const toDb0Where = (
 	where?: QueryWhere | undefined,

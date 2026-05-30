@@ -105,10 +105,22 @@ const data = fromTanDb(meta?.loadSubsetOptions)
 
 ## db0
 
-Execute a `QuerySchema` as parameterised SQL via db0:
+Execute a `QuerySchema` as parameterised SQL. `toDb0` accepts any driver with a `{ prepare, all }` interface — not just db0. Bun SQLite, better-sqlite3, and others also work.
 
 ```ts
 import { toDb0 } from 'agnostic-query/db0/pg'
+import type { Db } from 'agnostic-query/db0/types'
 
+// db0, Bun SQLite, better-sqlite3, node:sqlite, etc.
 const rows = await toDb0(db, schema)
 ```
+
+The `Db` type is exported for use in your own signatures:
+
+```ts
+import type { Db } from 'agnostic-query/db0/types'
+
+function run<D extends Db>(db: D, sql: string) { ... }
+```
+
+Use `agnostic-query/db0/pg` for PostgreSQL-flavored SQL, or `agnostic-query/db0/sqlite` for SQLite-flavored SQL with `json_extract` support.
