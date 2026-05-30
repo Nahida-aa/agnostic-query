@@ -1,5 +1,5 @@
 export type Db = {
 	prepare: (sql: string) => {
-		all: <T>(...params: any[]) => Promise<T[]>;
+		all: (...params: any[]) => Promise<unknown[]>;
 	};
 };
