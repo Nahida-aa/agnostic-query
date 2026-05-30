@@ -1,10 +1,10 @@
-import type { Db } from '#/db0/types.ts';
 import type { QuerySchema } from '../core';
 import type { QueryOrderBy } from '../core/order-by.ts';
 import type { QueryWhere } from '../core/where.ts';
 import { buildWhere as commonBuildWhere } from '../sql/common.ts';
 import { fieldToStr, toSql } from '../sql/sqlite.ts';
 import type { SqlResult } from '../sql/types.ts';
+import type { Db } from './types.ts';
 
 export const toDb0Where = (
 	where?: QueryWhere | undefined,

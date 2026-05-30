@@ -3,9 +3,6 @@
   "compilerOptions": {
     "target": "ESNext",
     "module": "ESNext",
-    "paths": {
-      "#/*": ["./src/*"],
-    },
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "types": ["bun"],
 

@@ -1,4 +1,4 @@
-import type { QuerySchema } from '#/core/index.ts';
+import type { QuerySchema } from '../core/index.ts';
 import type { QueryOrderBy } from '../core/order-by.ts';
 import type { FieldPath, SchemaShape } from '../core/schema.ts';
 import type { QueryWhere } from '../core/where.ts';
