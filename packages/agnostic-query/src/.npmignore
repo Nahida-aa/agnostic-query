@@ -1,0 +1,6 @@
+*.test.ts
+*.test-d.ts
+*.mock.test.ts
+**/*.test.ts
+**/*.test-d.ts
+**/*.mock.test.ts
