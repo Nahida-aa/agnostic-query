@@ -1,5 +1,12 @@
 # agnostic-query
 
+## 1.10.2
+
+### Patch Changes
+
+- [`9a56ca8`](https://github.com/Nahida-aa/agnostic-query/commit/9a56ca8750befea949c3da141616e8be059c7918) Thanks [@Nahida-aa](https://github.com/Nahida-aa)! - fix: perl replacement in build script drops closing quote due to bash `$1` expansion
+  ci: only run PR workflow, build before tsd
+
 ## 1.10.1
 
 ### Patch Changes
