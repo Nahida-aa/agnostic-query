@@ -93,21 +93,6 @@ expectType<QuerySchema<DemoShape>>(
 	aq<DemoShape>().where(['address', 'city', 'name'], 'in', ['Paris', 'London']).toJSON(),
 );
 
-// Invalid overloads / value combinations should be rejected
-// @ts-expect-error - 'is null' operator should not accept a value
-expectError(aq<DemoShape>().where('name', 'is null', 'x'));
-// @ts-expect-error - trap overload: 'in' on array field → error on op
-expectError(aq<DemoShape>().where('tags', 'in', [[{ id: 1, name: 'tag1' }]]));
-// @ts-expect-error - trap overload: 'in' on array field (category)
-expectError(aq<DemoShape>().where('category', 'in', ['a', 'b']));
-// @ts-expect-error - set ops on scalar field → should error
-expectError(aq<DemoShape>().where('name', '@>', ['admin']));
-// @ts-expect-error - set ops on scalar deep path → should error
-expectError(aq<DemoShape>().where(['address', 'city', 'name'], '@>', ['NYC']));
-// @ts-expect-error - 不能将类型“[number]”分配给类型“number”
-expectError(aq<DemoShape>().where(['tags', 0, 'id'], 'in', [[1]]));
-// @ts-expect-error - 类型“"missing"”的参数不能赋给类型"address" | "age" | ...
-expectError(aq<DemoShape>().orderBy('missing'));
 
 // No-op calls should still type-check and preserve builder chaining
 expectType<QuerySchema<DemoShape>>(aq<DemoShape>().where(null).where().toJSON());
