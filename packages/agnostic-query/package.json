@@ -58,7 +58,7 @@
     }
   },
   "scripts": {
-    "build": "rolldown -c rolldown.config.ts --clean-dir && tsgo -p tsconfig.build.json && find dist -name '*.d.ts' -exec perl -0pi -e \"s/\\.ts(['\\\"])/.js$1/g\" {} +",
+    "build": "rolldown -c rolldown.config.ts --clean-dir && tsgo -p tsconfig.build.json && find dist -name '*.d.ts' -exec perl -0pi -e \"s/\\.ts(['\\\"])/.js\\$1/g\" {} +",
     "typecheck": "tsgo --noEmit",
     "test": "bun test",
     "type-test": "tsd",
