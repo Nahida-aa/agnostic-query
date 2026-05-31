@@ -1,0 +1,52 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "emitDeclarationOnly": true,
+    "declaration": true,
+    "declarationMap": false,
+    "outDir": "dist",
+    "rootDir": "src",
+    "rewriteRelativeImportExtensions": true,
+    "allowImportingTsExtensions": true,
+    "module": "ESNext",
+    "target": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "types": ["bun"],
+    "skipLibCheck": true,
+    "strict": true
+  },
+  "include": [
+    "src/index.ts",
+    "src/zod.ts",
+    "src/valibot.ts",
+    "src/tanstack-db.ts",
+    "src/pipe/index.ts",
+    "src/sql/common.ts",
+    "src/sql/pg.ts",
+    "src/sql/sqlite.ts",
+    "src/sql/types.ts",
+    "src/core/index.ts",
+    "src/core/order-by.ts",
+    "src/core/schema.ts",
+    "src/core/where.ts",
+    "src/db0/pg.ts",
+    "src/db0/sqlite.ts",
+    "src/db0/types.ts",
+    "src/drizzle/pg.ts",
+    "src/drizzle/sqlite.ts",
+    "src/kysely/fromKysely.ts",
+    "src/kysely/pg.ts",
+    "src/kysely/types.ts"
+  ],
+  "exclude": [
+    "src/**/*.test.ts",
+    "src/**/*.test-d.ts",
+    "src/**/*.mock.test.ts",
+    "src/core/test-utils.ts",
+    "src/connectors/**",
+    "dist",
+    "node_modules"
+  ]
+}

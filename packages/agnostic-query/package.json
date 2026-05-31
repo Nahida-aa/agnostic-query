@@ -19,7 +19,7 @@
   "license": "MIT",
   "type": "module",
   "files": [
-    "src",
+    "dist",
     "README.md",
     "LICENSE",
     "package.json",
@@ -58,10 +58,11 @@
     }
   },
   "scripts": {
+    "build": "rolldown -c rolldown.config.ts --clean-dir && tsgo -p tsconfig.build.json && find dist -name '*.d.ts' -exec perl -0pi -e \"s/\\.ts(['\\\"])/.js$1/g\" {} +",
     "typecheck": "tsgo --noEmit",
     "test": "bun test",
     "type-test": "tsd",
-    "prepublishOnly": "cp ../../README.md . && cp ../../LICENSE ."
+    "prepublishOnly": "bun run build && cp ../../README.md . && cp ../../LICENSE ."
   },
   "peerDependencies": {
     "zod": "^4.4.3",
@@ -85,6 +86,41 @@
     },
     "kysely": {
       "optional": true
+    }
+  },
+  "publishConfig": {
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.js",
+        "default": "./dist/index.js"
+      },
+      "./*": {
+        "import": [
+          "./dist/*",
+          "./dist/*.js",
+          "./dist/*/index.js"
+        ],
+        "types": [
+          "./dist/*",
+          "./dist/*.d.ts",
+          "./dist/*/index.d.ts"
+        ]
+      },
+      "./*/*": {
+        "import": [
+          "./dist/*/*",
+          "./dist/*/*.js",
+          "./dist/*/*/index.js"
+        ],
+        "types": [
+          "./dist/*/*",
+          "./dist/*/*.d.ts",
+          "./dist/*/*/index.d.ts"
+        ]
+      }
     }
   },
   "devDependencies": {
