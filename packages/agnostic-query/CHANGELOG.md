@@ -1,5 +1,17 @@
 # agnostic-query
 
+## 1.10.0
+
+### Minor Changes
+
+- [`2dcd79a`](https://github.com/Nahida-aa/agnostic-query/commit/2dcd79a29418414f20d75c0394f314da4b24ff9f) Thanks [@Nahida-aa](https://github.com/Nahida-aa)! - Normalize empty TanStack DB order-by output in the final schema and add in-memory SQLite coverage for db0 and TanStack DB adapters.
+
+- [`db5a1ac`](https://github.com/Nahida-aa/agnostic-query/commit/db5a1ac4c7a85ed767017ae81dbe810f588aaa6f) Thanks [@Nahida-aa](https://github.com/Nahida-aa)! - Ship compiled dist exports for subpath entrypoints, add a build step to prepublish, and align db0 query types so `all()` supports both async and sync result providers.
+
+### Patch Changes
+
+- [`b4d8597`](https://github.com/Nahida-aa/agnostic-query/commit/b4d8597b58b81ad33ac3fa514120d8268bd60ff9) Thanks [@Nahida-aa](https://github.com/Nahida-aa)! - Include the source type entry in the published files list so `tsd` can resolve the package type definition.
+
 ## 1.9.11
 
 ### Patch Changes
