@@ -93,6 +93,5 @@ expectType<QuerySchema<DemoShape>>(
 	aq<DemoShape>().where(['address', 'city', 'name'], 'in', ['Paris', 'London']).toJSON(),
 );
 
-
 // No-op calls should still type-check and preserve builder chaining
 expectType<QuerySchema<DemoShape>>(aq<DemoShape>().where(null).where().toJSON());
