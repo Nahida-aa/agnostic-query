@@ -1,4 +1,11 @@
-import type { ArrayKeyOf, FieldPath, FieldPathByShape, GetPathType, SchemaShape } from './schema.ts';
+import type {
+	ArrayKeyOf,
+	FieldPath,
+	FieldPathByShape,
+	GetPathType,
+	SchemaShape,
+} from './schema.ts';
+
 export type { ArrayKeyOf };
 
 export const unaryComparisonOps = [
@@ -107,13 +114,13 @@ export type ComparisonWhereValue<
 					? GetPathType<TShape, Col>
 					: 'set ops require array fields'
 				: never
-	: Op extends PredicateOp
-		? never
-		: Col extends keyof TShape & string
-			? TShape[Col]
-			: Col extends FieldPathByShape<TShape>
-				? GetPathType<TShape, Col>
-				: never;
+		: Op extends PredicateOp
+			? never
+			: Col extends keyof TShape & string
+				? TShape[Col]
+				: Col extends FieldPathByShape<TShape>
+					? GetPathType<TShape, Col>
+					: never;
 export const newComparisonWhere =
 	<TShape extends SchemaShape>() =>
 	<
@@ -123,7 +130,8 @@ export const newComparisonWhere =
 		col: Col,
 		op: Op,
 		value: ComparisonWhereValue<TShape, Col, Op>,
-	) => buildInputWhere<TShape>(col, op, value);
+	) =>
+		buildInputWhere<TShape>(col, op, value);
 
 export const buildInputWhere = <TShape extends SchemaShape>(
 	col: string | readonly any[],
@@ -131,7 +139,8 @@ export const buildInputWhere = <TShape extends SchemaShape>(
 	value: unknown,
 ): ComparisonWhere<TShape> => {
 	const field = (Array.isArray(col) ? col : [col]) as FieldPath;
-	if (op === 'in') return { field, op, values: value } as ComparisonWhere<TShape>;
+	if (op === 'in')
+		return { field, op, values: value } as ComparisonWhere<TShape>;
 	if (op === 'is null') return { field, op } as ComparisonWhere<TShape>;
 	return { field, op, value } as ComparisonWhere<TShape>;
 };
@@ -142,7 +151,10 @@ export const mergeWhere = <TShape extends SchemaShape>(
 ): QueryWhere<TShape> => {
 	if (!existing) return next;
 	if (existing.op === 'and') {
-		return { op: 'and', conditions: [...(existing.conditions || []), next] } as QueryWhere<TShape>;
+		return {
+			op: 'and',
+			conditions: [...(existing.conditions || []), next],
+		} as QueryWhere<TShape>;
 	}
 	return { op: 'and', conditions: [existing, next] } as QueryWhere<TShape>;
 };
@@ -283,7 +295,7 @@ interface NewWhere<TShape extends SchemaShape = SchemaShape> {
 	where(where?: QueryWhere<TShape> | null): NewWhere<TShape>;
 }
 export const newWhere = <TShape extends SchemaShape>(
-	state?: QueryWhere<TShape> | null,
+	state?: QueryWhere<TShape> | null | undefined,
 ): NewWhere<TShape> => {
 	const where = <
 		Col extends FieldPathByShape<TShape> | (keyof TShape & string),

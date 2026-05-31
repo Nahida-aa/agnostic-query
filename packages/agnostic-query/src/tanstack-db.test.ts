@@ -11,8 +11,12 @@ const func = (name: string, args: Array<IR.BasicExpression>) =>
 	new IR.Func(name, args);
 
 describe('fromTanDbOrderBy', () => {
-	it('null returns empty array', () => {
-		expect(fromTanDbOrderBy(null)).toEqual([]);
+	it('null returns undefined', () => {
+		expect(fromTanDbOrderBy(null)).toBeUndefined();
+	});
+
+	it('empty array returns undefined', () => {
+		expect(fromTanDbOrderBy([])).toBeUndefined();
 	});
 
 	it('parses order clauses', () => {
@@ -35,8 +39,8 @@ describe('fromTanDbOrderBy', () => {
 });
 
 describe('fromTanDbWhere', () => {
-	it('null returns null', () => {
-		expect(fromTanDbWhere(null)).toBeNull();
+	it('null returns undefined', () => {
+		expect(fromTanDbWhere(null)).toBeUndefined();
 	});
 
 	it('maps comparison operators', () => {
@@ -131,8 +135,20 @@ describe('fromTanDb', () => {
 	it('returns empty filters for missing options', () => {
 		expect(fromTanDb<UserShape>()).toEqual({
 			limit: undefined,
-			where: null,
-			orderBy: [],
+			where: undefined,
+			orderBy: undefined,
+		});
+	});
+
+	it('drops empty orderBy in the final schema', () => {
+		expect(
+			fromTanDb<UserShape>({
+				orderBy: [],
+			}),
+		).toEqual({
+			limit: undefined,
+			where: undefined,
+			orderBy: undefined,
 		});
 	});
 
