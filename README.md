@@ -583,7 +583,7 @@ import {
   type InitialQueryBuilder,
 } from '@tanstack/db'
 import { aq, newWhere, type QuerySchema } from 'agnostic-query/index'
-import { fromTanDbOrderBy, fromTanDbWhere } from 'agnostic-query/tanstack-db'
+import { fromTanDb, } from 'agnostic-query/tanstack-db'
 import { listProject } from '#/features/project/project.fn.ts'
 import {
   type Project,
@@ -600,15 +600,7 @@ export const projectCollect = createCollection(
     autoIndex: 'eager',
     defaultIndexType: BasicIndex,
     queryFn: async ({ meta }) => {
-      const { where, limit, orderBy, cursor } =
-        meta?.loadSubsetOptions ?? {}
-      const data = {
-        limit,
-        where: newWhere(fromTanDbWhere(where))
-          .where(fromTanDbWhere(cursor?.whereFrom))
-          .toJSON(),
-        orderBy: fromTanDbOrderBy(orderBy),
-      }
+      const data = fromTanDb(meta?.loadSubsetOptions)
       return await listProject({ data })
     },
     getKey: (item) => item.id,
