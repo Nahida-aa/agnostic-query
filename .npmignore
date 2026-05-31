@@ -17,3 +17,9 @@ tags.json
 .npmrc
 *.test.*
 rolldown.config.ts
+*.test.ts
+*.test-d.ts
+*.mock.test.ts
+**/*.test.ts
+**/*.test-d.ts
+**/*.mock.test.ts
