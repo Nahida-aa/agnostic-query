@@ -23,6 +23,7 @@
     "README.md",
     "LICENSE",
     "package.json",
+    "src/index.ts",
     "skills"
   ],
   "main": "./src/index.ts",
