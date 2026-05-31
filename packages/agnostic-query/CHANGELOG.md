@@ -1,5 +1,17 @@
 # agnostic-query
 
+## 1.10.1
+
+### Patch Changes
+
+- [`b7cff5c`](https://github.com/Nahida-aa/agnostic-query/commit/b7cff5c8d500e8c49b6409ed5028fe99ff54d62e) Thanks [@Nahida-aa](https://github.com/Nahida-aa)! - fix: drizzle/sqlite.ts imports fieldToStr from sql/pg.ts instead of sql/sqlite.ts
+  feat: add db0/sqlite adapter for SQLite-flavored SQL via db0-compatible drivers
+  feat: extract Db type to db0/types.ts for reuse
+  fix: refactor type tests to use @ts-expect-error without expectError wrapper
+  docs: update README and docs with db0 adapter documentation and SQLite variant
+
+- [`0a34f56`](https://github.com/Nahida-aa/agnostic-query/commit/0a34f56d17cfc8d3b732bab4df3070f7ba869874) Thanks [@Nahida-aa](https://github.com/Nahida-aa)! - fix: restore exports to dist for published package
+
 ## 1.10.0
 
 ### Minor Changes
