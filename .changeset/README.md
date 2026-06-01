@@ -6,3 +6,15 @@ find the full documentation for it [in our repository](https://github.com/change
 
 We have a quick list of common questions to get you started engaging with this project in
 [our documentation](https://github.com/changesets/changesets/blob/main/docs/common-questions.md).
+
+## GitHub Actions: Publishing Flow (Patch/Minor/Major)
+
+To release a new version of the library to npm, follow this automated workflow:
+
+1. **Create Changeset**: Run `bun x @changesets/cli add`. Select the package and the version bump type (patch for fixes, minor for features, major for breaking changes).
+2. **Commit & Push**: 
+   - `git add .`
+   - `git commit -m "chore: <description of changes>"`
+   - `git push origin main`
+3. **Automatic PR**: The GitHub Action will automatically create a "Version Packages" Pull Request.
+4. **Merge & Release**: Review and merge the Version Packages PR. Upon merge, the Action will automatically publish the updated version to npm.

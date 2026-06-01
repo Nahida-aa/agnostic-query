@@ -16,6 +16,11 @@ type DemoShape = {
 	};
 };
 
+// aq<DemoShape>().where(['tags', 0], '')
+expectType<QuerySchema<DemoShape>>(
+	aq<DemoShape>().where(['address'], 'is null').toJSON(),
+);
+
 // toJSON should preserve the concrete query schema shape
 expectType<QuerySchema<DemoShape>>(aq<DemoShape>().toJSON());
 
@@ -94,6 +99,8 @@ expectType<QuerySchema<DemoShape>>(
 );
 
 // Invalid overloads / value combinations should be rejected
+
+
 // @ts-expect-error - 'is null' operator should not accept a value
 aq<DemoShape>().where('name', 'is null', 'x')
 // @ts-expect-error - trap overload: 'in' on array field → error on op

@@ -35,11 +35,6 @@ interface AgnosticQuery<TShape extends SchemaShape = SchemaShape> {
 	where(
 		cb: (eb: WhereExpr<TShape>) => WhereExpr<TShape>,
 	): AgnosticQuery<TShape>;
-	where<Col extends ArrayKeyOf<TShape>>(
-		col: Col,
-		op: "'in' is not allowed on array fields",
-		value?: never,
-	): AgnosticQuery<TShape>;
 	where<
 		Col extends FieldPathByShape<TShape> | (keyof TShape & string),
 		Op extends WhereComparisonOp,
@@ -51,10 +46,7 @@ interface AgnosticQuery<TShape extends SchemaShape = SchemaShape> {
 	where<
 		Col extends FieldPathByShape<TShape> | (keyof TShape & string),
 		Op extends PredicateOp,
-	>(
-		col: Col,
-		op: Op,
-	): AgnosticQuery<TShape>;
+	>(col: Col, op: Op): AgnosticQuery<TShape>;
 	where(where?: QueryWhere<TShape> | null): AgnosticQuery<TShape>;
 	orderBy<Col extends FieldPathByShape<TShape> | (keyof TShape & string)>(
 		col: Col,
@@ -82,7 +74,7 @@ export const aq = <TShape extends SchemaShape = SchemaShape>(
 	};
 	return {
 		toJSON: () => state || {},
-		where: (col: any, op?: any, value?: any) => {
+		where: (col: unknown, op?: unknown, value?: unknown) => {
 			if (col === null || col === undefined) {
 				return aq<TShape>(state);
 			}
@@ -100,12 +92,21 @@ export const aq = <TShape extends SchemaShape = SchemaShape>(
 			}
 			// 新增：col 是 QueryWhere 对象
 			if (col && typeof col === 'object' && 'op' in col) {
+				const whereObj = col as QueryWhere<TShape>;
 				const changedWhere: QueryWhere<TShape> = state?.where
-					? { op: 'and', conditions: [state.where, col] }
-					: col;
+					? { op: 'and', conditions: [state.where, whereObj] }
+					: whereObj;
 				return aq<TShape>({ ...state, where: changedWhere });
 			}
-			return where(col, op, value);
+			return where(
+				col as FieldPathByShape<TShape> | (keyof TShape & string),
+				op as WhereComparisonOp,
+				value as ComparisonWhereValue<
+					TShape,
+					FieldPathByShape<TShape> | (keyof TShape & string),
+					WhereComparisonOp
+				>,
+			);
 		},
 		orderBy: <Col extends FieldPathByShape<TShape> | (keyof TShape & string)>(
 			col: Col,

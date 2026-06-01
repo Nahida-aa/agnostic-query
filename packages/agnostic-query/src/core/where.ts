@@ -201,11 +201,6 @@ export type QueryWhere<
 
 export interface WhereExpr<TShape extends SchemaShape> {
 	_q: QueryWhere<TShape> | null;
-	where<Col extends ArrayKeyOf<TShape>>(
-		col: Col,
-		op: "'in' is not allowed on array fields",
-		value?: never,
-	): WhereExpr<TShape>;
 	where<
 		Col extends FieldPathByShape<TShape> | (keyof TShape & string),
 		Op extends WhereComparisonOp,
@@ -275,11 +270,6 @@ export const createExpr = <TShape extends SchemaShape>(
 interface NewWhere<TShape extends SchemaShape = SchemaShape> {
 	toJSON(): QueryWhere<TShape> | null | undefined;
 	where(cb: (eb: WhereExpr<TShape>) => WhereExpr<TShape>): NewWhere<TShape>;
-	where<Col extends ArrayKeyOf<TShape>>(
-		col: Col,
-		op: "'in' is not allowed on array fields",
-		value?: never,
-	): NewWhere<TShape>;
 	where<
 		Col extends FieldPathByShape<TShape> | (keyof TShape & string),
 		Op extends WhereComparisonOp,
@@ -311,7 +301,7 @@ export const newWhere = <TShape extends SchemaShape>(
 	};
 	return {
 		toJSON: () => state,
-		where: (col: any, op?: any, value?: any) => {
+		where: (col: unknown, op?: unknown, value?: unknown) => {
 			if (col === null || col === undefined) {
 				return newWhere<TShape>(state);
 			}
@@ -326,12 +316,21 @@ export const newWhere = <TShape extends SchemaShape>(
 			}
 			// 新增：col 是 QueryWhere 对象
 			if (col && typeof col === 'object' && 'op' in col) {
+				const whereObj = col as QueryWhere<TShape>;
 				const changedWhere: QueryWhere<TShape> = state
-					? { op: 'and', conditions: [state, col] }
-					: col;
+					? { op: 'and', conditions: [state, whereObj] }
+					: whereObj;
 				return newWhere<TShape>(changedWhere);
 			}
-			return where(col, op, value);
+			return where(
+				col as FieldPathByShape<TShape> | (keyof TShape & string),
+				op as WhereComparisonOp,
+				value as ComparisonWhereValue<
+					TShape,
+					FieldPathByShape<TShape> | (keyof TShape & string),
+					WhereComparisonOp
+				>,
+			);
 		},
 	};
 };
