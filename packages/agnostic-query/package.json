@@ -45,11 +45,11 @@
     "prepublishOnly": "bun run build && cp ../../README.md . && cp ../../LICENSE ."
   },
   "peerDependencies": {
-    "zod": "^4.4.3",
+    "zod": "^4.0.0",
     "valibot": "^1.4.0",
-    "drizzle-orm": "^0.45.2",
-    "@tanstack/db": "^0.6.5",
-    "kysely": "^0.29.0"
+    "drizzle-orm": "*",
+    "@tanstack/db": "*",
+    "kysely": "*"
   },
   "peerDependenciesMeta": {
     "zod": {
