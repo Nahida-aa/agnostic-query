@@ -1,5 +1,12 @@
 # agnostic-query
 
+## 1.10.3
+
+### Patch Changes
+
+- [`9fb8f9d`](https://github.com/Nahida-aa/agnostic-query/commit/9fb8f9d91987c177b086543cd5038d19920f67c7) Thanks [@Nahida-aa](https://github.com/Nahida-aa)! - fix: replace non-portable `./*`/`./*/*` exports with `"./"` directory pattern for broader compatibility
+  chore: remove unused `@tanstack/query-db-collection` devDependency
+
 ## 1.10.2
 
 ### Patch Changes
