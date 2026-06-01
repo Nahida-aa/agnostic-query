@@ -1,5 +1,11 @@
 # agnostic-query
 
+## 1.10.4
+
+### Patch Changes
+
+- [`a582f82`](https://github.com/Nahida-aa/agnostic-query/commit/a582f82422dbce6ae0230cb5cbd4aaab3e675c1c) Thanks [@Nahida-aa](https://github.com/Nahida-aa)! - fix: widen peerDependencies for broader compatibility (`zod ^4.0.0`, others `*`)
+
 ## 1.10.3
 
 ### Patch Changes
