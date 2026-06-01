@@ -1,5 +1,11 @@
 # agnostic-query
 
+## 1.10.5
+
+### Patch Changes
+
+- [`332c2d9`](https://github.com/Nahida-aa/agnostic-query/commit/332c2d95ea604595c22e07177138dfd5663ac1a9) Thanks [@Nahida-aa](https://github.com/Nahida-aa)! - Fix type assertion in findValueInWhere and update core types
+
 ## 1.10.4
 
 ### Patch Changes
