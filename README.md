@@ -208,7 +208,7 @@ bun add valibot      # optional
 
 # For ORM adapters
 bun add drizzle-orm  # optional
-bun add @tanstack/query-db-collection  # optional
+bun add @tanstack/db  # optional
 
 # For Kysely adapter
 bun add kysely  # optional
@@ -576,7 +576,7 @@ export const listProject = createServerFn()
 **Client collection** (`project.sync.ts`) — translates TanStack DB metadata into `QuerySchema` using `fromTanDbWhere` / `fromTanDbOrderBy`, then calls the server function
 
 ```ts
-import { queryCollectionOptions } from '@tanstack/query-db-collection'
+import { queryCollectionOptions } from '@tanstack/db'
 import {
   BasicIndex,
   createCollection,

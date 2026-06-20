@@ -18,7 +18,7 @@ bun add valibot      # optional
 
 # For ORM adapters
 bun add drizzle-orm  # optional
-bun add @tanstack/query-db-collection  # optional
+bun add @tanstack/db  # optional
 
 # For Kysely adapter
 bun add kysely  # optional

@@ -206,7 +206,7 @@ bun add valibot      # 可选
 
 # ORM 适配器
 bun add drizzle-orm  # 可选
-bun add @tanstack/query-db-collection  # 可选
+bun add @tanstack/db  # 可选
 
 # Kysely 适配器
 bun add kysely  # 可选
@@ -587,7 +587,7 @@ export const listProject = createServerFn()
 **客户端 Collection**（`project.sync.ts`）— 用 `fromTanDbWhere` / `fromTanDbOrderBy` 将 TanStack DB 元数据翻译为 `QuerySchema`，调用服务端函数
 
 ```ts
-import { queryCollectionOptions } from '@tanstack/query-db-collection'
+import { queryCollectionOptions } from '@tanstack/db'
 import {
   BasicIndex,
   createCollection,
