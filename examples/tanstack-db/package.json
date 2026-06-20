@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.18",
-    "@tanstack/query-db-collection": "latest",
+    "@tanstack/db": "latest",
     "@tanstack/react-db": "latest",
     "@tanstack/react-devtools": "latest",
     "@tanstack/react-form": "latest",

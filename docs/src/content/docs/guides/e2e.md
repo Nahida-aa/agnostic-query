@@ -79,7 +79,7 @@ export const listProject = createServerFn()
 **Client collection** (`project.sync.ts`)
 
 ```ts
-import { queryCollectionOptions } from '@tanstack/query-db-collection'
+import { queryCollectionOptions } from '@tanstack/db'
 import {
   BasicIndex,
   createCollection,

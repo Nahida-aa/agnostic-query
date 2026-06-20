@@ -51,9 +51,9 @@ export const projectCollect = createCollection(
 				data,
 			});
 		},
-		onInsert: async () => {},
-		onUpdate: async () => {},
-		onDelete: async () => {},
+		onInsert: async () => { },
+		onUpdate: async () => { },
+		onDelete: async () => { },
 	}),
 );
 
