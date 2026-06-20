@@ -1,5 +1,11 @@
 # agnostic-query
 
+## 1.10.7
+
+### Patch Changes
+
+- [#35](https://github.com/Nahida-aa/agnostic-query/pull/35) [`ed0f519`](https://github.com/Nahida-aa/agnostic-query/commit/ed0f519cc40dc3cfc51630f4117fa1673b358321) Thanks [@Nahida-aa](https://github.com/Nahida-aa)! - Update documentation and example code to reference `@tanstack/db` instead of the legacy `@tanstack/query-db-collection` package name.
+
 ## 1.10.6
 
 ### Patch Changes
