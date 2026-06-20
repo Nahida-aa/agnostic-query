@@ -32,9 +32,9 @@
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
     },
-    "./": {
-      "import": "./dist/",
-      "types": "./dist/"
+    "./*": {
+      "import": "./dist/*.js",
+      "types": "./dist/*.d.ts"
     }
   },
   "scripts": {
@@ -77,9 +77,9 @@
         "import": "./dist/index.js",
         "default": "./dist/index.js"
       },
-      "./": {
-        "import": "./dist/",
-        "types": "./dist/"
+      "./*": {
+        "import": "./dist/*.js",
+        "types": "./dist/*.d.ts"
       }
     }
   },
