@@ -1,5 +1,11 @@
 # agnostic-query
 
+## 1.10.6
+
+### Patch Changes
+
+- [#33](https://github.com/Nahida-aa/agnostic-query/pull/33) [`1b42d8f`](https://github.com/Nahida-aa/agnostic-query/commit/1b42d8ff3fabbd1744f07c569e6b7b40dae9084b) Thanks [@Nahida-aa](https://github.com/Nahida-aa)! - Fix subpath imports (`/tanstack-db`, `/zod`, `/drizzle/pg`, etc.) failing to resolve under `moduleResolution: "bundler"` / `node16` / `nodenext` by replacing the deprecated trailing-slash `"./"` export map with an explicit `"./*"` pattern.
+
 ## 1.10.5
 
 ### Patch Changes
