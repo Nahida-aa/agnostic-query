@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start": "bun run server.ts",
-    "typecheck": "tsgo --noEmit"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "agnostic-query": "workspace:*",
